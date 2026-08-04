@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AntiochiaArchive is a living digital memory of Antioch, preserving its stories, places, beliefs, and music.">
   <title>AntiochiaArchive — A living memory of Antioch</title>
+codex/create-responsive-multilingual-landing-page-egiwn9
   <link rel="stylesheet" href="style.css">
+
+main
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Libre+Caslon+Display&display=swap');
 
@@ -141,6 +144,7 @@
 
     .contribute:hover, .contribute:focus-visible { color: var(--paper); background: var(--ink); }
 
+codex/create-responsive-multilingual-landing-page-egiwn9
     /* The mobile menu stays out of the desktop layout until the 768px breakpoint. */
     .menu-button, .mobile-menu { display: none; }
 
@@ -152,6 +156,9 @@
       font-size: 1.7rem;
       line-height: 1;
     }
+
+    .menu-button { display: none; border: 0; background: transparent; cursor: pointer; }
+main
 
     .hero {
       min-height: calc(100svh - var(--header-height));
@@ -311,12 +318,18 @@
     .explore:hover span:last-child { transform: translateX(6px); }
 
     @media (max-width: 1050px) {
+codex/create-responsive-multilingual-landing-page-egiwn9
       .header-inner { grid-template-columns: auto 1fr auto; }
       .languages, .contribute { display: none; }
+
+      .header-inner { grid-template-columns: 1fr auto; }
+      .nav-links { display: none; }
+ main
       .hero { grid-template-columns: minmax(0, 1fr) 340px; }
       .hero-copy { width: 84%; }
     }
 
+ codex/create-responsive-multilingual-landing-page-egiwn9
     /* Mobile navigation replaces the full navigation below 768px. */
     @media (max-width: 767px) {
       :root { --header-height: 68px; }
@@ -377,6 +390,22 @@
       html[dir="rtl"] .mobile-menu { text-align: right; }
       html[dir="rtl"] .menu-button[aria-expanded="true"] { transform: rotate(-90deg); }
 
+
+    @media (max-width: 720px) {
+      :root { --header-height: 68px; }
+      .header-inner { padding: 0 20px; }
+      .brand { font-size: 1.08rem; }
+      .brand-mark { width: 28px; height: 28px; }
+      .languages, .contribute { display: none; }
+      .menu-button { display: block; width: 40px; height: 40px; padding: 10px; }
+      .menu-button span, .menu-button::before, .menu-button::after {
+        content: "";
+        display: block;
+        height: 1px;
+        margin: 5px 0;
+        background: var(--ink);
+      }
+ main
       .hero { display: block; }
       .map-panel { min-height: 67svh; }
       .hero-copy { top: 48%; left: 24px; width: calc(100% - 48px); }
@@ -403,7 +432,11 @@
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
+ codex/create-responsive-multilingual-landing-page-egiwn9
         <a href="#home" data-i18n="home">Home</a>
+
+        <a href="#history" data-i18n="history">History</a>
+ main
         <a href="#stories" data-i18n="stories">Stories</a>
         <a href="#structures" data-i18n="structures">Structures</a>
         <a href="#beliefs" data-i18n="beliefs">Beliefs</a>
@@ -417,6 +450,7 @@
           <button class="language-button" type="button" data-lang="ar" aria-pressed="false">AR</button>
         </div>
         <a class="contribute" href="#contribute"><span data-i18n="contribute">Contribute</span><span aria-hidden="true">＋</span></a>
+codex/create-responsive-multilingual-landing-page-egiwn9
         <!-- The hamburger is shown only on screens narrower than 768px. -->
         <button class="menu-button" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
@@ -430,6 +464,11 @@
       <a href="#beliefs" data-i18n="beliefs">Beliefs</a>
       <a href="#music" data-i18n="music">Music</a>
     </nav>
+
+        <button class="menu-button" type="button" aria-label="Open menu"><span></span></button>
+      </div>
+    </div>
+ main
   </header>
 
   <main>
@@ -451,13 +490,18 @@
           <h2 data-i18n="missionTitle">A city lives as long as its stories are told.</h2>
           <p data-i18n="missionText">AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.</p>
         </div>
+ codex/create-responsive-multilingual-landing-page-egiwn9
         <a class="explore" href="#home"><span data-i18n="explore">Explore the archive</span><span aria-hidden="true">→</span></a>
+
+        <a class="explore" href="#history"><span data-i18n="explore">Explore the archive</span><span aria-hidden="true">→</span></a>
+main
       </aside>
     </section>
   </main>
 
   <script>
     const translations = {
+ codex/create-responsive-multilingual-landing-page-egiwn9
       en: { home: "Home", stories: "Stories", structures: "Structures", beliefs: "Beliefs", music: "Music", contribute: "Contribute", mapLabel: "Antioch & the Orontes Valley", eyebrow: "A living digital memory", title: "Every memory<br>has a <em>place.</em>", missionTitle: "A city lives as long as its stories are told.", missionText: "AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.", explore: "Explore the archive" },
       tr: { home: "Ana Sayfa", stories: "Hikâyeler", structures: "Yapılar", beliefs: "İnançlar", music: "Müzik", contribute: "Katkıda Bulun", mapLabel: "Antakya ve Asi Vadisi", eyebrow: "Yaşayan bir dijital hafıza", title: "Her hatıranın<br>bir <em>yeri vardır.</em>", missionTitle: "Bir şehir, hikâyeleri anlatıldıkça yaşar.", missionText: "AntiochiaArchive, Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını bir araya getirerek nesiller ve sınırlar boyunca yolculuk eden kolektif bir hafıza oluşturur.", explore: "Arşivi keşfet" },
       ar: { home: "الرئيسية", stories: "الحكايات", structures: "المباني", beliefs: "المعتقدات", music: "الموسيقى", contribute: "ساهم معنا", mapLabel: "أنطاكية ووادي العاصي", eyebrow: "ذاكرة رقمية حيّة", title: "لكل ذكرى<br><em>مكان.</em>", missionTitle: "تبقى المدينة حيّة ما دامت حكاياتها تُروى.", missionText: "يجمع أرشيف أنطاكية الأصوات والصور والأغاني والأماكن المشتركة، ليصنع ذاكرة جماعية تعبر الأجيال والحدود.", explore: "استكشف الأرشيف" }
@@ -490,6 +534,13 @@
     });
 
     // Language controls update both desktop and mobile navigation labels.
+
+      en: { history: "History", stories: "Stories", structures: "Structures", beliefs: "Beliefs", music: "Music", contribute: "Contribute", mapLabel: "Antioch & the Orontes Valley", eyebrow: "A living digital memory", title: "Every memory<br>has a <em>place.</em>", missionTitle: "A city lives as long as its stories are told.", missionText: "AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.", explore: "Explore the archive" },
+      tr: { history: "Tarih", stories: "Hikâyeler", structures: "Yapılar", beliefs: "İnançlar", music: "Müzik", contribute: "Katkıda Bulun", mapLabel: "Antakya ve Asi Vadisi", eyebrow: "Yaşayan bir dijital hafıza", title: "Her hatıranın<br>bir <em>yeri vardır.</em>", missionTitle: "Bir şehir, hikâyeleri anlatıldıkça yaşar.", missionText: "AntiochiaArchive, Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını bir araya getirerek nesiller ve sınırlar boyunca yolculuk eden kolektif bir hafıza oluşturur.", explore: "Arşivi keşfet" },
+      ar: { history: "التاريخ", stories: "الحكايات", structures: "المباني", beliefs: "المعتقدات", music: "الموسيقى", contribute: "ساهم معنا", mapLabel: "أنطاكية ووادي العاصي", eyebrow: "ذاكرة رقمية حيّة", title: "لكل ذكرى<br><em>مكان.</em>", missionTitle: "تبقى المدينة حيّة ما دامت حكاياتها تُروى.", missionText: "يجمع أرشيف أنطاكية الأصوات والصور والأغاني والأماكن المشتركة، ليصنع ذاكرة جماعية تعبر الأجيال والحدود.", explore: "استكشف الأرشيف" }
+    };
+
+main
     document.querySelectorAll(".language-button").forEach((button) => {
       button.addEventListener("click", () => {
         const language = button.dataset.lang;
@@ -505,6 +556,7 @@
       });
     });
   </script>
-  <script src="script.js"></script>
+ codex/create-responsive-multilingual-landing-page-egiwn9
+ main
 </body>
 </html>

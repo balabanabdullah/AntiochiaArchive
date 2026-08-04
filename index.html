@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AntiochiaArchive is a living digital memory of Antioch, preserving its stories, places, beliefs, and music.">
   <title>AntiochiaArchive — A living memory of Antioch</title>
+  <link rel="stylesheet" href="style.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Libre+Caslon+Display&display=swap');
 
@@ -417,7 +418,7 @@
         </div>
         <a class="contribute" href="#contribute"><span data-i18n="contribute">Contribute</span><span aria-hidden="true">＋</span></a>
         <!-- The hamburger is shown only on screens narrower than 768px. -->
-        <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
+        <button class="menu-button" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
     </div>
 
@@ -474,11 +475,6 @@
       document.body.classList.toggle("menu-open", isOpen);
     }
 
-    // Repeated clicks on ☰ alternate between the open and closed states.
-    menuButton.addEventListener("click", () => {
-      setMenuOpen(menuButton.getAttribute("aria-expanded") !== "true");
-    });
-
     // Close after choosing a destination, or when Escape is pressed.
     mobileMenu.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setMenuOpen(false)));
     document.addEventListener("keydown", (event) => {
@@ -509,5 +505,6 @@
       });
     });
   </script>
+  <script src="script.js"></script>
 </body>
 </html>

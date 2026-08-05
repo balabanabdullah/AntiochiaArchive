@@ -1,84 +1,562 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AntiochiaArchive is a multilingual digital heritage archive for Antioch.">
-  <title>AntiochiaArchive</title>
+  <meta name="description" content="AntiochiaArchive is a living digital memory of Antioch, preserving its stories, places, beliefs, and music.">
+  <title>AntiochiaArchive — A living memory of Antioch</title>
+codex/create-responsive-multilingual-landing-page-egiwn9
   <link rel="stylesheet" href="style.css">
+
+main
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Libre+Caslon+Display&display=swap');
+
+    :root {
+      --ink: #29251f;
+      --paper: #f3eee3;
+      --paper-deep: #e8dfce;
+      --red: #a63d2f;
+      --red-dark: #7d2c23;
+      --olive: #696c4d;
+      --line: rgba(41, 37, 31, 0.2);
+      --serif: "Libre Caslon Display", Georgia, serif;
+      --sans: "DM Sans", Arial, sans-serif;
+      --header-height: 82px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    button { font: inherit; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      background: rgba(243, 238, 227, 0.94);
+      backdrop-filter: blur(14px);
+    }
+
+    .header-inner {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 0 3.5vw;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      width: max-content;
+      font-family: var(--serif);
+      font-size: 1.32rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--red);
+      border-radius: 50%;
+      color: var(--red);
+      font-family: Georgia, serif;
+      font-size: 1rem;
+    }
+
+    .nav-links { display: flex; align-items: center; gap: clamp(18px, 2.2vw, 38px); }
+
+    .nav-links a {
+      position: relative;
+      padding: 10px 0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 4px;
+      left: 0;
+      height: 1px;
+      background: var(--red);
+      transform: scaleX(0);
+      transition: transform 180ms ease;
+    }
+
+    .nav-links a:hover::after, .nav-links a:focus-visible::after { transform: scaleX(1); }
+
+    .header-actions { display: flex; justify-content: flex-end; align-items: center; gap: 18px; }
+
+    .languages { display: flex; align-items: center; gap: 4px; }
+
+    .language-button {
+      min-width: 31px;
+      padding: 6px 5px;
+      border: 0;
+      border-radius: 50%;
+      color: #736c61;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.69rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .language-button[aria-pressed="true"] { color: var(--paper); background: var(--ink); }
+
+    .contribute {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 16px;
+      border: 1px solid var(--ink);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 180ms ease, background 180ms ease;
+    }
+
+    .contribute:hover, .contribute:focus-visible { color: var(--paper); background: var(--ink); }
+
+codex/create-responsive-multilingual-landing-page-egiwn9
+    /* The mobile menu stays out of the desktop layout until the 768px breakpoint. */
+    .menu-button, .mobile-menu { display: none; }
+
+    .menu-button {
+      border: 0;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+
+    .menu-button { display: none; border: 0; background: transparent; cursor: pointer; }
+main
+
+    .hero {
+      min-height: calc(100svh - var(--header-height));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) clamp(310px, 27vw, 420px);
+      background: var(--paper-deep);
+    }
+
+    .map-panel {
+      position: relative;
+      min-height: 680px;
+      overflow: hidden;
+      isolation: isolate;
+      background: #d7cbb5;
+    }
+
+    .map-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      opacity: 0.48;
+      background-image: url("data:image/svg+xml,%3Csvg width='1200' height='800' viewBox='0 0 1200 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23756c59' stroke-width='1.2' opacity='.7'%3E%3Cpath d='M-60 97C132 154 190 45 344 87s159 176 320 147 218-153 416-94 188 123 290 76'/%3E%3Cpath d='M-40 174c135 38 238-34 341 18s160 142 308 117 219-80 374-46 214 124 302 92'/%3E%3Cpath d='M-70 611c167-72 222 48 384-10s212-185 369-107 254 166 480 63'/%3E%3Cpath d='M47-30C75 132 22 227 101 340s191 113 208 239-40 201 20 288'/%3E%3Cpath d='M853-60c-94 152-49 266 31 344s104 161 36 280-43 204 36 287'/%3E%3Cpath d='M507-30c-52 118 42 191 2 309s-147 159-84 272 196 120 207 290'/%3E%3C/g%3E%3Cg fill='%236e755e' opacity='.2'%3E%3Cpath d='M930 0h270v800H1075c-80-116-58-217 23-288-83-63-77-164-7-229C1004 208 987 100 930 0Z'/%3E%3Cpath d='M0 535c88-55 180-34 234 40 69 94 137 124 238 118L517 800H0Z'/%3E%3C/g%3E%3Cg fill='%23887960' font-family='Georgia' font-size='14' letter-spacing='3'%3E%3Ctext x='175' y='186'%3EAMIK PLAIN%3C/text%3E%3Ctext x='760' y='410'%3EORONTES%3C/text%3E%3Ctext x='355' y='570'%3EHABIB-I NECCAR%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      filter: sepia(0.16);
+    }
+
+    .map-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(90deg, rgba(37, 34, 29, 0.13), transparent 30%, rgba(240, 232, 216, 0.12));
+      pointer-events: none;
+    }
+
+    .map-label {
+      position: absolute;
+      top: 8%;
+      left: 5%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .map-label::before { content: ""; width: 28px; height: 1px; background: currentColor; }
+
+    .hero-copy {
+      position: absolute;
+      top: 50%;
+      left: 7.5%;
+      width: min(760px, 76%);
+      transform: translateY(-52%);
+    }
+
+    .eyebrow {
+      margin: 0 0 24px;
+      color: var(--red-dark);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(4rem, 7.4vw, 7.8rem);
+      font-weight: 400;
+      line-height: 0.88;
+      letter-spacing: -0.055em;
+    }
+
+    h1 em { color: var(--red); font-weight: 400; }
+
+    .coordinates {
+      position: absolute;
+      bottom: 7%;
+      left: 7.5%;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--serif);
+      font-size: 1rem;
+    }
+
+    .coordinates span { width: 48px; height: 1px; background: var(--ink); }
+
+    .river {
+      position: absolute;
+      top: -10%;
+      right: 13%;
+      width: 11%;
+      height: 125%;
+      border-left: 2px solid rgba(81, 101, 99, 0.52);
+      border-radius: 52% 0 0 45%;
+      transform: rotate(8deg);
+      box-shadow: -6px 0 0 rgba(81, 101, 99, 0.08);
+    }
+
+    .archive-pin {
+      position: absolute;
+      top: 43%;
+      right: 20%;
+      display: grid;
+      place-items: center;
+      width: 21px;
+      height: 21px;
+      border: 1px solid var(--red);
+      border-radius: 50%;
+      background: var(--paper);
+      box-shadow: 0 0 0 8px rgba(166, 61, 47, 0.14);
+    }
+
+    .archive-pin::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
+
+    .mission {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(42px, 6vh, 72px) clamp(28px, 3.5vw, 54px) 42px;
+      color: #f6f0e4;
+      background: var(--red-dark);
+    }
+
+    .mission-count { color: #d9a79a; font-family: var(--serif); font-size: 1.1rem; }
+
+    .mission-copy h2 {
+      margin: 0 0 30px;
+      font-family: var(--serif);
+      font-size: clamp(2.25rem, 3.1vw, 3.75rem);
+      font-weight: 400;
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+    }
+
+    .mission-copy p { margin: 0; color: #e3d5ca; font-size: 0.96rem; line-height: 1.8; }
+
+    .explore {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 26px;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .explore span:last-child { font-size: 1.45rem; transition: transform 180ms ease; }
+    .explore:hover span:last-child { transform: translateX(6px); }
+
+    @media (max-width: 1050px) {
+codex/create-responsive-multilingual-landing-page-egiwn9
+      .header-inner { grid-template-columns: auto 1fr auto; }
+      .languages, .contribute { display: none; }
+
+      .header-inner { grid-template-columns: 1fr auto; }
+      .nav-links { display: none; }
+ main
+      .hero { grid-template-columns: minmax(0, 1fr) 340px; }
+      .hero-copy { width: 84%; }
+    }
+
+ codex/create-responsive-multilingual-landing-page-egiwn9
+    /* Mobile navigation replaces the full navigation below 768px. */
+    @media (max-width: 767px) {
+      :root { --header-height: 68px; }
+      .header-inner { grid-template-columns: 1fr auto; padding: 0 20px; }
+      .brand { font-size: 1.08rem; }
+      .brand-mark { width: 28px; height: 28px; }
+      .nav-links { display: none; }
+      .menu-button {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        place-items: center;
+        border-radius: 50%;
+        transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+      }
+      .menu-button:hover, .menu-button:focus-visible, .menu-button[aria-expanded="true"] {
+        color: var(--paper);
+        background: var(--ink);
+      }
+      .menu-button[aria-expanded="true"] { transform: rotate(90deg); }
+
+      .mobile-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 20px 22px;
+        border-bottom: 1px solid var(--line);
+        background: var(--paper);
+        box-shadow: 0 18px 30px rgba(41, 37, 31, 0.12);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-12px);
+        pointer-events: none;
+        transition: opacity 220ms ease, transform 220ms ease, visibility 220ms;
+      }
+      .mobile-menu.is-open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .mobile-menu a {
+        padding: 15px 4px;
+        border-bottom: 1px solid var(--line);
+        font-family: var(--serif);
+        font-size: 1.45rem;
+      }
+      .mobile-menu a:last-child { border-bottom: 0; }
+      .mobile-menu a:hover, .mobile-menu a:focus-visible { color: var(--red); }
+
+      /* Prevent the page behind the dropdown from scrolling while it is open. */
+      body.menu-open { overflow: hidden; }
+
+      html[dir="rtl"] .mobile-menu { text-align: right; }
+      html[dir="rtl"] .menu-button[aria-expanded="true"] { transform: rotate(-90deg); }
+
+
+    @media (max-width: 720px) {
+      :root { --header-height: 68px; }
+      .header-inner { padding: 0 20px; }
+      .brand { font-size: 1.08rem; }
+      .brand-mark { width: 28px; height: 28px; }
+      .languages, .contribute { display: none; }
+      .menu-button { display: block; width: 40px; height: 40px; padding: 10px; }
+      .menu-button span, .menu-button::before, .menu-button::after {
+        content: "";
+        display: block;
+        height: 1px;
+        margin: 5px 0;
+        background: var(--ink);
+      }
+ main
+      .hero { display: block; }
+      .map-panel { min-height: 67svh; }
+      .hero-copy { top: 48%; left: 24px; width: calc(100% - 48px); }
+      h1 { font-size: clamp(3.6rem, 17vw, 5.2rem); }
+      .map-label { top: 6%; left: 24px; }
+      .coordinates { bottom: 6%; left: 24px; }
+      .river { right: 8%; }
+      .archive-pin { right: 16%; }
+      .mission { min-height: 470px; gap: 64px; padding: 42px 24px 30px; }
+      .mission-copy h2 { font-size: 2.65rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
 </head>
 <body>
-  <a class="skip-link" href="#main-content" data-i18n="accessibility.skipLink"></a>
-
-  <header class="site-header" data-header>
+  <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="#home" data-i18n-aria-label="brand.ariaLabel">
+      <a class="brand" href="#" aria-label="AntiochiaArchive home">
         <span class="brand-mark" aria-hidden="true">A</span>
-        <span data-i18n="brand.name"></span>
+        <span>AntiochiaArchive</span>
       </a>
 
-      <nav class="primary-nav" data-nav="desktop" data-i18n-aria-label="navigation.primaryLabel"></nav>
+      <nav class="nav-links" aria-label="Primary navigation">
+ codex/create-responsive-multilingual-landing-page-egiwn9
+        <a href="#home" data-i18n="home">Home</a>
+
+        <a href="#history" data-i18n="history">History</a>
+ main
+        <a href="#stories" data-i18n="stories">Stories</a>
+        <a href="#structures" data-i18n="structures">Structures</a>
+        <a href="#beliefs" data-i18n="beliefs">Beliefs</a>
+        <a href="#music" data-i18n="music">Music</a>
+      </nav>
 
       <div class="header-actions">
-        <div class="language-switcher" data-language-switcher data-i18n-aria-label="language.label" role="group"></div>
-        <a class="button button-primary contribute" href="#contribute" data-i18n="actions.contribute"></a>
-        <button class="menu-button" id="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" data-i18n-aria-label="navigation.openMenu">
-          <span aria-hidden="true">☰</span>
-        </button>
+        <div class="languages" aria-label="Choose language">
+          <button class="language-button" type="button" data-lang="tr" aria-pressed="false">TR</button>
+          <button class="language-button" type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button class="language-button" type="button" data-lang="ar" aria-pressed="false">AR</button>
+        </div>
+        <a class="contribute" href="#contribute"><span data-i18n="contribute">Contribute</span><span aria-hidden="true">＋</span></a>
+codex/create-responsive-multilingual-landing-page-egiwn9
+        <!-- The hamburger is shown only on screens narrower than 768px. -->
+        <button class="menu-button" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
     </div>
 
-    <nav class="mobile-menu" id="mobile-menu" data-nav="mobile" data-i18n-aria-label="navigation.mobileLabel" aria-hidden="true"></nav>
+    <!-- This animated dropdown mirrors the desktop navigation for mobile visitors. -->
+    <nav class="mobile-menu" id="mobile-menu" aria-label="Mobile navigation" aria-hidden="true">
+      <a href="#home" data-i18n="home">Home</a>
+      <a href="#stories" data-i18n="stories">Stories</a>
+      <a href="#structures" data-i18n="structures">Structures</a>
+      <a href="#beliefs" data-i18n="beliefs">Beliefs</a>
+      <a href="#music" data-i18n="music">Music</a>
+    </nav>
+
+        <button class="menu-button" type="button" aria-label="Open menu"><span></span></button>
+      </div>
+    </div>
+ main
   </header>
 
-  <main id="main-content">
-    <section class="hero" id="home" aria-labelledby="hero-title">
-      <div class="map-panel" data-i18n-aria-label="map.ariaLabel">
-        <p class="map-label" data-i18n="map.label"></p>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="map-panel">
+        <div class="map-label" data-i18n="mapLabel">Antioch &amp; the Orontes Valley</div>
         <div class="hero-copy">
-          <p class="eyebrow" data-i18n="hero.eyebrow"></p>
-          <h1 id="hero-title" data-i18n-html="hero.title"></h1>
-          <p class="hero-summary" data-i18n="hero.summary"></p>
+          <p class="eyebrow" data-i18n="eyebrow">A living digital memory</p>
+          <h1 id="hero-title" data-i18n-html="title">Every memory<br>has a <em>place.</em></h1>
         </div>
         <div class="river" aria-hidden="true"></div>
         <div class="archive-pin" aria-hidden="true"></div>
-        <p class="coordinates" data-i18n-aria-label="map.coordinatesLabel">
-          <span data-i18n="map.latitude"></span>
-          <span class="coordinate-rule" aria-hidden="true"></span>
-          <span data-i18n="map.longitude"></span>
-        </p>
+        <div class="coordinates" aria-label="Antioch coordinates">36.2021° N <span></span> 36.1608° E</div>
       </div>
 
-      <aside class="mission-panel" id="history" data-i18n-aria-label="mission.ariaLabel">
-        <p class="section-count" data-i18n="mission.count"></p>
+      <aside class="mission" aria-label="Our mission">
+        <div class="mission-count">01 — 05</div>
         <div class="mission-copy">
-          <h2 data-i18n="mission.title"></h2>
-          <p data-i18n="mission.body"></p>
+          <h2 data-i18n="missionTitle">A city lives as long as its stories are told.</h2>
+          <p data-i18n="missionText">AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.</p>
         </div>
-        <a class="explore-link" href="#stories">
-          <span data-i18n="actions.explore"></span>
-          <span aria-hidden="true">→</span>
-        </a>
+ codex/create-responsive-multilingual-landing-page-egiwn9
+        <a class="explore" href="#home"><span data-i18n="explore">Explore the archive</span><span aria-hidden="true">→</span></a>
+
+        <a class="explore" href="#history"><span data-i18n="explore">Explore the archive</span><span aria-hidden="true">→</span></a>
+main
       </aside>
-    </section>
-
-    <section class="archive-sections" id="stories" aria-labelledby="sections-title">
-      <div class="section-heading">
-        <p class="eyebrow" data-i18n="sections.eyebrow"></p>
-        <h2 id="sections-title" data-i18n="sections.title"></h2>
-      </div>
-      <div class="card-grid" data-section-cards></div>
-    </section>
-
-    <section class="contribution-panel" id="contribute" aria-labelledby="contribute-title">
-      <p class="eyebrow" data-i18n="contribute.eyebrow"></p>
-      <h2 id="contribute-title" data-i18n="contribute.title"></h2>
-      <p data-i18n="contribute.body"></p>
-      <a class="button button-primary" href="mailto:hello@antiochiaarchive.org" data-i18n="actions.email"></a>
     </section>
   </main>
 
-  <script src="lang.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const translations = {
+ codex/create-responsive-multilingual-landing-page-egiwn9
+      en: { home: "Home", stories: "Stories", structures: "Structures", beliefs: "Beliefs", music: "Music", contribute: "Contribute", mapLabel: "Antioch & the Orontes Valley", eyebrow: "A living digital memory", title: "Every memory<br>has a <em>place.</em>", missionTitle: "A city lives as long as its stories are told.", missionText: "AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.", explore: "Explore the archive" },
+      tr: { home: "Ana Sayfa", stories: "Hikâyeler", structures: "Yapılar", beliefs: "İnançlar", music: "Müzik", contribute: "Katkıda Bulun", mapLabel: "Antakya ve Asi Vadisi", eyebrow: "Yaşayan bir dijital hafıza", title: "Her hatıranın<br>bir <em>yeri vardır.</em>", missionTitle: "Bir şehir, hikâyeleri anlatıldıkça yaşar.", missionText: "AntiochiaArchive, Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını bir araya getirerek nesiller ve sınırlar boyunca yolculuk eden kolektif bir hafıza oluşturur.", explore: "Arşivi keşfet" },
+      ar: { home: "الرئيسية", stories: "الحكايات", structures: "المباني", beliefs: "المعتقدات", music: "الموسيقى", contribute: "ساهم معنا", mapLabel: "أنطاكية ووادي العاصي", eyebrow: "ذاكرة رقمية حيّة", title: "لكل ذكرى<br><em>مكان.</em>", missionTitle: "تبقى المدينة حيّة ما دامت حكاياتها تُروى.", missionText: "يجمع أرشيف أنطاكية الأصوات والصور والأغاني والأماكن المشتركة، ليصنع ذاكرة جماعية تعبر الأجيال والحدود.", explore: "استكشف الأرشيف" }
+    };
+
+    const menuButton = document.querySelector(".menu-button");
+    const mobileMenu = document.querySelector(".mobile-menu");
+
+    // Keep visual, accessibility, and page-scroll states in sync.
+    function setMenuOpen(isOpen) {
+      mobileMenu.classList.toggle("is-open", isOpen);
+      mobileMenu.setAttribute("aria-hidden", String(!isOpen));
+      menuButton.setAttribute("aria-expanded", String(isOpen));
+      menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+      document.body.classList.toggle("menu-open", isOpen);
+    }
+
+    // Close after choosing a destination, or when Escape is pressed.
+    mobileMenu.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setMenuOpen(false)));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.focus();
+      }
+    });
+
+    // Reset mobile-only state when the viewport returns to desktop size.
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 768) setMenuOpen(false);
+    });
+
+    // Language controls update both desktop and mobile navigation labels.
+
+      en: { history: "History", stories: "Stories", structures: "Structures", beliefs: "Beliefs", music: "Music", contribute: "Contribute", mapLabel: "Antioch & the Orontes Valley", eyebrow: "A living digital memory", title: "Every memory<br>has a <em>place.</em>", missionTitle: "A city lives as long as its stories are told.", missionText: "AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.", explore: "Explore the archive" },
+      tr: { history: "Tarih", stories: "Hikâyeler", structures: "Yapılar", beliefs: "İnançlar", music: "Müzik", contribute: "Katkıda Bulun", mapLabel: "Antakya ve Asi Vadisi", eyebrow: "Yaşayan bir dijital hafıza", title: "Her hatıranın<br>bir <em>yeri vardır.</em>", missionTitle: "Bir şehir, hikâyeleri anlatıldıkça yaşar.", missionText: "AntiochiaArchive, Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını bir araya getirerek nesiller ve sınırlar boyunca yolculuk eden kolektif bir hafıza oluşturur.", explore: "Arşivi keşfet" },
+      ar: { history: "التاريخ", stories: "الحكايات", structures: "المباني", beliefs: "المعتقدات", music: "الموسيقى", contribute: "ساهم معنا", mapLabel: "أنطاكية ووادي العاصي", eyebrow: "ذاكرة رقمية حيّة", title: "لكل ذكرى<br><em>مكان.</em>", missionTitle: "تبقى المدينة حيّة ما دامت حكاياتها تُروى.", missionText: "يجمع أرشيف أنطاكية الأصوات والصور والأغاني والأماكن المشتركة، ليصنع ذاكرة جماعية تعبر الأجيال والحدود.", explore: "استكشف الأرشيف" }
+    };
+
+main
+    document.querySelectorAll(".language-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const language = button.dataset.lang;
+        document.documentElement.lang = language;
+        document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          element.textContent = translations[language][element.dataset.i18n];
+        });
+        document.querySelectorAll("[data-i18n-html]").forEach((element) => {
+          element.innerHTML = translations[language][element.dataset.i18nHtml];
+        });
+        document.querySelectorAll(".language-button").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      });
+    });
+  </script>
+ codex/create-responsive-multilingual-landing-page-egiwn9
+ main
 </body>
 </html>

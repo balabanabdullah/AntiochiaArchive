@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AntiochiaArchive is a multilingual digital heritage archive for Antioch.">
+  <title>AntiochiaArchive</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content" data-i18n="accessibility.skipLink"></a>
+
+  <header class="site-header" data-header>
+    <div class="header-inner">
+      <a class="brand" href="#home" data-i18n-aria-label="brand.ariaLabel">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span>
+          <span class="brand-name" data-i18n="brand.name"></span>
+          <span class="brand-tagline" data-i18n="brand.tagline"></span>
+        </span>
+      </a>
+
+      <nav class="nav-links" data-nav="desktop" data-i18n-aria-label="navigation.primaryLabel"></nav>
+
+      <div class="header-actions">
+        <div class="language-switcher" data-language-switcher data-i18n-aria-label="language.label" role="group"></div>
+        <a class="button button-primary contribute" href="#contribute" data-i18n="actions.contribute"></a>
+        <button class="menu-button" id="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" data-i18n-aria-label="navigation.openMenu">
+          <span aria-hidden="true">☰</span>
+        </button>
+      </div>
+    </div>
+
+    <nav class="mobile-menu" id="mobile-menu" data-nav="mobile" data-i18n-aria-label="navigation.mobileLabel" aria-hidden="true"></nav>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <div class="map-panel" data-i18n-aria-label="map.ariaLabel">
+        <p class="map-label" data-i18n="map.label"></p>
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="hero.eyebrow"></p>
+          <h1 id="hero-title" data-i18n-html="hero.title"></h1>
+          <p class="hero-summary" data-i18n="hero.summary"></p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#stories" data-i18n="actions.explore"></a>
+            <a class="button button-secondary" href="#mission" data-i18n="actions.mission"></a>
+          </div>
+        </div>
+        <div class="river" aria-hidden="true"></div>
+        <div class="archive-pin" aria-hidden="true"></div>
+        <p class="coordinates" data-i18n-aria-label="map.coordinatesLabel">
+          <span data-i18n="map.latitude"></span>
+          <span class="coordinate-rule" aria-hidden="true"></span>
+          <span data-i18n="map.longitude"></span>
+        </p>
+      </div>
+
+      <aside class="mission-panel" id="mission" data-i18n-aria-label="mission.ariaLabel">
+        <p class="section-count" data-i18n="mission.count"></p>
+        <div class="mission-copy">
+          <p class="eyebrow" data-i18n="mission.eyebrow"></p>
+          <h2 data-i18n="mission.title"></h2>
+          <p data-i18n="mission.body"></p>
+        </div>
+        <a class="explore-link" href="#stories">
+          <span data-i18n="actions.explore"></span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </aside>
+    </section>
+
+    <section class="archive-sections" id="stories" aria-labelledby="sections-title">
+      <div class="section-heading">
+        <p class="eyebrow" data-i18n="sections.eyebrow"></p>
+        <h2 id="sections-title" data-i18n="sections.title"></h2>
+      </div>
+      <div class="card-grid" data-section-cards></div>
+    </section>
+
+    <section class="stats-panel" aria-labelledby="stats-title">
+      <h2 id="stats-title" class="sr-only" data-i18n="stats.title"></h2>
+      <div class="stats-grid" data-stats></div>
+    </section>
+
+    <section class="contribution-panel" id="contribute" aria-labelledby="contribute-title">
+      <div>
+        <p class="eyebrow" data-i18n="contribute.eyebrow"></p>
+        <h2 id="contribute-title" data-i18n-html="contribute.title"></h2>
+        <p data-i18n="contribute.body"></p>
+      </div>
+      <a class="button button-light" href="mailto:hello@antiochiaarchive.org" data-i18n="actions.email"></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <div>
+        <strong data-i18n="brand.name"></strong>
+        <p data-i18n="footer.summary"></p>
+      </div>
+    </div>
+    <nav class="footer-links" data-footer-links data-i18n-aria-label="footer.label"></nav>
+    <p class="copyright" data-i18n="footer.copyright"></p>
+  </footer>
+
+  <script src="lang.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,409 +1,633 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AntiochiaArchive is a living digital memory of Antioch, preserving its stories, places, beliefs, and music.">
-  <title>AntiochiaArchive — A living memory of Antioch</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="AntiochiaArchive is a multilingual digital memory archive for Antioch's stories, structures, beliefs, and music.">
+  <title>AntiochiaArchive — Digital Memory Archive</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Libre+Caslon+Display&display=swap');
-
     :root {
-      --ink: #29251f;
-      --paper: #f3eee3;
-      --paper-deep: #e8dfce;
-      --red: #a63d2f;
-      --red-dark: #7d2c23;
-      --olive: #696c4d;
-      --line: rgba(41, 37, 31, 0.2);
-      --serif: "Libre Caslon Display", Georgia, serif;
-      --sans: "DM Sans", Arial, sans-serif;
-      --header-height: 82px;
+      --ink: #28231d;
+      --muted: #6d6458;
+      --paper: #f4efe5;
+      --paper-soft: #fffaf0;
+      --sand: #ded2bc;
+      --line: rgba(40, 35, 29, 0.18);
+      --accent: #a43c30;
+      --accent-dark: #7f2d24;
+      --olive: #697052;
+      --shadow: 0 24px 70px rgba(40, 35, 29, 0.14);
+      --serif: Georgia, "Times New Roman", Times, serif;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --header-height: 78px;
     }
 
-    * { box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
 
     body {
       margin: 0;
+      min-height: 100vh;
       color: var(--ink);
       background: var(--paper);
       font-family: var(--sans);
+      line-height: 1.5;
+      text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
     }
 
-    a { color: inherit; text-decoration: none; }
+    body.menu-open {
+      overflow: hidden;
+    }
 
-    button { font: inherit; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid rgba(164, 60, 48, 0.38);
+      outline-offset: 4px;
+    }
 
     .site-header {
       position: sticky;
       top: 0;
       z-index: 20;
-      height: var(--header-height);
+      min-height: var(--header-height);
       display: flex;
       align-items: center;
       border-bottom: 1px solid var(--line);
-      background: rgba(243, 238, 227, 0.94);
-      backdrop-filter: blur(14px);
+      background: rgba(244, 239, 229, 0.96);
+      backdrop-filter: blur(16px);
     }
 
     .header-inner {
       width: min(1440px, 100%);
-      margin: 0 auto;
-      padding: 0 3.5vw;
+      margin-inline: auto;
+      padding-inline: clamp(1rem, 3.5vw, 3.5rem);
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 28px;
+      gap: clamp(1rem, 2.4vw, 2rem);
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
+      gap: 0.8rem;
       width: max-content;
       font-family: var(--serif);
-      font-size: 1.32rem;
-      letter-spacing: -0.02em;
+      font-size: clamp(1.12rem, 1.7vw, 1.35rem);
+      letter-spacing: -0.03em;
+      white-space: nowrap;
     }
 
     .brand-mark {
-      width: 32px;
-      height: 32px;
+      width: 2rem;
+      height: 2rem;
       display: grid;
       place-items: center;
-      border: 1px solid var(--red);
+      border: 1px solid var(--accent);
       border-radius: 50%;
-      color: var(--red);
-      font-family: Georgia, serif;
-      font-size: 1rem;
+      color: var(--accent);
+      font-size: 0.98rem;
+      line-height: 1;
     }
 
-    .nav-links { display: flex; align-items: center; gap: clamp(18px, 2.2vw, 38px); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(1rem, 2.4vw, 2.5rem);
+    }
+
+    .nav-links a,
+    .mobile-menu a {
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
     .nav-links a {
       position: relative;
-      padding: 10px 0;
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      padding-block: 0.7rem;
     }
 
     .nav-links a::after {
       content: "";
       position: absolute;
       right: 0;
-      bottom: 4px;
+      bottom: 0.35rem;
       left: 0;
       height: 1px;
-      background: var(--red);
+      background: var(--accent);
       transform: scaleX(0);
       transition: transform 180ms ease;
     }
 
-    .nav-links a:hover::after, .nav-links a:focus-visible::after { transform: scaleX(1); }
-
-    .header-actions { display: flex; justify-content: flex-end; align-items: center; gap: 18px; }
-
-    .languages { display: flex; align-items: center; gap: 4px; }
-
-    .language-button {
-      min-width: 31px;
-      padding: 6px 5px;
-      border: 0;
-      border-radius: 50%;
-      color: #736c61;
-      background: transparent;
-      cursor: pointer;
-      font-size: 0.69rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
+    .nav-links a:hover::after,
+    .nav-links a:focus-visible::after {
+      transform: scaleX(1);
     }
 
-    .language-button[aria-pressed="true"] { color: var(--paper); background: var(--ink); }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    .languages {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .language-button {
+      min-width: 2rem;
+      min-height: 2rem;
+      padding: 0.35rem;
+      border-radius: 999px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+
+    .language-button:hover,
+    .language-button[aria-pressed="true"] {
+      color: var(--paper-soft);
+      background: var(--ink);
+    }
+
+    .language-button:active,
+    .menu-button:active,
+    .contribute:active {
+      transform: translateY(1px);
+    }
 
     .contribute {
       display: inline-flex;
       align-items: center;
-      gap: 18px;
-      padding: 12px 16px;
-      border: 1px solid var(--ink);
-      font-size: 0.75rem;
-      font-weight: 600;
+      gap: 0.55rem;
+      padding: 0.78rem 1rem;
+      border: 1px solid var(--accent);
+      color: var(--paper-soft);
+      background: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      transition: color 180ms ease, background 180ms ease;
+      transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
     }
 
-    .contribute:hover, .contribute:focus-visible { color: var(--paper); background: var(--ink); }
-
-    /* The mobile menu stays out of the desktop layout until the 768px breakpoint. */
-    .menu-button, .mobile-menu { display: none; }
+    .contribute:hover {
+      border-color: var(--accent-dark);
+      background: var(--accent-dark);
+    }
 
     .menu-button {
-      border: 0;
+      display: none;
+      width: 2.75rem;
+      height: 2.75rem;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
       color: var(--ink);
-      background: transparent;
-      cursor: pointer;
-      font-size: 1.7rem;
+      background: rgba(255, 250, 240, 0.78);
+      font-size: 1.35rem;
       line-height: 1;
+      transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+    }
+
+    .menu-button:hover,
+    .menu-button[aria-expanded="true"] {
+      border-color: var(--accent);
+      background: rgba(164, 60, 48, 0.12);
+    }
+
+    .mobile-menu {
+      position: absolute;
+      top: calc(100% + 1px);
+      right: clamp(1rem, 3.5vw, 3.5rem);
+      left: clamp(1rem, 3.5vw, 3.5rem);
+      display: grid;
+      gap: 0.35rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 1.1rem;
+      background: rgba(255, 250, 240, 0.98);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-0.8rem) scale(0.98);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .mobile-menu.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .mobile-menu a {
+      padding: 0.95rem 1rem;
+      border-radius: 0.75rem;
+    }
+
+    .mobile-menu a:hover,
+    .mobile-menu a:focus-visible {
+      background: rgba(164, 60, 48, 0.1);
     }
 
     .hero {
-      min-height: calc(100svh - var(--header-height));
       display: grid;
-      grid-template-columns: minmax(0, 1fr) clamp(310px, 27vw, 420px);
-      background: var(--paper-deep);
+      grid-template-columns: minmax(0, 1.55fr) minmax(22rem, 0.85fr);
+      min-height: calc(100svh - var(--header-height));
+      padding: clamp(1rem, 2vw, 1.75rem);
+      gap: clamp(1rem, 2.7vw, 2.25rem);
+    }
+
+    .map-panel,
+    .mission {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: clamp(1.4rem, 3vw, 2.8rem);
+      box-shadow: var(--shadow);
     }
 
     .map-panel {
-      position: relative;
-      min-height: 680px;
-      overflow: hidden;
+      min-height: 38rem;
       isolation: isolate;
-      background: #d7cbb5;
+      background:
+        radial-gradient(circle at 63% 43%, rgba(164, 60, 48, 0.22) 0 0.65rem, transparent 0.7rem),
+        linear-gradient(112deg, rgba(255, 250, 240, 0.16) 0 44%, transparent 44%),
+        linear-gradient(135deg, rgba(105, 112, 82, 0.22), transparent 42%),
+        var(--sand);
     }
 
-    .map-panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: -2;
-      opacity: 0.48;
-      background-image: url("data:image/svg+xml,%3Csvg width='1200' height='800' viewBox='0 0 1200 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23756c59' stroke-width='1.2' opacity='.7'%3E%3Cpath d='M-60 97C132 154 190 45 344 87s159 176 320 147 218-153 416-94 188 123 290 76'/%3E%3Cpath d='M-40 174c135 38 238-34 341 18s160 142 308 117 219-80 374-46 214 124 302 92'/%3E%3Cpath d='M-70 611c167-72 222 48 384-10s212-185 369-107 254 166 480 63'/%3E%3Cpath d='M47-30C75 132 22 227 101 340s191 113 208 239-40 201 20 288'/%3E%3Cpath d='M853-60c-94 152-49 266 31 344s104 161 36 280-43 204 36 287'/%3E%3Cpath d='M507-30c-52 118 42 191 2 309s-147 159-84 272 196 120 207 290'/%3E%3C/g%3E%3Cg fill='%236e755e' opacity='.2'%3E%3Cpath d='M930 0h270v800H1075c-80-116-58-217 23-288-83-63-77-164-7-229C1004 208 987 100 930 0Z'/%3E%3Cpath d='M0 535c88-55 180-34 234 40 69 94 137 124 238 118L517 800H0Z'/%3E%3C/g%3E%3Cg fill='%23887960' font-family='Georgia' font-size='14' letter-spacing='3'%3E%3Ctext x='175' y='186'%3EAMIK PLAIN%3C/text%3E%3Ctext x='760' y='410'%3EORONTES%3C/text%3E%3Ctext x='355' y='570'%3EHABIB-I NECCAR%3C/text%3E%3C/g%3E%3C/svg%3E");
-      background-size: cover;
-      filter: sepia(0.16);
-    }
-
+    .map-panel::before,
     .map-panel::after {
       content: "";
       position: absolute;
       inset: 0;
       z-index: -1;
-      background: linear-gradient(90deg, rgba(37, 34, 29, 0.13), transparent 30%, rgba(240, 232, 216, 0.12));
       pointer-events: none;
     }
 
-    .map-label {
-      position: absolute;
-      top: 8%;
-      left: 5%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+    .map-panel::before {
+      background:
+        radial-gradient(ellipse at 20% 22%, transparent 0 26%, rgba(40, 35, 29, 0.14) 26.1% 26.35%, transparent 26.5%),
+        radial-gradient(ellipse at 74% 64%, transparent 0 24%, rgba(40, 35, 29, 0.12) 24.1% 24.35%, transparent 24.5%),
+        radial-gradient(ellipse at 16% 86%, transparent 0 18%, rgba(40, 35, 29, 0.12) 18.1% 18.35%, transparent 18.5%);
     }
 
-    .map-label::before { content: ""; width: 28px; height: 1px; background: currentColor; }
-
-    .hero-copy {
-      position: absolute;
-      top: 50%;
-      left: 7.5%;
-      width: min(760px, 76%);
-      transform: translateY(-52%);
+    .map-panel::after {
+      background:
+        linear-gradient(101deg, transparent 0 68%, rgba(255, 250, 240, 0.18) 68.2% 75%, transparent 75.2%),
+        repeating-linear-gradient(84deg, rgba(40, 35, 29, 0.08) 0 1px, transparent 1px 190px);
+      opacity: 0.9;
     }
 
-    .eyebrow {
-      margin: 0 0 24px;
-      color: var(--red-dark);
-      font-size: 0.74rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      max-width: 760px;
-      margin: 0;
-      font-family: var(--serif);
-      font-size: clamp(4rem, 7.4vw, 7.8rem);
-      font-weight: 400;
-      line-height: 0.88;
-      letter-spacing: -0.055em;
-    }
-
-    h1 em { color: var(--red); font-weight: 400; }
-
-    .coordinates {
-      position: absolute;
-      bottom: 7%;
-      left: 7.5%;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-family: var(--serif);
-      font-size: 1rem;
-    }
-
-    .coordinates span { width: 48px; height: 1px; background: var(--ink); }
-
-    .river {
-      position: absolute;
-      top: -10%;
-      right: 13%;
-      width: 11%;
-      height: 125%;
-      border-left: 2px solid rgba(81, 101, 99, 0.52);
-      border-radius: 52% 0 0 45%;
-      transform: rotate(8deg);
-      box-shadow: -6px 0 0 rgba(81, 101, 99, 0.08);
-    }
-
-    .archive-pin {
-      position: absolute;
-      top: 43%;
-      right: 20%;
-      display: grid;
-      place-items: center;
-      width: 21px;
-      height: 21px;
-      border: 1px solid var(--red);
-      border-radius: 50%;
-      background: var(--paper);
-      box-shadow: 0 0 0 8px rgba(166, 61, 47, 0.14);
-    }
-
-    .archive-pin::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
-
-    .mission {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: clamp(42px, 6vh, 72px) clamp(28px, 3.5vw, 54px) 42px;
-      color: #f6f0e4;
-      background: var(--red-dark);
-    }
-
-    .mission-count { color: #d9a79a; font-family: var(--serif); font-size: 1.1rem; }
-
-    .mission-copy h2 {
-      margin: 0 0 30px;
-      font-family: var(--serif);
-      font-size: clamp(2.25rem, 3.1vw, 3.75rem);
-      font-weight: 400;
-      line-height: 1.04;
-      letter-spacing: -0.035em;
-    }
-
-    .mission-copy p { margin: 0; color: #e3d5ca; font-size: 0.96rem; line-height: 1.8; }
-
-    .explore {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 26px;
-      border-top: 1px solid rgba(255,255,255,0.25);
-      font-size: 0.74rem;
-      font-weight: 600;
+    .map-label,
+    .coordinates,
+    .mission-count {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
       letter-spacing: 0.14em;
       text-transform: uppercase;
     }
 
-    .explore span:last-child { font-size: 1.45rem; transition: transform 180ms ease; }
-    .explore:hover span:last-child { transform: translateX(6px); }
-
-    @media (max-width: 1050px) {
-      .header-inner { grid-template-columns: auto 1fr auto; }
-      .languages, .contribute { display: none; }
-      .hero { grid-template-columns: minmax(0, 1fr) 340px; }
-      .hero-copy { width: 84%; }
+    .map-label {
+      position: absolute;
+      top: clamp(1.4rem, 4vw, 3.2rem);
+      left: clamp(1.5rem, 5vw, 5rem);
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
     }
 
-    /* Mobile navigation replaces the full navigation below 768px. */
-    @media (max-width: 767px) {
-      :root { --header-height: 68px; }
-      .header-inner { grid-template-columns: 1fr auto; padding: 0 20px; }
-      .brand { font-size: 1.08rem; }
-      .brand-mark { width: 28px; height: 28px; }
-      .nav-links { display: none; }
+    .map-label::before {
+      content: "";
+      width: 1.8rem;
+      height: 1px;
+      background: currentColor;
+    }
+
+    .hero-copy {
+      position: absolute;
+      top: 51%;
+      left: clamp(1.5rem, 5.6vw, 5.4rem);
+      z-index: 2;
+      width: min(38rem, calc(100% - 3rem));
+      transform: translateY(-50%);
+    }
+
+    .eyebrow {
+      margin: 0 0 1.25rem;
+      color: var(--accent-dark);
+      font-size: 0.78rem;
+      font-weight: 850;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(4rem, 9vw, 8.5rem);
+      font-weight: 500;
+      line-height: 0.9;
+      letter-spacing: -0.065em;
+    }
+
+    .hero-copy em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .archive-pin {
+      position: absolute;
+      top: 42%;
+      right: 21%;
+      z-index: 2;
+      width: 1.4rem;
+      height: 1.4rem;
+      border: 0.36rem solid var(--accent);
+      border-radius: 999px 999px 999px 0;
+      background: var(--paper-soft);
+      box-shadow: 0 0 0 0.85rem rgba(164, 60, 48, 0.13);
+      transform: rotate(-45deg);
+    }
+
+    .river {
+      position: absolute;
+      top: -14%;
+      right: 18%;
+      z-index: 1;
+      width: 6.5rem;
+      height: 132%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, transparent, rgba(86, 112, 121, 0.42), transparent);
+      transform: rotate(12deg);
+      opacity: 0.75;
+    }
+
+    .coordinates {
+      position: absolute;
+      bottom: clamp(1.4rem, 4vw, 3.2rem);
+      left: clamp(1.5rem, 5vw, 5rem);
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .coordinates span {
+      width: 3.4rem;
+      height: 1px;
+      background: currentColor;
+    }
+
+    .mission {
+      min-height: 38rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 4rem;
+      padding: clamp(2rem, 4vw, 3.6rem);
+      color: var(--paper-soft);
+      background: var(--accent-dark);
+    }
+
+    .mission::after {
+      content: "";
+      position: absolute;
+      right: -35%;
+      bottom: -25%;
+      width: 30rem;
+      height: 30rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 250, 240, 0.12), transparent 68%);
+    }
+
+    .mission-count,
+    .mission-copy,
+    .explore {
+      position: relative;
+      z-index: 2;
+    }
+
+    .mission-count {
+      color: rgba(255, 250, 240, 0.68);
+      font-family: var(--serif);
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+    }
+
+    .mission-copy h2 {
+      margin: 0 0 1.3rem;
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 4.6vw, 4.75rem);
+      font-weight: 500;
+      line-height: 0.96;
+      letter-spacing: -0.055em;
+    }
+
+    .mission-copy p {
+      max-width: 34rem;
+      margin: 0;
+      color: rgba(255, 250, 240, 0.82);
+      font-size: clamp(1rem, 1.35vw, 1.08rem);
+    }
+
+    .explore {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      width: 100%;
+      padding-top: 1.4rem;
+      border-top: 1px solid rgba(255, 250, 240, 0.26);
+      color: var(--paper-soft);
+      font-size: 0.78rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    [dir="rtl"] .header-inner,
+    [dir="rtl"] .hero {
+      direction: rtl;
+    }
+
+    [dir="rtl"] .map-label,
+    [dir="rtl"] .hero-copy,
+    [dir="rtl"] .coordinates {
+      right: clamp(1.5rem, 5vw, 5rem);
+      left: auto;
+      text-align: right;
+    }
+
+    [dir="rtl"] .archive-pin {
+      right: auto;
+      left: 21%;
+    }
+
+    [dir="rtl"] .river {
+      right: auto;
+      left: 18%;
+    }
+
+    @media (max-width: 1050px) {
+      .header-inner {
+        grid-template-columns: auto 1fr auto;
+        gap: 1rem;
+      }
+
+      .nav-links {
+        gap: 1rem;
+      }
+
+      .contribute,
+      .languages {
+        display: none;
+      }
+
+      .hero {
+        grid-template-columns: minmax(0, 1.15fr) minmax(20rem, 0.85fr);
+        gap: 1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header-inner {
+        grid-template-columns: 1fr auto;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
       .menu-button {
         display: grid;
-        width: 44px;
-        height: 44px;
-        padding: 0;
-        place-items: center;
-        border-radius: 50%;
-        transition: color 180ms ease, background 180ms ease, transform 180ms ease;
       }
-      .menu-button:hover, .menu-button:focus-visible, .menu-button[aria-expanded="true"] {
-        color: var(--paper);
-        background: var(--ink);
-      }
-      .menu-button[aria-expanded="true"] { transform: rotate(90deg); }
 
-      .mobile-menu {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        left: 0;
-        display: flex;
-        flex-direction: column;
-        padding: 12px 20px 22px;
-        border-bottom: 1px solid var(--line);
-        background: var(--paper);
-        box-shadow: 0 18px 30px rgba(41, 37, 31, 0.12);
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-12px);
-        pointer-events: none;
-        transition: opacity 220ms ease, transform 220ms ease, visibility 220ms;
+      .hero {
+        grid-template-columns: 1fr;
       }
-      .mobile-menu.is-open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-        pointer-events: auto;
+
+      .map-panel,
+      .mission {
+        min-height: 32rem;
       }
-      .mobile-menu a {
-        padding: 15px 4px;
-        border-bottom: 1px solid var(--line);
-        font-family: var(--serif);
-        font-size: 1.45rem;
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --header-height: 70px;
       }
-      .mobile-menu a:last-child { border-bottom: 0; }
-      .mobile-menu a:hover, .mobile-menu a:focus-visible { color: var(--red); }
 
-      /* Prevent the page behind the dropdown from scrolling while it is open. */
-      body.menu-open { overflow: hidden; }
+      .header-inner {
+        padding-inline: 1rem;
+      }
 
-      html[dir="rtl"] .mobile-menu { text-align: right; }
-      html[dir="rtl"] .menu-button[aria-expanded="true"] { transform: rotate(-90deg); }
+      .brand {
+        font-size: 1.05rem;
+      }
 
-      .hero { display: block; }
-      .map-panel { min-height: 67svh; }
-      .hero-copy { top: 48%; left: 24px; width: calc(100% - 48px); }
-      h1 { font-size: clamp(3.6rem, 17vw, 5.2rem); }
-      .map-label { top: 6%; left: 24px; }
-      .coordinates { bottom: 6%; left: 24px; }
-      .river { right: 8%; }
-      .archive-pin { right: 16%; }
-      .mission { min-height: 470px; gap: 64px; padding: 42px 24px 30px; }
-      .mission-copy h2 { font-size: 2.65rem; }
+      .brand-mark {
+        width: 1.8rem;
+        height: 1.8rem;
+      }
+
+      .hero {
+        padding: 0.8rem;
+      }
+
+      .map-panel,
+      .mission {
+        border-radius: 1.2rem;
+      }
+
+      .hero-copy {
+        left: 1.4rem;
+        width: calc(100% - 2.8rem);
+      }
+
+      .hero-copy h1 {
+        font-size: clamp(3.35rem, 17vw, 5.2rem);
+      }
+
+      .map-label,
+      .coordinates {
+        left: 1.4rem;
+      }
+
+      .mission {
+        gap: 3.2rem;
+        padding: 2.4rem 1.45rem 2rem;
+      }
+
+      .mission-copy h2 {
+        font-size: clamp(2.5rem, 12vw, 3.35rem);
+      }
+
+      .mission-copy p {
+        font-size: 1rem;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="#" aria-label="AntiochiaArchive home">
+      <a class="brand" href="#home" data-i18n-aria-label="brandLabel" aria-label="AntiochiaArchive home">
         <span class="brand-mark" aria-hidden="true">A</span>
-        <span>AntiochiaArchive</span>
+        <span data-i18n="brand">AntiochiaArchive</span>
       </a>
 
-      <nav class="nav-links" aria-label="Primary navigation">
+      <nav class="nav-links" data-i18n-aria-label="primaryNav" aria-label="Primary navigation">
         <a href="#home" data-i18n="home">Home</a>
+        <a href="#history" data-i18n="history">History</a>
         <a href="#stories" data-i18n="stories">Stories</a>
         <a href="#structures" data-i18n="structures">Structures</a>
         <a href="#beliefs" data-i18n="beliefs">Beliefs</a>
@@ -411,30 +635,30 @@
       </nav>
 
       <div class="header-actions">
-        <div class="languages" aria-label="Choose language">
+        <div class="languages" data-i18n-aria-label="languageNav" aria-label="Choose language">
           <button class="language-button" type="button" data-lang="tr" aria-pressed="false">TR</button>
           <button class="language-button" type="button" data-lang="en" aria-pressed="true">EN</button>
           <button class="language-button" type="button" data-lang="ar" aria-pressed="false">AR</button>
         </div>
         <a class="contribute" href="#contribute"><span data-i18n="contribute">Contribute</span><span aria-hidden="true">＋</span></a>
-        <!-- The hamburger is shown only on screens narrower than 768px. -->
-        <button class="menu-button" id="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
+        <button class="menu-button" id="menu-toggle" type="button" data-i18n-aria-label="openMenu" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
     </div>
 
-    <!-- This animated dropdown mirrors the desktop navigation for mobile visitors. -->
-    <nav class="mobile-menu" id="mobile-menu" aria-label="Mobile navigation" aria-hidden="true">
+    <nav class="mobile-menu" id="mobile-menu" data-i18n-aria-label="mobileNav" aria-label="Mobile navigation" aria-hidden="true">
       <a href="#home" data-i18n="home">Home</a>
+      <a href="#history" data-i18n="history">History</a>
       <a href="#stories" data-i18n="stories">Stories</a>
       <a href="#structures" data-i18n="structures">Structures</a>
       <a href="#beliefs" data-i18n="beliefs">Beliefs</a>
       <a href="#music" data-i18n="music">Music</a>
+      <a href="#contribute" data-i18n="contribute">Contribute</a>
     </nav>
   </header>
 
-  <main>
+  <main id="home">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="map-panel">
+      <div class="map-panel" aria-label="Illustrated map of Antioch and the Orontes Valley">
         <div class="map-label" data-i18n="mapLabel">Antioch &amp; the Orontes Valley</div>
         <div class="hero-copy">
           <p class="eyebrow" data-i18n="eyebrow">A living digital memory</p>
@@ -442,69 +666,174 @@
         </div>
         <div class="river" aria-hidden="true"></div>
         <div class="archive-pin" aria-hidden="true"></div>
-        <div class="coordinates" aria-label="Antioch coordinates">36.2021° N <span></span> 36.1608° E</div>
+        <div class="coordinates" data-i18n-aria-label="coordinatesLabel" aria-label="Antioch coordinates">36.2021° N <span aria-hidden="true"></span> 36.1608° E</div>
       </div>
 
-      <aside class="mission" aria-label="Our mission">
-        <div class="mission-count">01 — 05</div>
+      <aside class="mission" data-i18n-aria-label="missionLabel" aria-label="Our mission">
+        <div class="mission-count" data-i18n="missionCount">01 — 05</div>
         <div class="mission-copy">
           <h2 data-i18n="missionTitle">A city lives as long as its stories are told.</h2>
           <p data-i18n="missionText">AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.</p>
         </div>
-        <a class="explore" href="#home"><span data-i18n="explore">Explore the archive</span><span aria-hidden="true">→</span></a>
+        <a class="explore" href="#history"><span data-i18n="explore">Explore the archive</span><span aria-hidden="true">→</span></a>
       </aside>
     </section>
   </main>
 
   <script>
-    const translations = {
-      en: { home: "Home", stories: "Stories", structures: "Structures", beliefs: "Beliefs", music: "Music", contribute: "Contribute", mapLabel: "Antioch & the Orontes Valley", eyebrow: "A living digital memory", title: "Every memory<br>has a <em>place.</em>", missionTitle: "A city lives as long as its stories are told.", missionText: "AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.", explore: "Explore the archive" },
-      tr: { home: "Ana Sayfa", stories: "Hikâyeler", structures: "Yapılar", beliefs: "İnançlar", music: "Müzik", contribute: "Katkıda Bulun", mapLabel: "Antakya ve Asi Vadisi", eyebrow: "Yaşayan bir dijital hafıza", title: "Her hatıranın<br>bir <em>yeri vardır.</em>", missionTitle: "Bir şehir, hikâyeleri anlatıldıkça yaşar.", missionText: "AntiochiaArchive, Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını bir araya getirerek nesiller ve sınırlar boyunca yolculuk eden kolektif bir hafıza oluşturur.", explore: "Arşivi keşfet" },
-      ar: { home: "الرئيسية", stories: "الحكايات", structures: "المباني", beliefs: "المعتقدات", music: "الموسيقى", contribute: "ساهم معنا", mapLabel: "أنطاكية ووادي العاصي", eyebrow: "ذاكرة رقمية حيّة", title: "لكل ذكرى<br><em>مكان.</em>", missionTitle: "تبقى المدينة حيّة ما دامت حكاياتها تُروى.", missionText: "يجمع أرشيف أنطاكية الأصوات والصور والأغاني والأماكن المشتركة، ليصنع ذاكرة جماعية تعبر الأجيال والحدود.", explore: "استكشف الأرشيف" }
-    };
+    document.addEventListener("DOMContentLoaded", () => {
+      const translations = {
+        en: {
+          brand: "AntiochiaArchive",
+          brandLabel: "AntiochiaArchive home",
+          primaryNav: "Primary navigation",
+          mobileNav: "Mobile navigation",
+          languageNav: "Choose language",
+          openMenu: "Open menu",
+          closeMenu: "Close menu",
+          home: "Home",
+          history: "History",
+          stories: "Stories",
+          structures: "Structures",
+          beliefs: "Beliefs",
+          music: "Music",
+          contribute: "Contribute",
+          mapLabel: "Antioch & the Orontes Valley",
+          eyebrow: "A living digital memory",
+          title: "Every memory<br>has a <em>place.</em>",
+          coordinatesLabel: "Antioch coordinates",
+          missionLabel: "Our mission",
+          missionCount: "01 — 05",
+          missionTitle: "A city lives as long as its stories are told.",
+          missionText: "AntiochiaArchive gathers the voices, images, songs, and shared places of Antioch — creating a collective memory that can travel across generations and borders.",
+          explore: "Explore the archive"
+        },
+        tr: {
+          brand: "AntiochiaArchive",
+          brandLabel: "AntiochiaArchive ana sayfa",
+          primaryNav: "Birincil gezinme",
+          mobileNav: "Mobil gezinme",
+          languageNav: "Dil seç",
+          openMenu: "Menüyü aç",
+          closeMenu: "Menüyü kapat",
+          home: "Ana Sayfa",
+          history: "Tarih",
+          stories: "Hikâyeler",
+          structures: "Yapılar",
+          beliefs: "İnançlar",
+          music: "Müzik",
+          contribute: "Katkıda Bulun",
+          mapLabel: "Antakya ve Asi Vadisi",
+          eyebrow: "Yaşayan bir dijital hafıza",
+          title: "Her hatıranın<br>bir <em>yeri vardır.</em>",
+          coordinatesLabel: "Antakya koordinatları",
+          missionLabel: "Misyonumuz",
+          missionCount: "01 — 05",
+          missionTitle: "Bir şehir, hikâyeleri anlatıldıkça yaşar.",
+          missionText: "AntiochiaArchive, Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını bir araya getirerek nesiller ve sınırlar boyunca yolculuk eden kolektif bir hafıza oluşturur.",
+          explore: "Arşivi keşfet"
+        },
+        ar: {
+          brand: "أرشيف أنطاكية",
+          brandLabel: "الصفحة الرئيسية لأرشيف أنطاكية",
+          primaryNav: "التنقل الرئيسي",
+          mobileNav: "تنقل الهاتف",
+          languageNav: "اختر اللغة",
+          openMenu: "افتح القائمة",
+          closeMenu: "أغلق القائمة",
+          home: "الرئيسية",
+          history: "التاريخ",
+          stories: "الحكايات",
+          structures: "المعالم",
+          beliefs: "المعتقدات",
+          music: "الموسيقى",
+          contribute: "ساهم معنا",
+          mapLabel: "أنطاكية ووادي العاصي",
+          eyebrow: "ذاكرة رقمية حيّة",
+          title: "لكل ذكرى<br><em>مكان.</em>",
+          coordinatesLabel: "إحداثيات أنطاكية",
+          missionLabel: "مهمتنا",
+          missionCount: "٠١ — ٠٥",
+          missionTitle: "تبقى المدينة حيّة ما دامت حكاياتها تُروى.",
+          missionText: "يجمع AntiochiaArchive الأصوات والصور والأغاني والأماكن المشتركة في أنطاكية، ليصنع ذاكرة جماعية تعبر الأجيال والحدود.",
+          explore: "استكشف الأرشيف"
+        }
+      };
 
-    const menuButton = document.querySelector(".menu-button");
-    const mobileMenu = document.querySelector(".mobile-menu");
+      const languageButtons = document.querySelectorAll(".language-button");
+      const menuToggle = document.getElementById("menu-toggle");
+      const mobileMenu = document.getElementById("mobile-menu");
 
-    // Keep visual, accessibility, and page-scroll states in sync.
-    function setMenuOpen(isOpen) {
-      mobileMenu.classList.toggle("is-open", isOpen);
-      mobileMenu.setAttribute("aria-hidden", String(!isOpen));
-      menuButton.setAttribute("aria-expanded", String(isOpen));
-      menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-      document.body.classList.toggle("menu-open", isOpen);
-    }
-
-    // Close after choosing a destination, or when Escape is pressed.
-    mobileMenu.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setMenuOpen(false)));
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-        menuButton.focus();
+      function getDictionary(language) {
+        return translations[language] || translations.en;
       }
-    });
 
-    // Reset mobile-only state when the viewport returns to desktop size.
-    window.addEventListener("resize", () => {
-      if (window.innerWidth >= 768) setMenuOpen(false);
-    });
+      function setMenuOpen(isOpen) {
+        const dictionary = getDictionary(document.documentElement.lang);
 
-    // Language controls update both desktop and mobile navigation labels.
-    document.querySelectorAll(".language-button").forEach((button) => {
-      button.addEventListener("click", () => {
-        const language = button.dataset.lang;
+        mobileMenu.classList.toggle("is-open", isOpen);
+        mobileMenu.setAttribute("aria-hidden", String(!isOpen));
+        menuToggle.setAttribute("aria-expanded", String(isOpen));
+        menuToggle.setAttribute("aria-label", isOpen ? dictionary.closeMenu : dictionary.openMenu);
+        document.body.classList.toggle("menu-open", isOpen);
+      }
+
+      function applyLanguage(language) {
+        const dictionary = getDictionary(language);
+
         document.documentElement.lang = language;
         document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+
         document.querySelectorAll("[data-i18n]").forEach((element) => {
-          element.textContent = translations[language][element.dataset.i18n];
+          const key = element.dataset.i18n;
+          element.textContent = dictionary[key] || "";
         });
+
         document.querySelectorAll("[data-i18n-html]").forEach((element) => {
-          element.innerHTML = translations[language][element.dataset.i18nHtml];
+          const key = element.dataset.i18nHtml;
+          element.innerHTML = dictionary[key] || "";
         });
-        document.querySelectorAll(".language-button").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+
+        document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+          const key = element.dataset.i18nAriaLabel;
+          element.setAttribute("aria-label", dictionary[key] || "");
+        });
+
+        languageButtons.forEach((button) => {
+          const isActive = button.dataset.lang === language;
+          button.setAttribute("aria-pressed", String(isActive));
+        });
+
+        setMenuOpen(false);
+      }
+
+      languageButtons.forEach((button) => {
+        button.addEventListener("click", () => applyLanguage(button.dataset.lang));
       });
+
+      menuToggle.addEventListener("click", () => {
+        const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
+        setMenuOpen(!isOpen);
+      });
+
+      mobileMenu.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => setMenuOpen(false));
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          setMenuOpen(false);
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 768) {
+          setMenuOpen(false);
+        }
+      });
+
+      applyLanguage("en");
     });
   </script>
-  <script src="script.js"></script>
 </body>
 </html>

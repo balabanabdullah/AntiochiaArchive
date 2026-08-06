@@ -1,0 +1,65 @@
+# =============================================================================
+# AntiochiaArchive — docker-compose.yml (Vite)
+# Hızlı başlatma:
+#   docker compose up --build        → build edip başlat
+#   docker compose up -d --build     → arka planda başlat
+#   docker compose down              → durdur ve kaldır
+# =============================================================================
+
+services:
+  antiochia-archive-web:
+
+    # ── Image ────────────────────────────────────────────────────────────────
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: antiochia-archive:vite
+
+    # ── Container adı ────────────────────────────────────────────────────────
+    container_name: antiochia-archive
+
+    # ── Port eşleme: host_port:container_port ────────────────────────────────
+    ports:
+      - "5173:5173"
+
+    # ── Bind mount — hot-reload için: dosya kaydet → Vite anında algılar ─────
+    # Docker içindeki vite.config.js'de usePolling:true ayarı bu yüzden gerekli.
+    volumes:
+      - ./index.html:/app/index.html
+      - ./style.css:/app/style.css
+      - ./script.js:/app/script.js
+      - ./lang.js:/app/lang.js
+      - ./vite.config.js:/app/vite.config.js
+      # node_modules container'a ait olsun, host ile karışmasın:
+      - /app/node_modules
+
+    # ── Ortam değişkenleri ───────────────────────────────────────────────────
+    environment:
+      - NODE_ENV=development
+
+    # ── Restart politikası ───────────────────────────────────────────────────
+    restart: unless-stopped
+
+    # ── Sağlık kontrolü ──────────────────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5173"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    # ── Kaynak sınırları ─────────────────────────────────────────────────────
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 256M
+        reservations:
+          memory: 64M
+
+    # ── Log ayarları ─────────────────────────────────────────────────────────
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

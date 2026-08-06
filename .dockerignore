@@ -1,0 +1,24 @@
+# ── Build artifacts ────────────────────────────────────────────────────────
+node_modules
+dist
+.vite
+
+# ── Git metadata ───────────────────────────────────────────────────────────
+.git
+.gitkeep
+.gitignore
+
+# ── Docker files (container içinde gerekmez) ───────────────────────────────
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# ── Editor / OS artıkları ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+*.local
+
+# ── Test / CI artıkları ────────────────────────────────────────────────────
+coverage
+.nyc_output

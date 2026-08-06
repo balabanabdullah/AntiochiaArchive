@@ -1,0 +1,21 @@
+{
+  "name": "antiochia-archive",
+  "version": "1.0.0",
+  "description": "AntiochiaArchive — A multilingual living digital memory of Antioch. Vanilla HTML/CSS/JS, served by Vite.",
+  "author": "AntiochiaArchive Contributors",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev":     "vite",
+    "start":   "vite",
+    "build":   "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

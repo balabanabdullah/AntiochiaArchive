@@ -1,6 +1,6 @@
 /**
  * AntiochiaArchive — script.js
- * Handles: language switching, mobile menu, scroll reveal, form UX
+ * Handles: language switching, mobile menu, scroll reveal, form UX, audio player toggles
  */
 
 /* ==========================================================================
@@ -134,6 +134,22 @@ function initScrollReveal() {
 }
 
 /* ==========================================================================
+   Music Audio Player Toggle
+   ========================================================================== */
+function initMusicTrackButtons() {
+  document.querySelectorAll(".track-play-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const isPlaying = btn.classList.toggle("is-playing");
+      const icon = btn.querySelector(".play-icon");
+      if (icon) {
+        icon.textContent = isPlaying ? "❚❚" : "▶";
+      }
+      btn.setAttribute("aria-label", isPlaying ? "Pause audio sample" : "Play audio sample");
+    });
+  });
+}
+
+/* ==========================================================================
    Form
    ========================================================================== */
 function initContributeForm() {
@@ -194,6 +210,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Scroll reveal --- */
   initScrollReveal();
+
+  /* --- Music audio buttons --- */
+  initMusicTrackButtons();
 
   /* --- Contribute form --- */
   initContributeForm();

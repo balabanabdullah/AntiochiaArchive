@@ -150,6 +150,20 @@ function initMusicTrackButtons() {
 }
 
 /* ==========================================================================
+   Story Read More Click Handler
+   ========================================================================== */
+function initStoryButtons() {
+  document.querySelectorAll(".story-read-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const msg = resolveKey(currentLang, "fullStoryNotice")
+        ?? resolveKey(currentLang, "storiesSection.fullStoryNotice")
+        ?? "Tam metin burada olacak.";
+      alert(msg);
+    });
+  });
+}
+
+/* ==========================================================================
    Form
    ========================================================================== */
 function initContributeForm() {
@@ -213,6 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Music audio buttons --- */
   initMusicTrackButtons();
+
+  /* --- Story buttons --- */
+  initStoryButtons();
 
   /* --- Contribute form --- */
   initContributeForm();

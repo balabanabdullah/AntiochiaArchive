@@ -686,7 +686,7 @@ html[dir="rtl"] .hero-card-link:hover .arrow { transform: translateX(-5px); }
 .story-card:hover,
 .story-card:focus-within {
   transform: translateY(-4px);
-  box-shadow: 0 16px 32px rgba(28, 24, 20, 0.08);
+  box-shadow: 0 16px 32px rgba(144, 54, 40, 0.12), 0 0 0 1px var(--clr-red);
   border-color: var(--clr-red);
 }
 
@@ -756,17 +756,23 @@ html[dir="rtl"] .hero-card-link:hover .arrow { transform: translateX(-5px); }
   flex: 1;
 }
 
-.story-link {
+.story-link,
+.story-read-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: auto;
+  padding: 6px 0;
+  font-family: var(--font-sans);
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--clr-red);
-  transition: gap var(--dur-fast) var(--ease);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: gap var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
 .story-link-arrow {
@@ -774,8 +780,10 @@ html[dir="rtl"] .hero-card-link:hover .arrow { transform: translateX(-5px); }
   transition: transform var(--dur-fast) var(--ease);
 }
 
-.story-card:hover .story-link {
+.story-card:hover .story-link,
+.story-card:hover .story-read-btn {
   gap: 14px;
+  color: var(--clr-red-dark);
 }
 
 .story-card:hover .story-link-arrow {

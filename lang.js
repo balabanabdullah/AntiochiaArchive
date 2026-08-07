@@ -189,8 +189,12 @@ const TRANSLATIONS = {
       formMessage: "Your contribution or message",
       formSubmit:  "Send contribution",
     },
+    footerAbout: "A living digital memory preserving the voices, images, oral histories, and shared places of Antioch.",
+    openSource: "Open source & community driven project.",
+    copyright: "AntiochiaArchive. Open source, open memory.",
     footer: {
       tagline: "A living digital memory of Antioch.",
+      connect: "Connect",
       links: {
         about:   "About",
         contact: "Contact",
@@ -393,8 +397,12 @@ const TRANSLATIONS = {
       formMessage: "Katkınız veya mesajınız",
       formSubmit:  "Katkı gönder",
     },
+    footerAbout: "Antakya'nın seslerini, görüntülerini, sözlü tarihlerini ve ortak mekânlarını koruyan yaşayan bir dijital hafıza.",
+    openSource: "Açık kaynaklı ve topluluk odaklı proje.",
+    copyright: "AntiochiaArchive. Açık kaynak, açık hafıza.",
     footer: {
       tagline: "Antakya'nın yaşayan dijital hafızası.",
+      connect: "Bağlantı & İletişim",
       links: {
         about:   "Hakkında",
         contact: "İletişim",
@@ -597,8 +605,12 @@ const TRANSLATIONS = {
       formMessage: "مساهمتك أو رسالتك",
       formSubmit:  "إرسال المساهمة",
     },
+    footerAbout: "ذاكرة رقمية حية تحفظ أصوات أنطاكية وصورها وتاريخها الشفهي وأماكنها المشتركة.",
+    openSource: "مشروع مفتوح المصدر يقوده المجتمع.",
+    copyright: "AntiochiaArchive. مصدر مفتوح، ذاكرة مفتوحة.",
     footer: {
       tagline: "ذاكرة رقمية حيّة لأنطاكية.",
+      connect: "التواصل",
       links: {
         about:   "حول المشروع",
         contact: "تواصل معنا",

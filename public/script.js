@@ -125,6 +125,16 @@ function initScrollReveal() {
   const targets = document.querySelectorAll("[data-reveal]");
   if (!targets.length) return;
 
+  // Immediately reveal elements near or in the viewport
+  targets.forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 120) {
+      el.classList.add("is-visible");
+    }
+  });
+
+  if (!("IntersectionObserver" in window)) return;
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -134,10 +144,14 @@ function initScrollReveal() {
         }
       });
     },
-    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    { threshold: 0.01, rootMargin: "100px 0px 100px 0px" }
   );
 
-  targets.forEach((el) => observer.observe(el));
+  targets.forEach((el) => {
+    if (!el.classList.contains("is-visible")) {
+      observer.observe(el);
+    }
+  });
 }
 
 /* ==========================================================================
@@ -399,6 +413,11 @@ function renderArchiveSections(lang) {
     el.innerHTML = fn(archiveData[key], lang);
   });
 
+  // Ensure rendered cards receive is-visible class immediately
+  document.querySelectorAll(".struct-card, .timeline-card, .story-card, .belief-card, .music-track-card").forEach((card) => {
+    card.classList.add("is-visible");
+  });
+
   // Re-observe newly injected [data-reveal] elements
   initScrollReveal();
 
@@ -411,7 +430,7 @@ function renderArchiveSections(lang) {
 async function initArchive() {
   try {
     let res = null;
-    const candidatePaths = ["archive.json", "/archive.json", "../public/archive.json", "../archive.json"];
+    const candidatePaths = ["/archive.json", "archive.json", "../public/archive.json", "../archive.json"];
     for (const p of candidatePaths) {
       try {
         const r = await fetch(p);

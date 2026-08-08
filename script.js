@@ -409,8 +409,15 @@ function renderArchiveSections(lang) {
 /** Fetch archive.json once, then render for the current language. */
 async function initArchive() {
   try {
-    const res = await fetch("archive.json");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let res = null;
+    const candidatePaths = ["archive.json", "/archive.json", "../public/archive.json", "../archive.json"];
+    for (const p of candidatePaths) {
+      try {
+        const r = await fetch(p);
+        if (r && r.ok) { res = r; break; }
+      } catch (_) {}
+    }
+    if (!res) throw new Error("HTTP fetch failed for archive.json");
     archiveData = await res.json();
     renderArchiveSections(currentLang);
   } catch (err) {

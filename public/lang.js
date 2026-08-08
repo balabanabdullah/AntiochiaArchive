@@ -207,6 +207,45 @@ const TRANSLATIONS = {
       },
       copyright: "AntiochiaArchive. Open source, open memory.",
     },
+    pages: {
+      backToHome: "← Back to Home",
+      history: {
+        eyebrow: "Chronicle of a City",
+        title: "History of Antioch",
+        subtitle: "Explore twenty-five centuries of Mediterranean civilization, silk routes, and living heritage along the Orontes.",
+        badge: "Timeline Chronicle",
+      },
+      stories: {
+        eyebrow: "Oral Archive",
+        title: "Voices & Oral Histories",
+        subtitle: "Listen to and read multi-generational testimonies, courtyard accounts, and memories carried across generations.",
+        badge: "Oral Histories",
+      },
+      structures: {
+        eyebrow: "Built Heritage",
+        title: "Stones of Time & Faith",
+        subtitle: "Discover historic courtyard houses, cave sanctuaries, ancient mosques, aqueducts, and narrow stone alleys.",
+        badge: "Architectural Records",
+      },
+      beliefs: {
+        eyebrow: "Spiritual Landscape",
+        title: "Shared Sanctuaries & Sacred Calendars",
+        subtitle: "A testament to centuries of interfaith coexistence, shared holiday feasts, venerated hilltops, and traditions.",
+        badge: "Interfaith Heritage",
+      },
+      music: {
+        eyebrow: "Audio Archive",
+        title: "Sounds, Melodies & Soundscapes",
+        subtitle: "Listen to traditional Levantine maqams, mountain hymns, bazaar coppersmith rhythms, and urban soundscapes.",
+        badge: "Sound Recordings",
+      },
+      cta: {
+        eyebrow: "Preserve the Memory",
+        title: "Do you have a memory, photo, or recording to share?",
+        body: "AntiochiaArchive grows through community contributions. Help us keep Antioch's living heritage vibrant.",
+        btn: "Contribute to Archive",
+      }
+    },
     a11y: {
       skipLink:    "Skip to content",
       openMenu:    "Open navigation menu",
@@ -419,6 +458,45 @@ const TRANSLATIONS = {
       },
       copyright: "AntiochiaArchive. Açık kaynak, açık hafıza.",
     },
+    pages: {
+      backToHome: "← Ana Sayfaya Dön",
+      history: {
+        eyebrow: "Bir Şehrin Kronolojisi",
+        title: "Antakya Tarihi",
+        subtitle: "Asi Nehri boyunca yirmi beş asırlık Akdeniz medeniyetini, İpek Yolu mirasını ve yaşayan hafızayı keşfedin.",
+        badge: "Tarihsel Kronoloji",
+      },
+      stories: {
+        eyebrow: "Sözlü Tarih Arşivi",
+        title: "Sesler ve Sözlü Tarihler",
+        subtitle: "Kuşaklar boyunca aktarılan mahalle anlatılarını, avlu yaşamlarını ve kişisel tanıklıkları okuyun.",
+        badge: "Sözlü Anlatılar",
+      },
+      structures: {
+        eyebrow: "Mimari Miras",
+        title: "Zamanın ve İnancın Taşları",
+        subtitle: "Tarihi avlulu evleri, kaya kiliselerini, antik camileri, su kemerlerini ve dar taş sokakları keşfedin.",
+        badge: "Mimari Belgeler",
+      },
+      beliefs: {
+        eyebrow: "İnanç İklimi",
+        title: "Ortak Mabetler ve Kutsal Takvimler",
+        subtitle: "Asırlar süren dinler arası bir arada yaşamın, ortak bayram yemeklerinin ve kutsal mekanların mirası.",
+        badge: "Ortak Miras",
+      },
+      music: {
+        eyebrow: "Ses Arşivi",
+        title: "Sesler, Makamlar ve İlahiler",
+        subtitle: "Geleneksel Doğu makamlarını, dağ ilahilerini, bakırcılar çarşısının ritimlerini ve kentsel sesleri dinleyin.",
+        badge: "Ses Kayıtları",
+      },
+      cta: {
+        eyebrow: "Hafızayı Yaşatın",
+        title: "Paylaşmak istediğiniz bir anı, fotoğraf veya kayıt var mı?",
+        body: "AntiochiaArchive topluluk katkılarıyla büyür. Antakya'nın yaşayan mirasını korumamıza yardımcı olun.",
+        btn: "Katkıda Bulun",
+      }
+    },
     a11y: {
       skipLink:    "İçeriğe geç",
       openMenu:    "Gezinme menüsünü aç",
@@ -630,6 +708,45 @@ const TRANSLATIONS = {
         license: "الترخيص",
       },
       copyright: "AntiochiaArchive. مصدر مفتوح، ذاكرة مفتوحة.",
+    },
+    pages: {
+      backToHome: "← العودة إلى الصفحة الرئيسية",
+      history: {
+        eyebrow: "تسلسل تاريخي للمدينة",
+        title: "تاريخ أنطاكية",
+        subtitle: "استكشف خمسة وعشرين قرناً من الحضارة المتوسطية وطرق الحرير والتراث الحي على ضفاف نهر العاصي.",
+        badge: "تسلسل تاريخي",
+      },
+      stories: {
+        eyebrow: "أرشيف التاريخ الشفهي",
+        title: "أصوات وحكايات شفهية",
+        subtitle: "اقرأ شهادات وتفاصيل الحياة في المنازل ذات الأفنية والذكريات المنقولة عبر الأجيال.",
+        badge: "روايات شفهية",
+      },
+      structures: {
+        eyebrow: "التراث المعماري",
+        title: "حجارة الزمن والإيمان",
+        subtitle: "اكتشف المنازل الحجرية ذات الأفنية، كنائس الكهوف، المساجد القديمة، القناوات والأزقة الضيقة.",
+        badge: "وثائق معمارية",
+      },
+      beliefs: {
+        eyebrow: "المشهد الروحي",
+        title: "المقدسات المشتركة والتقاويم المقدسة",
+        subtitle: "شهادة على قرون من التعايش بين الأديان ومشاركة موائد الأعياد والمواقع المبجلة.",
+        badge: "تراث مشترك",
+      },
+      music: {
+        eyebrow: "الأرشيف الصوتي",
+        title: "الأصوات والمقامات والترانيم",
+        subtitle: "استمع إلى المقامات الشرقية التقليدية، ترانيم الجبال، إيقاعات النحاسين والمشاهد الصوتية.",
+        badge: "تسجيلات صوتية",
+      },
+      cta: {
+        eyebrow: "احفظ الذاكرة",
+        title: "هل لديك ذكرى أو صورة أو تسجيل ترغب في مشاركته؟",
+        body: "ينمو AntiochiaArchive بمساهمات المجتمع. ساعدنا في الحفاظ على تراث أنطاكية الحي.",
+        btn: "ساهم في الأرشيف",
+      }
     },
     a11y: {
       skipLink:    "انتقل إلى المحتوى",

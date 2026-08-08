@@ -31,7 +31,14 @@ export default defineConfig({
     emptyOutDir:  true,
     sourcemap:    false,
     rollupOptions: {
-      input: "./index.html",
+      input: {
+        main:       "index.html",
+        history:    "pages/history.html",
+        stories:    "pages/stories.html",
+        structures: "pages/structures.html",
+        beliefs:    "pages/beliefs.html",
+        music:      "pages/music.html",
+      },
     },
   },
 

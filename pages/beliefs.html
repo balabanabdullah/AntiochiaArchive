@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interfaith Heritage of Antioch — Shared sanctuaries, sacred calendars, communal food traditions, and peaceful coexistence.">
+  <meta name="theme-color" content="#f2ead8">
+
+  <title data-i18n="pages.beliefs.title">Shared Sanctuaries & Sacred Traditions — AntiochiaArchive</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Skip link -->
+  <a class="skip-link" href="#main-content" data-i18n="a11y.skipLink">Skip to content</a>
+
+  <!-- Site Header -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+
+      <!-- Brand -->
+      <a class="brand" href="../index.html" aria-label="AntiochiaArchive home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span>AntiochiaArchive</span>
+      </a>
+
+      <!-- Primary Navigation -->
+      <nav class="nav-primary" aria-label="Primary navigation">
+        <a href="../index.html"        data-i18n="nav.home">Home</a>
+        <a href="history.html"         data-i18n="nav.history">History</a>
+        <a href="stories.html"         data-i18n="nav.stories">Stories</a>
+        <a href="structures.html"      data-i18n="nav.structures">Structures</a>
+        <a href="beliefs.html"         data-i18n="nav.beliefs" class="is-active">Beliefs</a>
+        <a href="music.html"           data-i18n="nav.music">Music</a>
+      </nav>
+
+      <!-- Header actions -->
+      <div class="header-actions">
+        <div class="lang-switcher" role="group" aria-label="Choose language">
+          <button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button>
+          <button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button class="lang-btn" type="button" data-lang="ar" aria-pressed="false">AR</button>
+        </div>
+
+        <a class="btn-contribute" href="../index.html#contribute">
+          <span data-i18n="actions.contribute">Contribute</span>
+          <span aria-hidden="true">＋</span>
+        </a>
+
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav -->
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
+      <div class="container mobile-nav-inner">
+        <a href="../index.html"   data-i18n="nav.home">Home</a>
+        <a href="history.html"    data-i18n="nav.history">History</a>
+        <a href="stories.html"    data-i18n="nav.stories">Stories</a>
+        <a href="structures.html" data-i18n="nav.structures">Structures</a>
+        <a href="beliefs.html"    data-i18n="nav.beliefs" class="is-active">Beliefs</a>
+        <a href="music.html"      data-i18n="nav.music">Music</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- Page Hero Banner -->
+    <section class="page-hero">
+      <div class="container">
+        <div class="breadcrumb">
+          <a href="../index.html" data-i18n="nav.home">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <span data-i18n="nav.beliefs">Beliefs</span>
+        </div>
+        <div class="page-hero-header">
+          <div class="page-badge-wrap" data-i18n="pages.beliefs.badge">Interfaith Heritage</div>
+          <h1 class="page-hero-title" data-i18n="pages.beliefs.title">Shared Sanctuaries & Sacred Calendars</h1>
+          <p class="page-hero-desc" data-i18n="pages.beliefs.subtitle">
+            A testament to centuries of interfaith coexistence, shared holiday feasts, venerated hilltops, and traditions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dynamic Beliefs Content -->
+    <section class="section-beliefs subpage-container" id="beliefs">
+      <div class="container">
+        <div class="beliefs-grid" id="beliefs-grid-container" aria-live="polite">
+          <!-- dynamically populated from archive.json -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Page CTA Banner -->
+    <section class="page-cta">
+      <div class="container page-cta-inner">
+        <span class="eyebrow" data-i18n="pages.cta.eyebrow">Preserve the Memory</span>
+        <h2 class="page-cta-title" data-i18n="pages.cta.title">Do you have an interfaith holiday memory or recipe to share?</h2>
+        <p class="page-cta-body" data-i18n="pages.cta.body">AntiochiaArchive grows through community contributions. Help us keep Antioch's living heritage vibrant.</p>
+        <a class="btn-cta-primary" href="../index.html#contribute">
+          <span data-i18n="pages.cta.btn">Contribute to Archive</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-wrap">
+          <a class="footer-brand" href="../index.html" aria-label="AntiochiaArchive home">
+            <span class="brand-mark" aria-hidden="true">A</span>
+            <span class="brand-name">AntiochiaArchive</span>
+          </a>
+          <p class="footer-about" data-i18n="footerAbout">A living digital memory preserving the voices, images, oral histories, and shared places of Antioch.</p>
+          <p class="footer-open-source">
+            <span data-i18n="openSource">Open source &amp; community driven project.</span>
+            <a href="https://github.com/balabanabdullah/AntiochiaArchive" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </p>
+        </div>
+
+        <div class="footer-nav-col">
+          <h4 class="footer-heading" data-i18n="footer.links.about">Navigation</h4>
+          <nav class="footer-nav">
+            <a href="../index.html"   data-i18n="nav.home">Home</a>
+            <a href="history.html"    data-i18n="nav.history">History</a>
+            <a href="stories.html"    data-i18n="nav.stories">Stories</a>
+            <a href="structures.html" data-i18n="nav.structures">Structures</a>
+            <a href="beliefs.html"    data-i18n="nav.beliefs" class="is-active">Beliefs</a>
+            <a href="music.html"      data-i18n="nav.music">Music</a>
+          </nav>
+        </div>
+
+        <div class="footer-social-col">
+          <h4 class="footer-heading" data-i18n="footer.connect">Connect</h4>
+          <div class="footer-social-links">
+            <a class="social-link" href="https://github.com/balabanabdullah/AntiochiaArchive" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="social-link" href="../index.html#contribute" data-i18n="actions.contribute">Contribute</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="copyright-line">&copy; <span id="footer-year">2026</span> <span data-i18n="copyright">AntiochiaArchive. Open source, open memory.</span></p>
+        <p class="coords-line">36.2021° N · 36.1608° E</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/lang.js"></script>
+  <script src="/script.js"></script>
+  <script>
+    document.getElementById("footer-year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

@@ -145,19 +145,19 @@ const TRANSLATIONS = {
     },
     beliefsSection: {
       eyebrow: "Interfaith Heritage",
-      title: "Shared Sanctuaries & Sacred Calendars",
-      body: "Antioch's spiritual landscape is unique—a city where churches, mosques, and synagogues stand side-by-side, sharing holidays, traditions, and sacred spaces.",
+      title: "Shared Sanctuaries & Faith History",
+      body: "Antioch's spiritual landscape is unique—a city where mosques, churches, and synagogues stand side-by-side, sharing sacred history and traditions.",
       card1: {
-        title: "Living Coexistence",
-        desc: "Neighbors of Christian, Muslim, and Jewish heritages attending each other's celebration feasts for centuries."
+        title: "Habib-i Neccar Shrine",
+        desc: "Venerated by Muslims and Christians alike, honoring Habib-i Neccar, the historic martyr of Antioch."
       },
       card2: {
-        title: "Shared Sacred Sites",
-        desc: "Shrines and venerated hilltops visited together by different faiths seeking peace and reflection."
+        title: "St. Pierre Cave Church",
+        desc: "Carved into Mount Staurin, it is considered one of the earliest cave churches in Christian history."
       },
       card3: {
-        title: "Sacred Food Traditions",
-        desc: "Hirisi, bayram breads, and holiday sweets prepared in communal copper cauldrons during festive seasons."
+        title: "Antioch Synagogue",
+        desc: "A historic place of worship preserving centuries-old Torah scrolls and the living memory of Antioch's Jewish community."
       }
     },
     musicSection: {
@@ -396,19 +396,19 @@ const TRANSLATIONS = {
     },
     beliefsSection: {
       eyebrow: "İnanç Kültürü",
-      title: "Ortak Mabetler ve Kutsal Takvimler",
-      body: "Antakya'nın inanç iklimi eşsizdir; camiler, kiliseler ve sinagoglar yan yana durur, bayramlar ve kutsal mekânlar ortaklaşa yaşatılır.",
+      title: "İnançlar ve Kutsal Mabetler",
+      body: "Antakya'nın inanç iklimi eşsizdir; camiler, kiliseler ve sinagoglar yan yana durur, asırlık kutsal miras ortaklaşa yaşatılır.",
       card1: {
-        title: "Birlikte Yaşama Kültürü",
-        desc: "Farklı inançlardan komşuların asırlardır birbiriyle paylaştığı bayram sofraları."
+        title: "Habib-i Neccar Türbesi",
+        desc: "Müslümanlar ve Hristiyanlarca saygı duyulan, Yasin Suresi'nde yer alan Habib-i Neccar'ın tarihi türbesi."
       },
       card2: {
-        title: "Ortak Ziyaretgahlar",
-        desc: "Huzur ve dua için farklı toplulukların birlikte gittiği tarihi makamlar."
+        title: "St. Pierre Mağara Kilisesi",
+        desc: "Staurin Dağı yamaçlarına oyulmuş, inananlara ilk kez 'Hristiyan' adının verildiği tarihi ibadethane."
       },
       card3: {
-        title: "Kutsal Yemek Gelenekleri",
-        desc: "Bayram dönemlerinde dev kazanlarda pişen hırısı ve ortak bayram çöreği gelenekleri."
+        title: "Yahudi Havrası",
+        desc: "Asırlık Tevrat tomarını ve Antakya Musevi cemaatinin kadim hafızasını yaşatan tarihi ibadethane."
       }
     },
     musicSection: {
@@ -647,19 +647,19 @@ const TRANSLATIONS = {
     },
     beliefsSection: {
       eyebrow: "تراث التعايش والمعتقدات",
-      title: "المقامات المشتركة والتقاويم المقدسة",
-      body: "تتميز أنطاكية بطابعها الروحي الفريد حيث تجاور المساجد والكنائس والمعابد، وتتشارك الأعياد والتقاليد.",
+      title: "المعتقدات والمقامات المقدسة",
+      body: "تتميز أنطاكية بطابعها الروحي الفريد حيث تجاور المساجد والكنائس والمعابد، وتتشارك التاريخ والتراث الروحي.",
       card1: {
-        title: "ثقافة التعايش",
-        desc: "جيران من مختلف الثقافات يتشاركون موائد الأعياد منذ قرون."
+        title: "مقام حبيب النجار",
+        desc: "مقام مقدس يحظى باحترام المسلمين والمسيحيين، يُكرم حبيب النجار المذكور في سورة يس."
       },
       card2: {
-        title: "المزارات المشتركة",
-        desc: "مقامات تاريخية يزورها أبناء مختلف الجماعات للصلاة والسلام."
+        title: "كنيسة القديس بطرس الكهفية",
+        desc: "مُنحوتة في جبل استاورين، وتُعتبر أول كنيسة كهفية في العالم حيث أُطلق اسم 'مسيحيين' لأول مرة."
       },
       card3: {
-        title: "تقاليد الطعام المقدس",
-        desc: "إعداد الهريسة وخبز العيد في قدور نحاسية مشتركة."
+        title: "كنيس أنطاكية",
+        desc: "مكان عبادة تاريخي يحفظ لفيات التوراة القديمة والذاكرة الحية للجالية اليهودية في أنطاكية."
       }
     },
     musicSection: {

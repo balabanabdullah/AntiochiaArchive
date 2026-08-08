@@ -121,26 +121,26 @@ const TRANSLATIONS = {
     structuresSection: {
       eyebrow: "Architectural Heritage",
       title: "Stones of Time & Faith",
-      body: "Discover the historic courtyard houses, ancient places of worship, stone bridges, and narrow streets that define Antioch's urban fabric.",
+      body: "Discover the historic courtyard houses, ancient places of worship, Roman mosaic treasures, and historic sanctuaries that define Antioch.",
       struct1: {
-        tag: "Cave Sanctuary",
-        title: "St. Pierre Cave Church",
-        desc: "One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin."
-      },
-      struct2: {
         tag: "Historic Mosque",
         title: "Habib-i Neccar Mosque",
         desc: "Constructed on ancient foundations, representing Anatolia's earliest Islamic heritage site."
       },
+      struct2: {
+        tag: "Cave Sanctuary",
+        title: "St. Pierre Cave Church",
+        desc: "One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin."
+      },
       struct3: {
-        tag: "Urban Fabric",
-        title: "Traditional Courtyard Homes",
-        desc: "Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork."
+        tag: "Roman Heritage",
+        title: "Roman Mosaics of Antioch",
+        desc: "World-renowned floor mosaics depicting ancient myths, natural themes, and seasonal motifs."
       },
       struct4: {
-        tag: "Roman Engineering",
-        title: "Aqueducts & Iron Gate",
-        desc: "Engineering marvels that brought mountain spring water and fortified the mountain passes of Antioch."
+        tag: "Urban Fabric",
+        title: "Traditional Antioch Houses",
+        desc: "Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork."
       }
     },
     beliefsSection: {
@@ -372,26 +372,26 @@ const TRANSLATIONS = {
     structuresSection: {
       eyebrow: "Mimari Miras",
       title: "Zamanın ve İnancın Taşları",
-      body: "Antakya'nın kent dokusunu oluşturan tarihi avlulu evleri, antik ibadethaneleri, taş köprüleri ve dar sokakları keşfedin.",
+      body: "Antakya'nın antik mozaiklerini, tarihi camilerini, kaya ibadethanelerini ve avlulu geleneksel evlerini keşfedin.",
       struct1: {
-        tag: "Mağara Mabedi",
-        title: "St. Pierre Kilisesi",
-        desc: "Staurin Dağı'nın kayalıklarına oyulmuş, Hristiyanlığın ilk ibadethanelerinden biri."
+        tag: "Tarihi Cami",
+        title: "Habib-i Neccar Camii",
+        desc: "Anadolu'da inşa edilen ilk cami olarak kabul edilen, antik temeller üzerindeki tarihi ibadethane."
       },
       struct2: {
-        tag: "Tarihi Camii",
-        title: "Habib-i Neccar Camii",
-        desc: "Anadolu'nun ilk cami yapılarından biri olarak kabul edilen tarihi ibadethane."
+        tag: "Kaya Kilisesi",
+        title: "St. Pierre Kilisesi",
+        desc: "Staurin Dağı'nın yamaçlarına doğrudan oyulmuş, Hristiyanlığın en eski ibadethanelerinden biri."
       },
       struct3: {
-        tag: "Kent Dokusu",
-        title: "Geleneksel Avlulu Evler",
-        desc: "Turunç ağaçları, havuzlar ve taş işçiliğiyle bezeli tarihi Antakya evleri."
+        tag: "Roma Mirası",
+        title: "Roma Mozaikleri",
+        desc: "Antik mitleri, mevsimleri ve doğa motiflerini işleyen, dünyaca ünlü antik taban mozaikleri."
       },
       struct4: {
-        tag: "Roma Mühendisliği",
-        title: "Su Kemerleri ve Demirkapı",
-        desc: "Dağ pınarlarını şehre taşıyan antik mühendislik harikası yapılar."
+        tag: "Kent Dokusu",
+        title: "Antakya Evleri",
+        desc: "Yüksek taş duvarlar arkasında gizli avluları, narenciye ağaçları ve süslü demir işçiliği ile ünlü tarihi evler."
       }
     },
     beliefsSection: {
@@ -623,26 +623,26 @@ const TRANSLATIONS = {
     structuresSection: {
       eyebrow: "التراث المعماري",
       title: "حجارة الزمن والإيمان",
-      body: "استكشف البيوت ذات الفناء التاريخية وأماكن العبادة القديمة والجسور الحجرية والأزقة الضيقة التي تشكل النسيج الحضري لأنطاكية.",
+      body: "استكشف الفسيفساء الرومانية القديمة والمساجد التاريخية والكنائس الكهفية والبيوت التقليدية التي تشكل النسيج الحضري لأنطاكية.",
       struct1: {
-        tag: "مغارة القديس بطرس",
-        title: "كنيسة القديس بطرس",
-        desc: "من أوائل أماكن العبادة المسيحية المنحوتة في جبل استاورين."
+        tag: "مسجد تاريخي",
+        title: "جامع حبيب النجار",
+        desc: "أحد أقدم المساجد في الأناضول، بُني على أسس قديمة ليصبح رمزاً للتراث الإسلامي."
       },
       struct2: {
-        tag: "جامع تاريخي",
-        title: "جامع حبيب النجار",
-        desc: "يُعتبر من أوائل المساجد المبنية في الأناضول."
+        tag: "كنيسة الكهف",
+        title: "كنيسة القديس بطرس",
+        desc: "واحدة من أقدم أطلال العبادة المسيحية المنحوتة في منحدرات جبل استاورين."
       },
       struct3: {
-        tag: "النسيج الحضري",
-        title: "البيوت التقليدية ذات الفناء",
-        desc: "بيوت حجريّة تمتاز بأفنيتها الداخلية وأشجار الحمضيات."
+        tag: "التراث الروماني",
+        title: "الفسيفساء الرومانية",
+        desc: "فسيفساء أرضية عالمية الشهرة تجسد الأساطير القديمة والفصول والمشاهد الطبيعية."
       },
       struct4: {
-        tag: "الهندسة الرومانية",
-        title: "القنوات والباب الحديدي",
-        desc: "معالم هندسية قديمة جلب المياه العذبة وتحصين أنطاكية."
+        tag: "النسيج الحضري",
+        title: "بيوت أنطاكية التقليدية",
+        desc: "منازل حجريّة تتميّز بأفنيتها الداخلية النضرة، وأشجار الحمضيات والأعمال الحديدية الزخرفية."
       }
     },
     beliefsSection: {

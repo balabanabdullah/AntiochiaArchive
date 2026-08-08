@@ -287,6 +287,7 @@ function buildSvg(type, color, bg) {
     arch:    `<rect width="100%" height="100%" fill="${bg}"/>${g('<path d="M 40 160 C 40 70 320 70 320 160 Z"/><path d="M 90 160 C 90 100 270 100 270 160 Z"/><circle cx="180" cy="80" r="14"/>')}`,
     minaret: `<rect width="100%" height="100%" fill="${bg}"/>${g('<path d="M 180 30 L 220 160 L 140 160 Z"/><line x1="180" y1="20" x2="180" y2="30"/><rect x="70" y="110" width="220" height="50"/><path d="M 120 160 C 120 130 160 130 160 160"/>')}`,
     aqueduct:`<rect width="100%" height="100%" fill="${bg}"/>${g('<path d="M 20 150 C 20 100 90 100 90 150 M 90 150 C 90 100 160 100 160 150 M 160 150 C 160 100 230 100 230 150 M 230 150 C 230 100 300 100 300 150"/><line x1="20" y1="90" x2="340" y2="90" stroke-width="2"/>')}`,
+    mosaic:  `<rect width="100%" height="100%" fill="${bg}"/>${g('<rect x="50" y="35" width="45" height="45"/><rect x="105" y="35" width="45" height="45"/><rect x="160" y="35" width="45" height="45"/><rect x="215" y="35" width="45" height="45"/><rect x="50" y="90" width="45" height="45"/><rect x="105" y="90" width="45" height="45"/><rect x="160" y="90" width="45" height="45"/><rect x="215" y="90" width="45" height="45"/><line x1="30" y1="20" x2="280" y2="20" stroke-width="2"/><line x1="30" y1="150" x2="280" y2="150" stroke-width="2"/>')}`,
   };
   return `<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svgs[type] ?? svgs.circles}</svg>`;
 }

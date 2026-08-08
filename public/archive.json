@@ -48,31 +48,31 @@
   "structures": [
     {
       "id": "st1",
-      "tag": { "en": "Cave Sanctuary", "tr": "Kaya Kilisesi", "ar": "كنيسة الكهف" },
-      "title": { "en": "St. Pierre Cave Church", "tr": "Sen Piyer Kilisesi", "ar": "كنيسة القديس بيار الكهفية" },
-      "desc": { "en": "One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin.", "tr": "Staurin Dağı'nın yamaçlarına doğrudan oyulmuş, en erken Hristiyan ibadet mekânlarından biri.", "ar": "أحد أولى أماكن العبادة المسيحية المنحوتة مباشرة في منحدرات جبل ستورين." },
-      "svgColor": "#903628", "svgBg": "#e0d6c4", "svgType": "arch", "image": null
-    },
-    {
-      "id": "st2",
       "tag": { "en": "Historic Mosque", "tr": "Tarihi Cami", "ar": "مسجد تاريخي" },
       "title": { "en": "Habib-i Neccar Mosque", "tr": "Habib-i Neccar Camii", "ar": "جامع حبيب النجار" },
-      "desc": { "en": "Constructed on ancient foundations, representing Anatolia's earliest Islamic heritage site.", "tr": "Antik temeller üzerine inşa edilmiş, Anadolu'nun en erken İslam miras alanını temsil ediyor.", "ar": "شُيّد على أسس قديمة، ويمثّل أقدم موقع تراثي إسلامي في الأناضول." },
+      "desc": { "en": "Constructed on ancient foundations, representing Anatolia's earliest Islamic heritage site.", "tr": "Anadolu'da inşa edilen ilk cami olarak kabul edilen, antik temeller üzerindeki tarihi ibadethane.", "ar": "أحد أقدم المساجد في الأناضول، بُني على أسس قديمة ليصبح رمزاً للتراث الإسلامي." },
       "svgColor": "#5e6142", "svgBg": "#d8ceb8", "svgType": "minaret", "image": null
     },
     {
+      "id": "st2",
+      "tag": { "en": "Cave Sanctuary", "tr": "Kaya Kilisesi", "ar": "كنيسة الكهف" },
+      "title": { "en": "St. Pierre Cave Church", "tr": "St. Pierre Kilisesi", "ar": "كنيسة القديس بطرس" },
+      "desc": { "en": "One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin.", "tr": "Staurin Dağı'nın yamaçlarına doğrudan oyulmuş, Hristiyanlığın en eski ibadethanelerinden biri.", "ar": "واحدة من أقدم أطلال العبادة المسيحية المنحوتة في منحدرات جبل استاورين." },
+      "svgColor": "#903628", "svgBg": "#e0d6c4", "svgType": "arch", "image": null
+    },
+    {
       "id": "st3",
-      "tag": { "en": "Urban Fabric", "tr": "Kent Dokusu", "ar": "النسيج الحضري" },
-      "title": { "en": "Traditional Courtyard Homes", "tr": "Geleneksel Avlulu Evler", "ar": "المنازل التقليدية ذات الفناء" },
-      "desc": { "en": "Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork.", "tr": "Merkezi avlular, narenciye ağaçları ve dekoratif demir işçiliğiyle bezenmiş karmaşık taş konutlar.", "ar": "مساكن حجرية معقدة تتميز بأفنية مركزية وأشجار الحمضيات والأعمال الحديدية الزخرفية." },
-      "svgColor": "#903628", "svgBg": "#ebdcc8", "svgType": "house", "image": null
+      "tag": { "en": "Roman Heritage", "tr": "Roma Mirası", "ar": "التراث الروماني" },
+      "title": { "en": "Roman Mosaics of Antioch", "tr": "Roma Mozaikleri", "ar": "الفسيفساء الرومانية" },
+      "desc": { "en": "World-renowned floor mosaics depicting mythological legends, natural themes, and seasonal motifs.", "tr": "Antik mitleri, mevsimleri ve doğa motiflerini işleyen, dünyaca ünlü antik taban mozaikleri.", "ar": "فسيفساء أرضية عالمية الشهرة تجسد الأساطير القديمة والفصول والمشاهد الطبيعية." },
+      "svgColor": "#1c1814", "svgBg": "#dfd5c4", "svgType": "mosaic", "image": null
     },
     {
       "id": "st4",
-      "tag": { "en": "Roman Engineering", "tr": "Roma Mühendisliği", "ar": "الهندسة الرومانية" },
-      "title": { "en": "Aqueducts & Iron Gate", "tr": "Su Kemerleri ve Demir Kapı", "ar": "قناوات المياه وبوابة الحديد" },
-      "desc": { "en": "Engineering marvels that brought mountain spring water and fortified the mountain passes of Antioch.", "tr": "Dağ kaynak sularını getiren ve Antakya'nın dağ geçitlerini tahkim eden mühendislik harikaları.", "ar": "روائع هندسية جلبت مياه الينابيع الجبلية وحصّنت الممرات الجبلية في أنطاكية." },
-      "svgColor": "#1c1814", "svgBg": "#dfd5c4", "svgType": "aqueduct", "image": null
+      "tag": { "en": "Urban Fabric", "tr": "Kent Dokusu", "ar": "النسيج الحضري" },
+      "title": { "en": "Traditional Antioch Houses", "tr": "Antakya Evleri", "ar": "بيوت أنطاكية التقليدية" },
+      "desc": { "en": "Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork.", "tr": "Yüksek taş duvarlar arkasında gizli avluları, narenciye ağaçları ve süslü demir işçiliği ile ünlü tarihi evler.", "ar": "منازل حجريّة تتميّز بأفنيتها الداخلية النضرة، وأشجار الحمضيات والأعمال الحديدية الزخرفية." },
+      "svgColor": "#903628", "svgBg": "#ebdcc8", "svgType": "house", "image": null
     }
   ],
   "beliefs": [

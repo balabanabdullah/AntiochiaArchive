@@ -163,21 +163,21 @@ const TRANSLATIONS = {
     musicSection: {
       eyebrow: "Musical Traditions",
       title: "Sounds, Melodies & Soundscapes",
-      body: "The music of Antioch weaves together Levantine maqams, church hymns, local folk songs, and the resonant sounds of the Oud and Ney.",
+      body: "The music of Antioch weaves together Levantine maqams, sacred Ziyaret chants, Mesopotamian melodies, and traditional local folk songs.",
       track1: {
-        tag: "Folk Melody",
-        title: "Longing Along the Orontes",
-        desc: "Traditional modal song sung along the banks of the Orontes river during evening gatherings."
+        tag: "Ancient Heritage",
+        title: "Mesopotamian Melodies",
+        desc: "Ancient modal structures and acoustic traditions echoing through centuries of Levantine history."
       },
       track2: {
         tag: "Sacred Chants",
-        title: "Hymns of the Mountain",
-        desc: "Aramaic and Arabic liturgical chants recorded in ancient stone chapels."
+        title: "Ziyaret & Sacred Chants",
+        desc: "Liturgical chants and spiritual melodies sung in sacred spaces, shrines, and seasonal gatherings."
       },
       track3: {
-        tag: "Urban Soundscape",
-        title: "Old Bazaar Soundscape",
-        desc: "Field recordings capturing coppersmith hammers, call to prayer, church bells, and street songs."
+        tag: "Local Folk Songs",
+        title: "Antioch Folk Songs & Ballads",
+        desc: "Heartfelt folk ballads, courtyard songs, and celebratory music reflecting the daily rhythm of Antioch."
       }
     },
     contribute: {
@@ -414,21 +414,21 @@ const TRANSLATIONS = {
     musicSection: {
       eyebrow: "Müzik Kültürü",
       title: "Sesler, Makamlar ve İlahiler",
-      body: "Antakya müziği; Doğu makamlarını, kilise ilahilerini, yerel türküleri ve ud ile neyin yankılanan seslerini bir araya getirir.",
+      body: "Antakya müziği; Doğu Akdeniz makamlarını, Ziyaret/Necef ilahilerini, Mezopotamya ezgilerini ve mahalli halk türkülerini bir araya getirir.",
       track1: {
-        tag: "Halk Ezgisi",
-        title: "Asi Kıyısında Hasret",
-        desc: "Akşam sohbetlerinde Asi nehri boyunca söylenen geleneksel makamlı türkü."
+        tag: "Kadim Miras",
+        title: "Mezopotamya Ezgileri",
+        desc: "Doğu Akdeniz ve Levanten kültürünün asırlardır yankılanan makam yapıları ve antik enstrüman gelenekleri."
       },
       track2: {
         tag: "Kutsal İlahiler",
-        title: "Dağın İlahileri",
-        desc: "Tarihi taş şapellerde kaydedilmiş Süryanice ve Arapça ibadet ezgileri."
+        title: "Ziyaret / Necef İlahileri",
+        desc: "Kutsal mekânlarda, manevi ziyaretgahlar ve bayram toplantılarında seslendirilen ilahiler ve dualar."
       },
       track3: {
-        tag: "Ses Manzarası",
-        title: "Eski Çarşı Sesleri",
-        desc: "Bakırcı çekiçleri, ezan sesleri, kilise çanları ve sokak satıcılarının ritmi."
+        tag: "Mahalli Türküler",
+        title: "Antakya Türküleri / Mahalli Şarkılar",
+        desc: "Antakya sokaklarında, avlularında ve düğünlerinde söylenen samimi halk türküleri ve mahalli ezgiler."
       }
     },
     contribute: {
@@ -665,21 +665,21 @@ const TRANSLATIONS = {
     musicSection: {
       eyebrow: "التراث الموسيقي",
       title: "الألحان والمقامات والمشاهد الصوتية",
-      body: "تنسج موسيقى أنطاكية المقامات الشرقية والأرانيم الكنسية والأغاني الشعبية وألحان العود والناي.",
+      body: "تنسج موسيقى أنطاكية المقامات الشرقية وأناشيد الزيارات والمقامات القديمة والأغاني الشعبية المحلية.",
       track1: {
-        tag: "لحن شعبي",
-        title: "حنين على ضفاف العاصي",
-        desc: "أغنية مقامية تقليدية تُغنى على ضفاف نهر العاصي."
+        tag: "تراث قديم",
+        title: "ألحان بلاد ما بين النهرين",
+        desc: "بُنى مقامية قديمة وتقاليد صوتية عريقة تتردد أصداؤها عبر قرون من تاريخ المشرق."
       },
       track2: {
-        tag: "ترانيم مقدسة",
-        title: "ترانيم الجبل",
-        desc: "ترانيم سريانية وعربية مسجلة في كنائس حجرية قديمة."
+        tag: "أناشيد مقدسة",
+        title: "ترانيم الزيارات وأناشيد النجف",
+        desc: "أناشيد طقسية وألحان روحية تُنشَد في الأماكن المقدسة والمزارات والتجمعات الموسمية."
       },
       track3: {
-        tag: "مشهد صوتي",
-        title: "أصوات السوق القديم",
-        desc: "تسجيلات ميدانية لطرق النحاس والأذان وأجراس الكنائس."
+        tag: "أغانٍ شعبية محليّة",
+        title: "أغاني وأهازيج أنطاكية المحلية",
+        desc: "أغاني شعبية صادقة وألحان الأفنية والمناسبات التي تعكس الإيقاع اليومي للحياة في أنطاكية."
       }
     },
     contribute: {

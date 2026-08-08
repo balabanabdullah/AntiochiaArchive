@@ -98,24 +98,24 @@
   "music": [
     {
       "id": "m1",
-      "badge": "♩",
-      "tag": { "en": "Folk Melody", "tr": "Halk Ezgisi", "ar": "لحن شعبي" },
-      "title": { "en": "Longing Along the Orontes", "tr": "Asi Boyunca Hasret", "ar": "الشوق على ضفاف العاصي" },
-      "desc": { "en": "Traditional modal song sung along the banks of the Orontes river during evening gatherings.", "tr": "Akşam toplantılarında Asi kıyısında söylenen geleneksel makam şarkısı.", "ar": "أغنية مقامية تقليدية تُغنّى على ضفاف نهر العاصي خلال التجمعات المسائية." }
+      "badge": "🎵",
+      "tag": { "en": "Ancient Heritage", "tr": "Kadim Miras", "ar": "تراث قديم" },
+      "title": { "en": "Mesopotamian Melodies", "tr": "Mezopotamya Ezgileri", "ar": "ألحان بلاد ما بين النهرين" },
+      "desc": { "en": "Ancient modal structures and acoustic traditions echoing through centuries of Levantine history.", "tr": "Doğu Akdeniz ve Levanten kültürünün asırlardır yankılanan makam yapıları ve antik enstrüman gelenekleri.", "ar": "بُنى مقامية قديمة وتقاليد صوتية عريقة تتردد أصداؤها عبر قرون من تاريخ المشرق." }
     },
     {
       "id": "m2",
       "badge": "📜",
-      "tag": { "en": "Sacred Chants", "tr": "Kutsal İlahiler", "ar": "الترانيم المقدسة" },
-      "title": { "en": "Hymns of the Mountain", "tr": "Dağın İlahileri", "ar": "ترانيم الجبل" },
-      "desc": { "en": "Aramaic and Arabic liturgical chants recorded in ancient stone chapels.", "tr": "Tarihi taş şapellerde kaydedilmiş Süryanice ve Arapça ibadet ezgileri.", "ar": "ترانيم طقسية آرامية وعربية مسجلة في كنائس حجرية قديمة." }
+      "tag": { "en": "Sacred Chants", "tr": "Kutsal İlahiler", "ar": "أناشيد مقدسة" },
+      "title": { "en": "Ziyaret & Sacred Chants", "tr": "Ziyaret / Necef İlahileri", "ar": "ترانيم الزيارات وأناشيد النجف" },
+      "desc": { "en": "Liturgical chants and spiritual melodies sung in sacred spaces, shrines, and seasonal gatherings.", "tr": "Kutsal mekânlarda, manevi ziyaretgahlar ve bayram toplantılarında seslendirilen ilahiler ve dualar.", "ar": "أناشيد طقسية وألحان روحية تُنشَد في الأماكن المقدسة والمزارات والتجمعات الموسمية." }
     },
     {
       "id": "m3",
-      "badge": "🔔",
-      "tag": { "en": "Urban Soundscape", "tr": "Kentsel Ses Manzarası", "ar": "مشهد صوتي حضري" },
-      "title": { "en": "Old Bazaar Soundscape", "tr": "Eski Çarşı Sesleri", "ar": "أصوات السوق القديم" },
-      "desc": { "en": "Field recordings capturing coppersmith hammers, call to prayer, church bells, and street songs.", "tr": "Bakırcı çekiçlerini, ezan seslerini, kilise çanlarını ve sokak şarkılarını kaydeden saha kayıtları.", "ar": "تسجيلات ميدانية تلتقط طرق النحاس والأذان وأجراس الكنائس وأغاني الشوارع." }
+      "badge": "🪕",
+      "tag": { "en": "Local Folk Songs", "tr": "Mahalli Türküler", "ar": "أغانٍ شعبية محليّة" },
+      "title": { "en": "Antioch Folk Songs & Ballads", "tr": "Antakya Türküleri / Mahalli Şarkılar", "ar": "أغاني وأهازيج أنطاكية المحلية" },
+      "desc": { "en": "Heartfelt folk ballads, courtyard songs, and celebratory music reflecting the daily rhythm of Antioch.", "tr": "Antakya sokaklarında, avlularında ve düğünlerinde söylenen samimi halk türküleri ve mahalli ezgiler.", "ar": "أغاني شعبية صادقة وألحان الأفنية والمناسبات التي تعكس الإيقاع اليومي للحياة في أنطاكية." }
     }
   ]
 }

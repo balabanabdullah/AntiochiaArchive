@@ -990,22 +990,24 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 }
 
 .music-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
 }
 
 .music-track-card {
   background: var(--clr-paper-light);
   border: 1px solid var(--clr-line-strong);
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--sp-4);
   display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  transition: transform var(--dur-mid) var(--ease), background var(--dur-mid) var(--ease), border-color var(--dur-mid) var(--ease);
 }
 .music-track-card:hover {
-  background: var(--clr-paper);
+  transform: translateY(-4px);
+  background: var(--clr-paper-deep);
   border-color: var(--clr-red);
 }
 
@@ -1335,11 +1337,9 @@ html[dir="rtl"] .footer-nav a:focus-visible {
 
   .history-timeline,
   .stories-grid,
-  .beliefs-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .structures-grid {
+  .structures-grid,
+  .beliefs-grid,
+  .music-list {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1392,7 +1392,8 @@ html[dir="rtl"] .footer-nav a:focus-visible {
   .history-timeline,
   .stories-grid,
   .structures-grid,
-  .beliefs-grid {
+  .beliefs-grid,
+  .music-list {
     grid-template-columns: 1fr;
   }
 

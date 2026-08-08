@@ -230,75 +230,13 @@
          ------------------------------------------------------------------- -->
     <section class="section-history" id="history" aria-labelledby="history-heading">
       <div class="container">
-
         <div class="history-header" data-reveal>
           <span class="eyebrow" data-i18n="historySection.eyebrow">Chronicle of a City</span>
           <h2 id="history-heading" data-i18n="historySection.title">Twenty-Five Centuries of Heritage</h2>
-          <p class="history-lead" data-i18n="historySection.body">
-            Founded in 300 BCE along the Orontes River, Antioch grew into one of the ancient Mediterranean's great capitals—a crossroads of silk routes, philosophies, and faith traditions.
-          </p>
+          <p class="history-lead" data-i18n="historySection.body">Founded in 300 BCE along the Orontes River, Antioch grew into one of the ancient Mediterranean's great capitals.</p>
         </div>
-
-        <div class="history-timeline">
-
-          <article class="timeline-card" data-reveal>
-            <span class="timeline-era" data-i18n="historySection.milestone1.era">300 BCE — Roman Capital</span>
-            <div class="timeline-visual" aria-hidden="true">
-              <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice">
-                <rect width="100%" height="100%" fill="#ded4c0"/>
-                <g fill="none" stroke="#903628" stroke-width="1.2" opacity="0.4">
-                  <line x1="40" y1="140" x2="280" y2="140" stroke-width="2"/>
-                  <line x1="60" y1="140" x2="60" y2="50"/>
-                  <line x1="120" y1="140" x2="120" y2="50"/>
-                  <line x1="180" y1="140" x2="180" y2="50"/>
-                  <line x1="240" y1="140" x2="240" y2="50"/>
-                  <path d="M 45 50 L 255 50 M 45 42 L 255 42"/>
-                </g>
-              </svg>
-            </div>
-            <h3 class="timeline-title" data-i18n="historySection.milestone1.title">Crossroads of the Ancient Mediterranean</h3>
-            <p class="timeline-desc" data-i18n="historySection.milestone1.body">
-              Established by Seleucus I Nicator, Antioch became the third largest city of the Roman Empire, renowned for its colonnaded avenues and mosaic masterpieces.
-            </p>
-          </article>
-
-          <article class="timeline-card" data-reveal>
-            <span class="timeline-era" data-i18n="historySection.milestone2.era">Medieval &amp; Ottoman Eras</span>
-            <div class="timeline-visual" aria-hidden="true">
-              <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice">
-                <rect width="100%" height="100%" fill="#d8ceb8"/>
-                <g fill="none" stroke="#5e6142" stroke-width="1.2" opacity="0.45">
-                  <path d="M 80 140 L 80 80 C 80 50 160 50 160 80 L 160 140 Z"/>
-                  <path d="M 160 140 L 160 80 C 160 50 240 50 240 80 L 240 140 Z"/>
-                  <line x1="50" y1="140" x2="270" y2="140" stroke-width="2"/>
-                </g>
-              </svg>
-            </div>
-            <h3 class="timeline-title" data-i18n="historySection.milestone2.title">Mosaic of Cultures &amp; Trade</h3>
-            <p class="timeline-desc" data-i18n="historySection.milestone2.body">
-              Through centuries of transformation, the city maintained its position as a vibrant hub of silk trade, craftsmanship, and peaceful co-existence.
-            </p>
-          </article>
-
-          <article class="timeline-card" data-reveal>
-            <span class="timeline-era" data-i18n="historySection.milestone3.era">Modern Memory</span>
-            <div class="timeline-visual" aria-hidden="true">
-              <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice">
-                <rect width="100%" height="100%" fill="#dfd5c4"/>
-                <g fill="none" stroke="#1c1814" stroke-width="1.2" opacity="0.3">
-                  <circle cx="160" cy="90" r="55"/>
-                  <circle cx="160" cy="90" r="35"/>
-                  <line x1="160" y1="20" x2="160" y2="160"/>
-                  <line x1="90" y1="90" x2="230" y2="90"/>
-                </g>
-              </svg>
-            </div>
-            <h3 class="timeline-title" data-i18n="historySection.milestone3.title">Preserving Identity Across Time</h3>
-            <p class="timeline-desc" data-i18n="historySection.milestone3.body">
-              Today, AntiochiaArchive safeguards physical landmarks and intangible heritage so future generations can retrace the living memory of Antioch.
-            </p>
-          </article>
-
+        <div class="history-timeline" id="history-timeline-container" aria-live="polite">
+          <!-- dynamically populated from archive.json -->
         </div>
       </div>
     </section>
@@ -308,109 +246,13 @@
          ------------------------------------------------------------------- -->
     <section class="stories-section" id="stories" aria-labelledby="stories-heading">
       <div class="container">
-
         <div class="stories-header" data-reveal>
           <span class="eyebrow" data-i18n="storiesSection.eyebrow">Oral Histories</span>
-          <h2 id="stories-heading" data-i18n="storiesSection.title">
-            Voices &amp; Memories of Antioch
-          </h2>
-          <p class="stories-intro" data-i18n="storiesSection.intro">
-            Every neighborhood in Antioch holds memories carried across generations—from courtyard conversations to old trade routes.
-          </p>
+          <h2 id="stories-heading" data-i18n="storiesSection.title">Voices &amp; Memories of Antioch</h2>
+          <p class="stories-intro" data-i18n="storiesSection.intro">Every neighborhood in Antioch holds memories carried across generations.</p>
         </div>
-
-        <div class="stories-grid">
-
-          <!-- Story 1 -->
-          <article class="story-card" data-reveal aria-label="Story: The Old Stone House on Kurtuluş Street" data-i18n-aria="storiesSection.story1.ariaLabel">
-            <div class="story-image-wrap">
-              <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#ded4c0"/>
-                <g fill="none" stroke="#8c392b" stroke-width="1.2" opacity="0.45">
-                  <path d="M 60 190 L 60 110 L 200 45 L 340 110 L 340 190 Z" />
-                  <path d="M 140 190 L 140 130 L 190 130 L 190 190 Z" />
-                  <rect x="220" y="115" width="55" height="45" />
-                  <rect x="85" y="115" width="35" height="45" />
-                  <line x1="40" y1="190" x2="360" y2="190" stroke-width="2"/>
-                </g>
-                <circle cx="200" cy="45" r="4" fill="#8c392b" opacity="0.6"/>
-              </svg>
-              <span class="story-tag" data-i18n="storiesSection.story1.tag">Kurtuluş Street</span>
-            </div>
-            <div class="story-content">
-              <h3 class="story-title" data-i18n="storyTitle1">
-                The Old Stone House on Kurtuluş Street
-              </h3>
-              <p class="story-body" data-i18n="storySummary1">
-                An oral account of multi-generational life inside one of Antioch's historic courtyard homes before the earthquake.
-              </p>
-              <button class="story-read-btn" type="button" aria-label="Read story about Kurtuluş Street" data-i18n="readMore" data-i18n-aria="storiesSection.story1.ariaLabel" data-story-id="1">
-                <span data-i18n="readMore">Read Story</span>
-                <span class="story-link-arrow" aria-hidden="true">→</span>
-              </button>
-            </div>
-          </article>
-
-          <!-- Story 2 -->
-          <article class="story-card" data-reveal aria-label="Story: Echoes of the Orontes Waterwheels" data-i18n-aria="storiesSection.story2.ariaLabel">
-            <div class="story-image-wrap">
-              <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#d8ceb8"/>
-                <g fill="none" stroke="#5d6645" stroke-width="1.5" opacity="0.45">
-                  <circle cx="200" cy="120" r="70" />
-                  <circle cx="200" cy="120" r="22" />
-                  <line x1="200" y1="50" x2="200" y2="190" />
-                  <line x1="130" y1="120" x2="270" y2="120" />
-                  <line x1="150" y1="70" x2="250" y2="170" />
-                  <line x1="150" y1="170" x2="250" y2="70" />
-                  <path d="M 0 185 Q 200 165 400 185" stroke="#48685c" stroke-width="2.5"/>
-                </g>
-              </svg>
-              <span class="story-tag" data-i18n="storiesSection.story2.tag">Orontes River</span>
-            </div>
-            <div class="story-content">
-              <h3 class="story-title" data-i18n="storyTitle2">
-                Echoes of the Orontes Waterwheels
-              </h3>
-              <p class="story-body" data-i18n="storySummary2">
-                Memories of the ancient wooden waterwheels along the Orontes river that once fed the gardens of Antioch.
-              </p>
-              <button class="story-read-btn" type="button" aria-label="Read story about Orontes Waterwheels" data-i18n="readMore" data-i18n-aria="storiesSection.story2.ariaLabel" data-story-id="2">
-                <span data-i18n="readMore">Read Story</span>
-                <span class="story-link-arrow" aria-hidden="true">→</span>
-              </button>
-            </div>
-          </article>
-
-          <!-- Story 3 -->
-          <article class="story-card" data-reveal aria-label="Story: Bread &amp; Salt: Shared Festive Tables" data-i18n-aria="storiesSection.story3.ariaLabel">
-            <div class="story-image-wrap">
-              <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#dfd5c4"/>
-                <g fill="none" stroke="#903628" stroke-width="1.3" opacity="0.4">
-                  <ellipse cx="200" cy="130" rx="130" ry="60" />
-                  <ellipse cx="200" cy="130" rx="70" ry="30" />
-                  <circle cx="155" cy="125" r="16" />
-                  <circle cx="235" cy="135" r="18" />
-                  <circle cx="200" cy="115" r="14" />
-                </g>
-              </svg>
-              <span class="story-tag" data-i18n="storiesSection.story3.tag">Old Quarter</span>
-            </div>
-            <div class="story-content">
-              <h3 class="story-title" data-i18n="storyTitle3">
-                Bread &amp; Salt: Shared Festive Tables
-              </h3>
-              <p class="story-body" data-i18n="storySummary3">
-                How neighboring communities gathered across religious calendars to share festive dishes and holiday breads.
-              </p>
-              <button class="story-read-btn" type="button" aria-label="Read story about Bread and Salt" data-i18n="readMore" data-i18n-aria="storiesSection.story3.ariaLabel" data-story-id="3">
-                <span data-i18n="readMore">Read Story</span>
-                <span class="story-link-arrow" aria-hidden="true">→</span>
-              </button>
-            </div>
-          </article>
-
+        <div class="stories-grid" id="stories-grid-container" aria-live="polite">
+          <!-- dynamically populated from archive.json -->
         </div>
       </div>
     </section>
@@ -420,92 +262,13 @@
          ------------------------------------------------------------------- -->
     <section class="section-structures" id="structures" aria-labelledby="structures-heading">
       <div class="container">
-
         <div class="structures-header" data-reveal>
           <span class="eyebrow" data-i18n="structuresSection.eyebrow">Architectural Heritage</span>
           <h2 id="structures-heading" data-i18n="structuresSection.title">Stones of Time &amp; Faith</h2>
-          <p class="structures-lead" data-i18n="structuresSection.body">
-            Discover the historic courtyard houses, ancient places of worship, stone bridges, and narrow streets that define Antioch's urban fabric.
-          </p>
+          <p class="structures-lead" data-i18n="structuresSection.body">Discover the historic courtyard houses, ancient places of worship, stone bridges, and narrow streets.</p>
         </div>
-
-        <div class="structures-grid">
-
-          <article class="struct-card" data-reveal>
-            <div class="struct-media">
-              <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#e0d6c4"/>
-                <g fill="none" stroke="#903628" stroke-width="1.4" opacity="0.45">
-                  <path d="M 40 160 C 40 70 320 70 320 160 Z" />
-                  <path d="M 90 160 C 90 100 270 100 270 160 Z" />
-                  <circle cx="180" cy="80" r="14" />
-                </g>
-              </svg>
-              <span class="struct-tag" data-i18n="structuresSection.struct1.tag">Cave Sanctuary</span>
-            </div>
-            <div class="struct-info">
-              <h3 class="struct-title" data-i18n="structuresSection.struct1.title">St. Pierre Cave Church</h3>
-              <p class="struct-desc" data-i18n="structuresSection.struct1.desc">One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin.</p>
-            </div>
-          </article>
-
-          <article class="struct-card" data-reveal>
-            <div class="struct-media">
-              <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#d8ceb8"/>
-                <g fill="none" stroke="#5e6142" stroke-width="1.4" opacity="0.5">
-                  <path d="M 180 30 L 220 160 L 140 160 Z"/>
-                  <line x1="180" y1="20" x2="180" y2="30"/>
-                  <rect x="70" y="110" width="220" height="50"/>
-                  <path d="M 120 160 C 120 130 160 130 160 160"/>
-                </g>
-              </svg>
-              <span class="struct-tag" data-i18n="structuresSection.struct2.tag">Historic Mosque</span>
-            </div>
-            <div class="struct-info">
-              <h3 class="struct-title" data-i18n="structuresSection.struct2.title">Habib-i Neccar Mosque</h3>
-              <p class="struct-desc" data-i18n="structuresSection.struct2.desc">Constructed on ancient foundations, representing Anatolia's earliest Islamic heritage site.</p>
-            </div>
-          </article>
-
-          <article class="struct-card" data-reveal>
-            <div class="struct-media">
-              <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#ebdcc8"/>
-                <g fill="none" stroke="#903628" stroke-width="1.3" opacity="0.4">
-                  <rect x="50" y="60" width="260" height="100"/>
-                  <line x1="50" y1="110" x2="310" y2="110"/>
-                  <rect x="80" y="75" width="40" height="25"/>
-                  <rect x="160" y="75" width="40" height="25"/>
-                  <rect x="240" y="75" width="40" height="25"/>
-                  <path d="M 160 160 C 160 130 200 130 200 160"/>
-                </g>
-              </svg>
-              <span class="struct-tag" data-i18n="structuresSection.struct3.tag">Urban Fabric</span>
-            </div>
-            <div class="struct-info">
-              <h3 class="struct-title" data-i18n="structuresSection.struct3.title">Traditional Courtyard Homes</h3>
-              <p class="struct-desc" data-i18n="structuresSection.struct3.desc">Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork.</p>
-            </div>
-          </article>
-
-          <article class="struct-card" data-reveal>
-            <div class="struct-media">
-              <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                <rect width="100%" height="100%" fill="#dfd5c4"/>
-                <g fill="none" stroke="#1c1814" stroke-width="1.3" opacity="0.35">
-                  <path d="M 20 150 C 20 100 90 100 90 150 M 90 150 C 90 100 160 100 160 150 M 160 150 C 160 100 230 100 230 150 M 230 150 C 230 100 300 100 300 150"/>
-                  <line x1="20" y1="90" x2="340" y2="90" stroke-width="2"/>
-                </g>
-              </svg>
-              <span class="struct-tag" data-i18n="structuresSection.struct4.tag">Roman Engineering</span>
-            </div>
-            <div class="struct-info">
-              <h3 class="struct-title" data-i18n="structuresSection.struct4.title">Aqueducts &amp; Iron Gate</h3>
-              <p class="struct-desc" data-i18n="structuresSection.struct4.desc">Engineering marvels that brought mountain spring water and fortified the mountain passes of Antioch.</p>
-            </div>
-          </article>
-
+        <div class="structures-grid" id="structures-grid-container" aria-live="polite">
+          <!-- dynamically populated from archive.json -->
         </div>
       </div>
     </section>
@@ -515,35 +278,13 @@
          ------------------------------------------------------------------- -->
     <section class="section-beliefs" id="beliefs" aria-labelledby="beliefs-heading">
       <div class="container">
-
         <div class="beliefs-header" data-reveal>
           <span class="eyebrow" data-i18n="beliefsSection.eyebrow">Interfaith Heritage</span>
           <h2 id="beliefs-heading" data-i18n="beliefsSection.title">Shared Sanctuaries &amp; Sacred Calendars</h2>
-          <p class="beliefs-lead" data-i18n="beliefsSection.body">
-            Antioch's spiritual landscape is unique—a city where churches, mosques, and synagogues stand side-by-side, sharing holidays, traditions, and sacred spaces.
-          </p>
+          <p class="beliefs-lead" data-i18n="beliefsSection.body">Antioch's spiritual landscape is unique—a city where churches, mosques, and synagogues stand side-by-side.</p>
         </div>
-
-        <div class="beliefs-grid">
-
-          <div class="belief-card" data-reveal>
-            <div class="belief-icon" aria-hidden="true">🕊</div>
-            <h3 class="belief-title" data-i18n="beliefsSection.card1.title">Living Coexistence</h3>
-            <p class="belief-desc" data-i18n="beliefsSection.card1.desc">Neighbors of Christian, Muslim, and Jewish heritages attending each other's celebration feasts for centuries.</p>
-          </div>
-
-          <div class="belief-card" data-reveal>
-            <div class="belief-icon" aria-hidden="true">⛰</div>
-            <h3 class="belief-title" data-i18n="beliefsSection.card2.title">Shared Sacred Sites</h3>
-            <p class="belief-desc" data-i18n="beliefsSection.card2.desc">Shrines and venerated hilltops visited together by different faiths seeking peace and reflection.</p>
-          </div>
-
-          <div class="belief-card" data-reveal>
-            <div class="belief-icon" aria-hidden="true">🌾</div>
-            <h3 class="belief-title" data-i18n="beliefsSection.card3.title">Sacred Food Traditions</h3>
-            <p class="belief-desc" data-i18n="beliefsSection.card3.desc">Hirisi, bayram breads, and holiday sweets prepared in communal copper cauldrons during festive seasons.</p>
-          </div>
-
+        <div class="beliefs-grid" id="beliefs-grid-container" aria-live="polite">
+          <!-- dynamically populated from archive.json -->
         </div>
       </div>
     </section>
@@ -553,53 +294,13 @@
          ------------------------------------------------------------------- -->
     <section class="section-music" id="music" aria-labelledby="music-heading">
       <div class="container">
-
         <div class="music-header" data-reveal>
           <span class="eyebrow" data-i18n="musicSection.eyebrow">Musical Traditions</span>
           <h2 id="music-heading" data-i18n="musicSection.title">Sounds, Melodies &amp; Soundscapes</h2>
-          <p class="music-lead" data-i18n="musicSection.body">
-            The music of Antioch weaves together Levantine maqams, church hymns, local folk songs, and the resonant sounds of the Oud and Ney.
-          </p>
+          <p class="music-lead" data-i18n="musicSection.body">The music of Antioch weaves together Levantine maqams, church hymns, local folk songs, and the resonant sounds of the Oud and Ney.</p>
         </div>
-
-        <div class="music-list">
-
-          <article class="music-track-card" data-reveal>
-            <div class="track-badge" aria-hidden="true">♩</div>
-            <div class="track-info">
-              <span class="track-tag" data-i18n="musicSection.track1.tag">Folk Melody</span>
-              <h3 class="track-title" data-i18n="musicSection.track1.title">Longing Along the Orontes</h3>
-              <p class="track-desc" data-i18n="musicSection.track1.desc">Traditional modal song sung along the banks of the Orontes river during evening gatherings.</p>
-            </div>
-            <button class="track-play-btn" type="button" aria-label="Play audio sample">
-              <span class="play-icon" aria-hidden="true">▶</span>
-            </button>
-          </article>
-
-          <article class="music-track-card" data-reveal>
-            <div class="track-badge" aria-hidden="true">📜</div>
-            <div class="track-info">
-              <span class="track-tag" data-i18n="musicSection.track2.tag">Sacred Chants</span>
-              <h3 class="track-title" data-i18n="musicSection.track2.title">Hymns of the Mountain</h3>
-              <p class="track-desc" data-i18n="musicSection.track2.desc">Aramaic and Arabic liturgical chants recorded in ancient stone chapels.</p>
-            </div>
-            <button class="track-play-btn" type="button" aria-label="Play audio sample">
-              <span class="play-icon" aria-hidden="true">▶</span>
-            </button>
-          </article>
-
-          <article class="music-track-card" data-reveal>
-            <div class="track-badge" aria-hidden="true">🔔</div>
-            <div class="track-info">
-              <span class="track-tag" data-i18n="musicSection.track3.tag">Urban Soundscape</span>
-              <h3 class="track-title" data-i18n="musicSection.track3.title">Old Bazaar Soundscape</h3>
-              <p class="track-desc" data-i18n="musicSection.track3.desc">Field recordings capturing coppersmith hammers, call to prayer, church bells, and street songs.</p>
-            </div>
-            <button class="track-play-btn" type="button" aria-label="Play audio sample">
-              <span class="play-icon" aria-hidden="true">▶</span>
-            </button>
-          </article>
-
+        <div class="music-list" id="music-list-container" aria-live="polite">
+          <!-- dynamically populated from archive.json -->
         </div>
       </div>
     </section>
@@ -662,9 +363,18 @@
                 ></textarea>
               </div>
 
-              <button class="btn-submit" type="submit" data-i18n="contribute.formSubmit">
+              <button class="btn-submit" type="submit" id="btn-contribute-submit" data-i18n="contribute.formSubmit">
                 Send contribution
               </button>
+
+              <!-- Inline feedback message (shown after submit) -->
+              <div
+                id="form-message"
+                class="form-message"
+                role="alert"
+                aria-live="polite"
+                hidden
+              ></div>
 
             </form>
           </div>
@@ -758,8 +468,9 @@
   </footer>
 
   <!-- Scripts — lang.js must precede script.js -->
-  <script src="lang.js"></script>
-  <script src="script.js"></script>
+  <!-- lang.js is served from /public/lang.js → Vite publicDir / nginx html root -->
+  <script src="/lang.js"></script>
+  <script src="/script.js"></script>
   <script>
     // Set footer year
     document.getElementById("footer-year").textContent = new Date().getFullYear();

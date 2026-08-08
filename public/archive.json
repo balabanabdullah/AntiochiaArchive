@@ -1,0 +1,121 @@
+{
+  "history": [
+    {
+      "id": "h1",
+      "era": { "en": "300 BCE — Roman Capital", "tr": "MÖ 300 — Roma Başkenti", "ar": "300 ق.م — العاصمة الرومانية" },
+      "title": { "en": "Crossroads of the Ancient Mediterranean", "tr": "Antik Akdeniz'in Kavşak Noktası", "ar": "ملتقى البحر الأبيض المتوسط القديم" },
+      "body": { "en": "Established by Seleucus I Nicator, Antioch became the third largest city of the Roman Empire, renowned for its colonnaded avenues and mosaic masterpieces.", "tr": "Seleukos I Nikator tarafından kurulan Antakya, sütunlu caddeleri ve mozaik şaheserleriyle ünlü, Roma İmparatorluğu'nun üçüncü büyük şehri haline geldi.", "ar": "أسّسها سيلوقس الأول نيكاتور، وأصبحت أنطاكية ثالث أكبر مدن الإمبراطورية الرومانية، اشتهرت بشوارعها ذات الأعمدة وروائعها الفسيفسائية." },
+      "svgColor": "#903628", "svgBg": "#ded4c0", "svgType": "columns", "image": null
+    },
+    {
+      "id": "h2",
+      "era": { "en": "Medieval & Ottoman Eras", "tr": "Ortaçağ ve Osmanlı Dönemleri", "ar": "العصور الوسطى والعهد العثماني" },
+      "title": { "en": "Mosaic of Cultures & Trade", "tr": "Kültür ve Ticaret Mozaiği", "ar": "فسيفساء الثقافات والتجارة" },
+      "body": { "en": "Through centuries of transformation, the city maintained its position as a vibrant hub of silk trade, craftsmanship, and peaceful co-existence.", "tr": "Yüzyıllar boyunca yaşanan dönüşümlerin ortasında şehir, ipek ticaretinin, el sanatlarının ve barış içinde bir arada yaşamanın canlı merkezi olarak kalmaya devam etti.", "ar": "على مدى قرون من التحولات، حافظت المدينة على مكانتها مركزاً حيّاً لتجارة الحرير والحرف اليدوية والتعايش السلمي." },
+      "svgColor": "#5e6142", "svgBg": "#d8ceb8", "svgType": "arches", "image": null
+    },
+    {
+      "id": "h3",
+      "era": { "en": "Modern Memory", "tr": "Modern Hafıza", "ar": "الذاكرة الحديثة" },
+      "title": { "en": "Preserving Identity Across Time", "tr": "Kimliği Zamana Karşı Korumak", "ar": "الحفاظ على الهوية عبر الزمن" },
+      "body": { "en": "Today, AntiochiaArchive safeguards physical landmarks and intangible heritage so future generations can retrace the living memory of Antioch.", "tr": "Bugün AntiochiaArchive, gelecek nesillerin Antakya'nın yaşayan hafızasını izleyebilmesi için fiziksel yapıları ve somut olmayan mirası koruma altına almaktadır.", "ar": "اليوم، يحمي AntiochiaArchive المعالم المادية والتراث غير المادي، لكي تتمكن الأجيال القادمة من إعادة رسم الذاكرة الحية لأنطاكية." },
+      "svgColor": "#1c1814", "svgBg": "#dfd5c4", "svgType": "circles", "image": null
+    }
+  ],
+  "stories": [
+    {
+      "id": "s1",
+      "tag": { "en": "Kurtuluş Street", "tr": "Kurtuluş Caddesi", "ar": "شارع كورتولوش" },
+      "title": { "en": "The Old Stone House on Kurtuluş Street", "tr": "Kurtuluş Caddesi'ndeki Eski Taş Ev", "ar": "البيت الحجري القديم في شارع كورتولوش" },
+      "body": { "en": "An oral account of multi-generational life inside one of Antioch's historic courtyard homes before the earthquake.", "tr": "Deprem öncesinde Antakya'nın tarihi avlulu evlerinden birinin içindeki çok kuşaklı yaşamın sözlü anlatımı.", "ar": "رواية شفهية عن الحياة متعددة الأجيال داخل أحد منازل أنطاكية التاريخية ذات الفناء قبل الزلزال." },
+      "svgColor": "#8c392b", "svgBg": "#ded4c0", "svgType": "house", "image": null
+    },
+    {
+      "id": "s2",
+      "tag": { "en": "Orontes River", "tr": "Asi Nehri", "ar": "نهر العاصي" },
+      "title": { "en": "Echoes of the Orontes Waterwheels", "tr": "Asi'nin Dolap Sesleri", "ar": "أصداء ناعور العاصي" },
+      "body": { "en": "Memories of the ancient wooden waterwheels along the Orontes river that once fed the gardens of Antioch.", "tr": "Antakya'nın bahçelerini sulayan Asi kıyısındaki antik ahşap dolapların anıları.", "ar": "ذكريات النواعير الخشبية القديمة على ضفاف نهر العاصي التي كانت تروي حدائق أنطاكية." },
+      "svgColor": "#5d6645", "svgBg": "#d8ceb8", "svgType": "wheel", "image": null
+    },
+    {
+      "id": "s3",
+      "tag": { "en": "Old Quarter", "tr": "Eski Mahalle", "ar": "الحي القديم" },
+      "title": { "en": "Bread & Salt: Shared Festive Tables", "tr": "Ekmek ve Tuz: Ortak Bayram Sofraları", "ar": "الخبز والملح: موائد الأعياد المشتركة" },
+      "body": { "en": "How neighboring communities gathered across religious calendars to share festive dishes and holiday breads.", "tr": "Komşu toplulukların farklı dini takvimler boyunca bayram yemeklerini ve tatil ekmeklerini paylaşmak için bir araya gelişi.", "ar": "كيف تجمّعت المجتمعات المجاورة عبر التقاويم الدينية المختلفة لمشاركة أطباق الأعياد وخبز المناسبات." },
+      "svgColor": "#903628", "svgBg": "#dfd5c4", "svgType": "table", "image": null
+    }
+  ],
+  "structures": [
+    {
+      "id": "st1",
+      "tag": { "en": "Cave Sanctuary", "tr": "Kaya Kilisesi", "ar": "كنيسة الكهف" },
+      "title": { "en": "St. Pierre Cave Church", "tr": "Sen Piyer Kilisesi", "ar": "كنيسة القديس بيار الكهفية" },
+      "desc": { "en": "One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin.", "tr": "Staurin Dağı'nın yamaçlarına doğrudan oyulmuş, en erken Hristiyan ibadet mekânlarından biri.", "ar": "أحد أولى أماكن العبادة المسيحية المنحوتة مباشرة في منحدرات جبل ستورين." },
+      "svgColor": "#903628", "svgBg": "#e0d6c4", "svgType": "arch", "image": null
+    },
+    {
+      "id": "st2",
+      "tag": { "en": "Historic Mosque", "tr": "Tarihi Cami", "ar": "مسجد تاريخي" },
+      "title": { "en": "Habib-i Neccar Mosque", "tr": "Habib-i Neccar Camii", "ar": "جامع حبيب النجار" },
+      "desc": { "en": "Constructed on ancient foundations, representing Anatolia's earliest Islamic heritage site.", "tr": "Antik temeller üzerine inşa edilmiş, Anadolu'nun en erken İslam miras alanını temsil ediyor.", "ar": "شُيّد على أسس قديمة، ويمثّل أقدم موقع تراثي إسلامي في الأناضول." },
+      "svgColor": "#5e6142", "svgBg": "#d8ceb8", "svgType": "minaret", "image": null
+    },
+    {
+      "id": "st3",
+      "tag": { "en": "Urban Fabric", "tr": "Kent Dokusu", "ar": "النسيج الحضري" },
+      "title": { "en": "Traditional Courtyard Homes", "tr": "Geleneksel Avlulu Evler", "ar": "المنازل التقليدية ذات الفناء" },
+      "desc": { "en": "Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork.", "tr": "Merkezi avlular, narenciye ağaçları ve dekoratif demir işçiliğiyle bezenmiş karmaşık taş konutlar.", "ar": "مساكن حجرية معقدة تتميز بأفنية مركزية وأشجار الحمضيات والأعمال الحديدية الزخرفية." },
+      "svgColor": "#903628", "svgBg": "#ebdcc8", "svgType": "house", "image": null
+    },
+    {
+      "id": "st4",
+      "tag": { "en": "Roman Engineering", "tr": "Roma Mühendisliği", "ar": "الهندسة الرومانية" },
+      "title": { "en": "Aqueducts & Iron Gate", "tr": "Su Kemerleri ve Demir Kapı", "ar": "قناوات المياه وبوابة الحديد" },
+      "desc": { "en": "Engineering marvels that brought mountain spring water and fortified the mountain passes of Antioch.", "tr": "Dağ kaynak sularını getiren ve Antakya'nın dağ geçitlerini tahkim eden mühendislik harikaları.", "ar": "روائع هندسية جلبت مياه الينابيع الجبلية وحصّنت الممرات الجبلية في أنطاكية." },
+      "svgColor": "#1c1814", "svgBg": "#dfd5c4", "svgType": "aqueduct", "image": null
+    }
+  ],
+  "beliefs": [
+    {
+      "id": "b1",
+      "icon": "🕊",
+      "title": { "en": "Living Coexistence", "tr": "Yaşayan Bir Arada Oluş", "ar": "التعايش الحي" },
+      "desc": { "en": "Neighbors of Christian, Muslim, and Jewish heritages attending each other's celebration feasts for centuries.", "tr": "Yüzyıllar boyunca Hristiyan, Müslüman ve Yahudi mirasına sahip komşuların birbirlerinin kutlama şenliklerine katılması.", "ar": "جيران ذوو تراث مسيحي وإسلامي ويهودي يحضرون موائد احتفالات بعضهم البعض منذ قرون." }
+    },
+    {
+      "id": "b2",
+      "icon": "⛰",
+      "title": { "en": "Shared Sacred Sites", "tr": "Ortak Kutsal Mekânlar", "ar": "المواقع المقدسة المشتركة" },
+      "desc": { "en": "Shrines and venerated hilltops visited together by different faiths seeking peace and reflection.", "tr": "Barış ve tefekkür arayan farklı inançların birlikte ziyaret ettiği türbeler ve saygı duyulan tepeler.", "ar": "أضرحة وتلال مبجّلة يزورها أتباع الديانات المختلفة معاً بحثاً عن السلام والتأمل." }
+    },
+    {
+      "id": "b3",
+      "icon": "🌾",
+      "title": { "en": "Sacred Food Traditions", "tr": "Kutsal Yemek Gelenekleri", "ar": "تقاليد الطعام المقدسة" },
+      "desc": { "en": "Hirisi, bayram breads, and holiday sweets prepared in communal copper cauldrons during festive seasons.", "tr": "Şenlik mevsimlerinde topluluk bakır kazanlarında hazırlanan keşkek, bayram ekmekleri ve tatil tatlıları.", "ar": "تُحضَّر الهريسة وخبز بيرام والحلوى العيدية في مراجل النحاس المجتمعية خلال مواسم الأعياد." }
+    }
+  ],
+  "music": [
+    {
+      "id": "m1",
+      "badge": "♩",
+      "tag": { "en": "Folk Melody", "tr": "Halk Ezgisi", "ar": "لحن شعبي" },
+      "title": { "en": "Longing Along the Orontes", "tr": "Asi Boyunca Hasret", "ar": "الشوق على ضفاف العاصي" },
+      "desc": { "en": "Traditional modal song sung along the banks of the Orontes river during evening gatherings.", "tr": "Akşam toplantılarında Asi kıyısında söylenen geleneksel makam şarkısı.", "ar": "أغنية مقامية تقليدية تُغنّى على ضفاف نهر العاصي خلال التجمعات المسائية." }
+    },
+    {
+      "id": "m2",
+      "badge": "📜",
+      "tag": { "en": "Sacred Chants", "tr": "Kutsal İlahiler", "ar": "الترانيم المقدسة" },
+      "title": { "en": "Hymns of the Mountain", "tr": "Dağın İlahileri", "ar": "ترانيم الجبل" },
+      "desc": { "en": "Aramaic and Arabic liturgical chants recorded in ancient stone chapels.", "tr": "Tarihi taş şapellerde kaydedilmiş Süryanice ve Arapça ibadet ezgileri.", "ar": "ترانيم طقسية آرامية وعربية مسجلة في كنائس حجرية قديمة." }
+    },
+    {
+      "id": "m3",
+      "badge": "🔔",
+      "tag": { "en": "Urban Soundscape", "tr": "Kentsel Ses Manzarası", "ar": "مشهد صوتي حضري" },
+      "title": { "en": "Old Bazaar Soundscape", "tr": "Eski Çarşı Sesleri", "ar": "أصوات السوق القديم" },
+      "desc": { "en": "Field recordings capturing coppersmith hammers, call to prayer, church bells, and street songs.", "tr": "Bakırcı çekiçlerini, ezan seslerini, kilise çanlarını ve sokak şarkılarını kaydeden saha kayıtları.", "ar": "تسجيلات ميدانية تلتقط طرق النحاس والأذان وأجراس الكنائس وأغاني الشوارع." }
+    }
+  ]
+}

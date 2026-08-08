@@ -1,65 +1,85 @@
 # =============================================================================
-# AntiochiaArchive — docker-compose.yml (Vite)
-# Hızlı başlatma:
-#   docker compose up --build        → build edip başlat
-#   docker compose up -d --build     → arka planda başlat
-#   docker compose down              → durdur ve kaldır
+# AntiochiaArchive — docker-compose.yml
+#
+#  antiochia-archive-web     →  Vite dev server  (port 5173)   — development
+#  antiochia-archive-nginx   →  nginx production  (port 8080)   — production
+#  antiochia-archive-backend →  Express API       (port 5000)
+#
+# Development:
+#   docker compose up antiochia-archive-web antiochia-archive-backend
+#
+# Production (build + run):
+#   docker compose up antiochia-archive-nginx antiochia-archive-backend --build
 # =============================================================================
 
 services:
-  antiochia-archive-web:
 
-    # ── Image ────────────────────────────────────────────────────────────────
+  # ── Dev: Vite hot-reload server ───────────────────────────────────────────
+  antiochia-archive-web:
+    image: node:20-alpine
+    container_name: antiochia-archive-web
+    working_dir: /app
+    # npm ci reads package-lock.json (read-only mount is fine) and does NOT write to it.
+    # npm install would try to update the lockfile → EROFS on read-only bind mount.
+    command: ["sh", "-c", "npm ci && npm run dev"]
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./index.html:/app/index.html:ro
+      - ./style.css:/app/style.css:ro
+      - ./script.js:/app/script.js:ro
+      - ./vite.config.js:/app/vite.config.js:ro
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      # public/ contains lang.js (served as /lang.js by Vite publicDir)
+      - ./public:/app/public:ro
+      # Named volume keeps node_modules inside the container
+      - antiochia_nodemodules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    depends_on:
+      - antiochia-archive-backend
+
+  # ── Production: nginx serves dist/ — no Node, no Vite ────────────────────
+  # Build runs inside the builder stage of Dockerfile; final image is nginx-only.
+  antiochia-archive-nginx:
     build:
       context: .
       dockerfile: Dockerfile
-    image: antiochia-archive:vite
-
-    # ── Container adı ────────────────────────────────────────────────────────
-    container_name: antiochia-archive
-
-    # ── Port eşleme: host_port:container_port ────────────────────────────────
+      target: serve          # explicitly target the nginx stage
+    image: antiochia-archive:nginx
+    container_name: antiochia-archive-nginx
     ports:
-      - "5173:5173"
-
-    # ── Bind mount — hot-reload için: dosya kaydet → Vite anında algılar ─────
-    # Docker içindeki vite.config.js'de usePolling:true ayarı bu yüzden gerekli.
-    volumes:
-      - ./index.html:/app/index.html
-      - ./style.css:/app/style.css
-      - ./script.js:/app/script.js
-      - ./lang.js:/app/lang.js
-      - ./vite.config.js:/app/vite.config.js
-      # node_modules container'a ait olsun, host ile karışmasın:
-      - /app/node_modules
-
-    # ── Ortam değişkenleri ───────────────────────────────────────────────────
-    environment:
-      - NODE_ENV=development
-
-    # ── Restart politikası ───────────────────────────────────────────────────
+      - "8080:80"
     restart: unless-stopped
-
-    # ── Sağlık kontrolü ──────────────────────────────────────────────────────
+    depends_on:
+      - antiochia-archive-backend
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5173"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 10s
 
-    # ── Kaynak sınırları ─────────────────────────────────────────────────────
-    deploy:
-      resources:
-        limits:
-          cpus: "0.75"
-          memory: 256M
-        reservations:
-          memory: 64M
+  # ── Backend: Express + Nodemailer ─────────────────────────────────────────
+  antiochia-archive-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: antiochia-archive:backend
+    container_name: antiochia-archive-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health',(r)=>process.exit(r.statusCode===200?0:1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
-    # ── Log ayarları ─────────────────────────────────────────────────────────
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+volumes:
+  antiochia_nodemodules:

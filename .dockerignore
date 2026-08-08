@@ -1,7 +1,11 @@
 # ── Build artifacts ────────────────────────────────────────────────────────
 node_modules
-dist
+# Note: dist/ is NOT excluded — multi-stage Dockerfile builds inside container
+# and does not rely on a pre-built dist/ from the host.
 .vite
+
+# ── Backend source (served separately) ─────────────────────────────────────
+backend
 
 # ── Git metadata ───────────────────────────────────────────────────────────
 .git

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { sendContributionMail } from "./mailer.js";
+import { getArchive, updateArchive } from "./archiveController.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -32,10 +33,10 @@ app.use(cors({
     }
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
-  methods: ["GET", "POST", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
-app.use(express.json({ limit: "16kb" }));
+app.use(express.json({ limit: "2mb" }));
 
 /* ── Health check ───────────────────────────────────────────────────────────── */
 app.get("/health", (_req, res) => {
@@ -47,6 +48,12 @@ function isValidEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(String(email).toLowerCase());
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Archive API Endpoints (GET /api/archive, PUT /api/archive)
+   ──────────────────────────────────────────────────────────────────────────── */
+app.get("/api/archive", getArchive);
+app.put("/api/archive", updateArchive);
 
 /* ────────────────────────────────────────────────────────────────────────────
    GET /api/contribute — Information for direct browser requests

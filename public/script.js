@@ -314,12 +314,16 @@ function renderHistory(items, lang) {
   const readMore = resolveKey(lang, "readMore") ?? "Read more";
   return items.map((item) => {
     const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
+    const title = item.title[lang] ?? item.title.en;
+    const era = item.era[lang] ?? item.era.en;
+    const body = item.body[lang] ?? item.body.en;
+    const searchStr = `${title} ${era} ${body}`.replace(/"/g, '&quot;');
     return `
-      <article class="timeline-card" data-reveal>
-        <span class="timeline-era">${item.era[lang] ?? item.era.en}</span>
+      <article class="timeline-card" data-reveal data-search="${searchStr}">
+        <span class="timeline-era">${era}</span>
         <div class="timeline-visual" aria-hidden="true">${svg}</div>
-        <h3 class="timeline-title">${item.title[lang] ?? item.title.en}</h3>
-        <p class="timeline-desc">${item.body[lang] ?? item.body.en}</p>
+        <h3 class="timeline-title">${title}</h3>
+        <p class="timeline-desc">${body}</p>
       </article>`;
   }).join("");
 }
@@ -328,17 +332,21 @@ function renderStories(items, lang) {
   const readMoreLabel = resolveKey(lang, "readMore") ?? "Read Story";
   return items.map((item, idx) => {
     const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
+    const title = item.title[lang] ?? item.title.en;
+    const tag = item.tag[lang] ?? item.tag.en;
+    const body = item.body[lang] ?? item.body.en;
+    const searchStr = `${title} ${tag} ${body}`.replace(/"/g, '&quot;');
     return `
-      <article class="story-card" data-reveal aria-label="Story: ${item.title[lang] ?? item.title.en}">
+      <article class="story-card" data-reveal data-search="${searchStr}" aria-label="Story: ${title}">
         <div class="story-image-wrap">
           <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
           </svg>
-          <span class="story-tag">${item.tag[lang] ?? item.tag.en}</span>
+          <span class="story-tag">${tag}</span>
         </div>
         <div class="story-content">
-          <h3 class="story-title">${item.title[lang] ?? item.title.en}</h3>
-          <p class="story-body">${item.body[lang] ?? item.body.en}</p>
+          <h3 class="story-title">${title}</h3>
+          <p class="story-body">${body}</p>
           <button class="story-read-btn" type="button" data-story-id="${idx + 1}">
             <span>${readMoreLabel}</span>
             <span class="story-link-arrow" aria-hidden="true">→</span>
@@ -351,45 +359,60 @@ function renderStories(items, lang) {
 function renderStructures(items, lang) {
   return items.map((item) => {
     const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
+    const title = item.title[lang] ?? item.title.en;
+    const tag = item.tag[lang] ?? item.tag.en;
+    const desc = item.desc[lang] ?? item.desc.en;
+    const searchStr = `${title} ${tag} ${desc}`.replace(/"/g, '&quot;');
     return `
-      <article class="struct-card" data-reveal>
+      <article class="struct-card" data-reveal data-search="${searchStr}">
         <div class="struct-media">
           <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
           </svg>
-          <span class="struct-tag">${item.tag[lang] ?? item.tag.en}</span>
+          <span class="struct-tag">${tag}</span>
         </div>
         <div class="struct-info">
-          <h3 class="struct-title">${item.title[lang] ?? item.title.en}</h3>
-          <p class="struct-desc">${item.desc[lang] ?? item.desc.en}</p>
+          <h3 class="struct-title">${title}</h3>
+          <p class="struct-desc">${desc}</p>
         </div>
       </article>`;
   }).join("");
 }
 
 function renderBeliefs(items, lang) {
-  return items.map((item) => `
-    <div class="belief-card" data-reveal>
+  return items.map((item) => {
+    const title = item.title[lang] ?? item.title.en;
+    const desc = item.desc[lang] ?? item.desc.en;
+    const searchStr = `${title} ${desc}`.replace(/"/g, '&quot;');
+    return `
+    <div class="belief-card" data-reveal data-search="${searchStr}">
       <div class="belief-icon" aria-hidden="true">${item.icon}</div>
-      <h3 class="belief-title">${item.title[lang] ?? item.title.en}</h3>
-      <p class="belief-desc">${item.desc[lang] ?? item.desc.en}</p>
-    </div>`).join("");
+      <h3 class="belief-title">${title}</h3>
+      <p class="belief-desc">${desc}</p>
+    </div>`;
+  }).join("");
 }
 
 function renderMusic(items, lang) {
   const playLabel = resolveKey(lang, "musicSection.playLabel") ?? "Play audio sample";
-  return items.map((item) => `
-    <article class="music-track-card" data-reveal>
+  return items.map((item) => {
+    const title = item.title[lang] ?? item.title.en;
+    const tag = item.tag[lang] ?? item.tag.en;
+    const desc = item.desc[lang] ?? item.desc.en;
+    const searchStr = `${title} ${tag} ${desc}`.replace(/"/g, '&quot;');
+    return `
+    <article class="music-track-card" data-reveal data-search="${searchStr}">
       <div class="track-badge" aria-hidden="true">${item.badge}</div>
       <div class="track-info">
-        <span class="track-tag">${item.tag[lang] ?? item.tag.en}</span>
-        <h3 class="track-title">${item.title[lang] ?? item.title.en}</h3>
-        <p class="track-desc">${item.desc[lang] ?? item.desc.en}</p>
+        <span class="track-tag">${tag}</span>
+        <h3 class="track-title">${title}</h3>
+        <p class="track-desc">${desc}</p>
       </div>
       <button class="track-play-btn" type="button" aria-label="${playLabel}">
         <span class="play-icon" aria-hidden="true">▶</span>
       </button>
-    </article>`).join("");
+    </article>`;
+  }).join("");
 }
 
 /**
@@ -502,4 +525,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Load archive content from archive.json --- */
   initArchive();
+
+  /* --- Search filtering --- */
+  initSearch();
 });
+
+/* ==========================================================================
+   Search Functionality — handleSearch
+   ========================================================================== */
+
+/** Filter archive cards across all sections based on input query */
+function handleSearch(query) {
+  const q = (query || "").trim().toLowerCase();
+  const allCards = document.querySelectorAll(
+    ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card"
+  );
+
+  allCards.forEach((card) => {
+    if (!q) {
+      card.classList.remove("hidden");
+      return;
+    }
+
+    const dataSearch = (card.getAttribute("data-search") || "").toLowerCase();
+    const textContent = (card.textContent || "").toLowerCase();
+    const matches = dataSearch.includes(q) || textContent.includes(q);
+
+    if (matches) {
+      card.classList.remove("hidden");
+    } else {
+      card.classList.add("hidden");
+    }
+  });
+}
+
+/** Wire search input event listeners */
+function initSearch() {
+  const inputs = document.querySelectorAll("#search-input, .search-input-field");
+  inputs.forEach((input) => {
+    input.addEventListener("input", (e) => {
+      handleSearch(e.target.value);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        input.value = "";
+        handleSearch("");
+        input.blur();
+      }
+    });
+  });
+}

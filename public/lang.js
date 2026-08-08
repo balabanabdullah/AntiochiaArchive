@@ -18,6 +18,7 @@ const TRANSLATIONS = {
       explore:    "Explore the archive",
       learnMore:  "Learn more",
     },
+    searchPlaceholder: "Search...",
     hero: {
       eyebrow: "A living digital memory",
       titleHtml: "Every memory<br>has a <em>place.</em>",
@@ -269,6 +270,7 @@ const TRANSLATIONS = {
       explore:    "Arşivi keşfet",
       learnMore:  "Daha fazla",
     },
+    searchPlaceholder: "Bir şey ara...",
     hero: {
       eyebrow: "Yaşayan bir dijital hafıza",
       titleHtml: "Her hatıranın<br>bir <em>yeri vardır.</em>",
@@ -520,6 +522,7 @@ const TRANSLATIONS = {
       explore:    "استكشف الأرشيف",
       learnMore:  "اعرف أكثر",
     },
+    searchPlaceholder: "ابحث...",
     hero: {
       eyebrow: "ذاكرة رقمية حيّة",
       titleHtml: "لكل ذكرى<br><em>مكان.</em>",

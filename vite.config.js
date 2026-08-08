@@ -39,6 +39,7 @@ export default defineConfig({
         beliefs:    "pages/beliefs.html",
         music:      "pages/music.html",
         admin:      "pages/admin.html",
+        gallery:    "pages/gallery.html",
       },
     },
   },

@@ -415,6 +415,37 @@ function renderMusic(items, lang) {
   }).join("");
 }
 
+function renderGallery(items, lang) {
+  if (!items || !items.length) return "";
+  return items.map((item, idx) => {
+    const title = item.title[lang] ?? item.title.en;
+    const cat = item.category[lang] ?? item.category.en;
+    const caption = item.caption[lang] ?? item.caption.en;
+    const searchStr = `${title} ${cat} ${caption}`.replace(/"/g, '&quot;');
+    
+    let mediaHtml = "";
+    if (item.src) {
+      mediaHtml = `<img class="gallery-img" src="${item.src}" alt="${title}" loading="lazy">`;
+    } else {
+      const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
+      mediaHtml = `<svg class="gallery-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;
+    }
+
+    return `
+      <article class="gallery-card" data-reveal data-search="${searchStr}" data-gallery-idx="${idx}" tabindex="0" role="button" aria-label="View ${title}">
+        <div class="gallery-media-wrap">
+          ${mediaHtml}
+          <span class="gallery-category">${cat}</span>
+          <div class="gallery-overlay-icon" aria-hidden="true">🔍</div>
+        </div>
+        <div class="gallery-info">
+          <h3 class="gallery-title">${title}</h3>
+          <p class="gallery-caption">${caption}</p>
+        </div>
+      </article>`;
+  }).join("");
+}
+
 /**
  * Inject rendered content into the 5 dynamic containers.
  * Called after archive is loaded and on every language switch.
@@ -428,6 +459,7 @@ function renderArchiveSections(lang) {
     { id: "structures-grid-container",   fn: renderStructures, key: "structures" },
     { id: "beliefs-grid-container",      fn: renderBeliefs,    key: "beliefs" },
     { id: "music-list-container",        fn: renderMusic,      key: "music" },
+    { id: "gallery-grid-container",      fn: renderGallery,    key: "gallery" },
   ];
 
   map.forEach(({ id, fn, key }) => {
@@ -437,16 +469,17 @@ function renderArchiveSections(lang) {
   });
 
   // Ensure rendered cards receive is-visible class immediately
-  document.querySelectorAll(".struct-card, .timeline-card, .story-card, .belief-card, .music-track-card").forEach((card) => {
+  document.querySelectorAll(".struct-card, .timeline-card, .story-card, .belief-card, .music-track-card, .gallery-card").forEach((card) => {
     card.classList.add("is-visible");
   });
 
   // Re-observe newly injected [data-reveal] elements
   initScrollReveal();
 
-  // Re-wire interactive buttons
+  // Re-wire interactive buttons & gallery lightbox handlers
   initMusicTrackButtons();
   initStoryButtons();
+  initGalleryClickHandlers();
 }
 
 /** Fetch archive.json once, then render for the current language. */
@@ -528,7 +561,90 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Search filtering --- */
   initSearch();
+
+  /* --- Lightbox modal init --- */
+  initLightbox();
 });
+
+/* ==========================================================================
+   Gallery Lightbox Logic
+   ========================================================================== */
+
+function openLightbox(itemIndex) {
+  if (!archiveData || !archiveData.gallery || !archiveData.gallery[itemIndex]) return;
+  const item = archiveData.gallery[itemIndex];
+  const lang = currentLang;
+
+  const modal = document.getElementById("lightbox-modal");
+  const mediaContainer = document.getElementById("lightbox-media");
+  const catEl = document.getElementById("lightbox-category");
+  const titleEl = document.getElementById("lightbox-title");
+  const captionEl = document.getElementById("lightbox-caption");
+
+  if (!modal || !mediaContainer) return;
+
+  const title = item.title[lang] ?? item.title.en;
+  const cat = item.category[lang] ?? item.category.en;
+  const caption = item.caption[lang] ?? item.caption.en;
+
+  if (item.src) {
+    mediaContainer.innerHTML = `<img src="${item.src}" alt="${title}" class="lightbox-img">`;
+  } else {
+    const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
+    mediaContainer.innerHTML = `<svg class="lightbox-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;
+  }
+
+  if (catEl) catEl.textContent = cat;
+  if (titleEl) titleEl.textContent = title;
+  if (captionEl) captionEl.textContent = caption;
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  const modal = document.getElementById("lightbox-modal");
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+function initGalleryClickHandlers() {
+  document.querySelectorAll(".gallery-card").forEach((card) => {
+    const handler = () => {
+      const idx = parseInt(card.dataset.galleryIdx, 10);
+      if (!isNaN(idx)) openLightbox(idx);
+    };
+
+    card.onclick = handler;
+    card.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handler();
+      }
+    };
+  });
+}
+
+function initLightbox() {
+  const modal = document.getElementById("lightbox-modal");
+  const closeBtn = document.getElementById("lightbox-close");
+
+  if (closeBtn) closeBtn.onclick = closeLightbox;
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) closeLightbox();
+    };
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal && modal.classList.contains("open")) {
+      closeLightbox();
+    }
+  });
+}
 
 /* ==========================================================================
    Search Functionality — handleSearch

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Musical Traditions & Soundscapes of Antioch — Levantine maqams, mountain hymns, coppersmith rhythms, and urban soundscapes.">
+  <meta name="description" content="AntiochiaArchive Gallery — Historical photographs, architectural studies, and visual documentation of Antioch.">
   <meta name="theme-color" content="#f2ead8">
 
-  <title data-i18n="pages.music.title">Sounds, Melodies & Soundscapes — AntiochiaArchive</title>
+  <title data-i18n="pages.gallery.title">Archive Gallery — AntiochiaArchive</title>
 
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -32,8 +32,8 @@
         <a href="stories.html"         data-i18n="nav.stories">Stories</a>
         <a href="structures.html"      data-i18n="nav.structures">Structures</a>
         <a href="beliefs.html"         data-i18n="nav.beliefs">Beliefs</a>
-        <a href="music.html"           data-i18n="nav.music" class="is-active">Music</a>
-        <a href="gallery.html"         data-i18n="nav.gallery">Gallery</a>
+        <a href="music.html"           data-i18n="nav.music">Music</a>
+        <a href="gallery.html"         data-i18n="nav.gallery" class="is-active">Gallery</a>
       </nav>
 
       <!-- Header actions -->
@@ -46,6 +46,7 @@
           </svg>
           <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="searchPlaceholder" placeholder="Bir şey ara...">
         </div>
+
         <div class="lang-switcher" role="group" aria-label="Choose language">
           <button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button>
           <button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button>
@@ -73,7 +74,8 @@
         <a href="stories.html"    data-i18n="nav.stories">Stories</a>
         <a href="structures.html" data-i18n="nav.structures">Structures</a>
         <a href="beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
-        <a href="music.html"      data-i18n="nav.music" class="is-active">Music</a>
+        <a href="music.html"      data-i18n="nav.music">Music</a>
+        <a href="gallery.html"    data-i18n="nav.gallery" class="is-active">Gallery</a>
       </div>
     </nav>
   </header>
@@ -87,22 +89,22 @@
         <div class="breadcrumb">
           <a href="../index.html" data-i18n="nav.home">Home</a>
           <span class="breadcrumb-separator">/</span>
-          <span data-i18n="nav.music">Music</span>
+          <span data-i18n="nav.gallery">Gallery</span>
         </div>
         <div class="page-hero-header">
-          <div class="page-badge-wrap" data-i18n="pages.music.badge">Sound Recordings</div>
-          <h1 class="page-hero-title" data-i18n="pages.music.title">Sounds, Melodies & Soundscapes</h1>
-          <p class="page-hero-desc" data-i18n="pages.music.subtitle">
-            Listen to traditional Levantine maqams, mountain hymns, bazaar coppersmith rhythms, and urban soundscapes.
+          <div class="page-badge-wrap" data-i18n="pages.gallery.badge">Visual Collection</div>
+          <h1 class="page-hero-title" data-i18n="pages.gallery.title">Archive Gallery</h1>
+          <p class="page-hero-desc" data-i18n="pages.gallery.subtitle">
+            Discover historical photographs, architectural studies, and visual documentation of Antioch's living heritage.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- Dynamic Music Content -->
-    <section class="section-music subpage-container" id="music">
+    <!-- Dynamic Gallery Grid -->
+    <section class="section-gallery subpage-container" id="gallery">
       <div class="container">
-        <div class="music-list" id="music-list-container" aria-live="polite">
+        <div class="gallery-grid" id="gallery-grid-container" aria-live="polite">
           <!-- dynamically populated from archive.json -->
         </div>
       </div>
@@ -112,7 +114,7 @@
     <section class="page-cta">
       <div class="container page-cta-inner">
         <span class="eyebrow" data-i18n="pages.cta.eyebrow">Preserve the Memory</span>
-        <h2 class="page-cta-title" data-i18n="pages.cta.title">Do you have an audio recording or folk melody to share?</h2>
+        <h2 class="page-cta-title" data-i18n="pages.cta.title">Do you have a photograph or drawing to contribute?</h2>
         <p class="page-cta-body" data-i18n="pages.cta.body">AntiochiaArchive grows through community contributions. Help us keep Antioch's living heritage vibrant.</p>
         <a class="btn-cta-primary" href="../index.html#contribute">
           <span data-i18n="pages.cta.btn">Contribute to Archive</span>
@@ -122,6 +124,19 @@
     </section>
 
   </main>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox-modal" id="lightbox-modal" aria-hidden="true" role="dialog" aria-label="Visual Archive Lightbox">
+    <div class="lightbox-dialog">
+      <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Close lightbox">&times;</button>
+      <div class="lightbox-media" id="lightbox-media"></div>
+      <div class="lightbox-info">
+        <span class="lightbox-category" id="lightbox-category"></span>
+        <h3 class="lightbox-title" id="lightbox-title"></h3>
+        <p class="lightbox-caption" id="lightbox-caption"></p>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="site-footer" role="contentinfo">
@@ -147,7 +162,8 @@
             <a href="stories.html"    data-i18n="nav.stories">Stories</a>
             <a href="structures.html" data-i18n="nav.structures">Structures</a>
             <a href="beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
-            <a href="music.html"      data-i18n="nav.music" class="is-active">Music</a>
+            <a href="music.html"      data-i18n="nav.music">Music</a>
+            <a href="gallery.html"    data-i18n="nav.gallery" class="is-active">Gallery</a>
           </nav>
         </div>
 

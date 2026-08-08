@@ -327,5 +327,67 @@
         "ar": "أغاني شعبية صادقة وألحان الأفنية والمناسبات التي تعكس الإيقاع اليومي للحياة في أنطاكية."
       }
     }
+  ],
+  "gallery": [
+    {
+      "id": "g1",
+      "src": null,
+      "svgType": "house",
+      "svgColor": "#903628",
+      "svgBg": "#ded4c0",
+      "category": { "en": "Courtyard Homes", "tr": "Avlulu Evler", "ar": "منازل الفناء" },
+      "title": { "en": "Kurtuluş Street Stone Courtyard", "tr": "Kurtuluş Caddesi Taş Avlusu", "ar": "فناء حجري في شارع كورتولوش" },
+      "caption": { "en": "Architectural documentation of a traditional multi-generational courtyard home built with local limestone and citrus gardens.", "tr": "Yerel kireç taşı ve narenciye bahçeleriyle inşa edilmiş geleneksel çok kuşaklı avlulu bir evin mimari belgelemesi.", "ar": "توثيق معماري لمنزل تقليدي ذي فناء متعدد الأجيال مبني من الحجر الجيري المحلي وحدائق الحمضيات." }
+    },
+    {
+      "id": "g2",
+      "src": null,
+      "svgType": "arch",
+      "svgColor": "#903628",
+      "svgBg": "#e0d6c4",
+      "category": { "en": "Cave Sanctuaries", "tr": "Kaya Mabetleri", "ar": "المزارات الكهفية" },
+      "title": { "en": "St. Pierre Cave Facade", "tr": "St. Pierre Kilisesi Cephesi", "ar": "واجهة كنيسة القديس بطرس" },
+      "caption": { "en": "Historical view of the Gothic stone portal erected by Crusaders at the entrance of Mount Staurin cave sanctuary.", "tr": "Haçlılar döneminde Staurin Dağı mağara mabedinin girişine inşa edilen Gotik taş cephenin tarihi görünümü.", "ar": "منظر تاريخي للواجهة الحجرية القوطية التي شيدها الصليبيون عند مدخل مزار جبل استاورين." }
+    },
+    {
+      "id": "g3",
+      "src": null,
+      "svgType": "mosaic",
+      "svgColor": "#1c1814",
+      "svgBg": "#dfd5c4",
+      "category": { "en": "Roman Mosaics", "tr": "Roma Mozaikleri", "ar": "الفسيفساء الرومانية" },
+      "title": { "en": "Oceanus & Tethys Roman Mosaic", "tr": "Okeanos ve Tethys Roma Mozaği", "ar": "فسيفساء أوكيانوس وتيثيس الرومانية" },
+      "caption": { "en": "A 2nd-century Roman floor mosaic featuring sea deities, intricate tesserae work, and geometric borders.", "tr": "Deniz tanrılarını, ince tessera işçiliğini ve geometrik bordürleri sergileyen 2. yüzyıl Roma taban mozaiği.", "ar": "فسيفساء أرضية رومانية من القرن الثاني تُجسد آلهة البحر والأعمال الفسيفسائية الدقيقة." }
+    },
+    {
+      "id": "g4",
+      "src": null,
+      "svgType": "minaret",
+      "svgColor": "#5e6142",
+      "svgBg": "#d8ceb8",
+      "category": { "en": "Islamic Monuments", "tr": "İslam Eserleri", "ar": "المعالم الإسلامية" },
+      "title": { "en": "Habib-i Neccar Mosque Minaret", "tr": "Habib-i Neccar Camii Minaresi", "ar": "مئذنة جامع حبيب النجار" },
+      "caption": { "en": "The iconic minaret and courtyard arches of Anatolia's earliest Islamic heritage site.", "tr": "Anadolu'nun ilk İslam mirası kabul edilen ibadethanenin simgesel minaresi ve avlu kemerleri.", "ar": "المئذنة الأيقونية وأقواس الفناء لأقدم موقع تراثي إسلامي في الأناضول." }
+    },
+    {
+      "id": "g5",
+      "src": null,
+      "svgType": "wheel",
+      "svgColor": "#5d6645",
+      "svgBg": "#d8ceb8",
+      "category": { "en": "River Infrastructure", "tr": "Su Mimarisi", "ar": "المنشآت المائية" },
+      "title": { "en": "Ancient Waterwheels of the Orontes", "tr": "Asi Nehri Ahşap Su Dolapları", "ar": "نواعير نهر العاصي الخشبية" },
+      "caption": { "en": "Archival photo documenting the historic wooden waterwheels along the Orontes river that supplied irrigation to city gardens.", "tr": "Şehir bahçelerine su taşıyan Asi Nehri kıyısındaki tarihi ahşap su dolaplarını belgeleyen arşiv fotoğrafı.", "ar": "صورة أرشيفية توثق النواعير الخشبية التاريخية على ضفاف نهر العاصي التي كانت تزود حدائق المدينة بالمياه." }
+    },
+    {
+      "id": "g6",
+      "src": null,
+      "svgType": "aqueduct",
+      "svgColor": "#1c1814",
+      "svgBg": "#dfd5c4",
+      "category": { "en": "Roman Engineering", "tr": "Roma Mühendisliği", "ar": "الهندسة الرومانية" },
+      "title": { "en": "Iron Gate Mountain Pass Aqueduct", "tr": "Demirkapı Su Kemerleri ve Geçidi", "ar": "قناوات وبوابة الحديد الجبلية" },
+      "caption": { "en": "Roman engineering marvel that controlled torrent waters and provided fresh spring water across Silpius mountain passes.", "tr": "Silpius Dağı geçitlerinde dağ pınarlarını şehre aktaran ve sel sularını denetleyen Roma mühendislik harikası.", "ar": "أعجوبة هندسية رومانية كانت تتحكم في مياه السيول وتوفر مياه الينابيع العذبة عبر ممرات جبل سيلبيوس." }
+    }
   ]
 }

@@ -12,6 +12,7 @@ const TRANSLATIONS = {
       structures: "Structures",
       beliefs:    "Beliefs",
       music:      "Music",
+      gallery:    "Gallery",
     },
     actions: {
       contribute: "Contribute",
@@ -240,6 +241,12 @@ const TRANSLATIONS = {
         subtitle: "Listen to traditional Levantine maqams, mountain hymns, bazaar coppersmith rhythms, and urban soundscapes.",
         badge: "Sound Recordings",
       },
+      gallery: {
+        eyebrow: "Visual Archive",
+        title: "Archive Gallery",
+        subtitle: "Discover historical photographs, architectural studies, and visual documentation of Antioch's living heritage.",
+        badge: "Visual Collection",
+      },
       cta: {
         eyebrow: "Preserve the Memory",
         title: "Do you have a memory, photo, or recording to share?",
@@ -264,6 +271,7 @@ const TRANSLATIONS = {
       structures: "Yapılar",
       beliefs:    "İnançlar",
       music:      "Müzik",
+      gallery:    "Galeri",
     },
     actions: {
       contribute: "Katkıda Bulun",
@@ -492,6 +500,12 @@ const TRANSLATIONS = {
         subtitle: "Geleneksel Doğu makamlarını, dağ ilahilerini, bakırcılar çarşısının ritimlerini ve kentsel sesleri dinleyin.",
         badge: "Ses Kayıtları",
       },
+      gallery: {
+        eyebrow: "Görsel Arşiv",
+        title: "Arşiv Galerisi",
+        subtitle: "Antakya'nın yaşayan mirasına ait tarihi fotoğrafları, mimari çizimleri ve görsel belgeleri keşfedin.",
+        badge: "Görsel Koleksiyon",
+      },
       cta: {
         eyebrow: "Hafızayı Yaşatın",
         title: "Paylaşmak istediğiniz bir anı, fotoğraf veya kayıt var mı?",
@@ -516,6 +530,7 @@ const TRANSLATIONS = {
       structures: "المعالم",
       beliefs:    "المعتقدات",
       music:      "الموسيقى",
+      gallery:    "المعرض",
     },
     actions: {
       contribute: "ساهم معنا",
@@ -743,6 +758,12 @@ const TRANSLATIONS = {
         title: "الأصوات والمقامات والترانيم",
         subtitle: "استمع إلى المقامات الشرقية التقليدية، ترانيم الجبال، إيقاعات النحاسين والمشاهد الصوتية.",
         badge: "تسجيلات صوتية",
+      },
+      gallery: {
+        eyebrow: "الأرشيف البصري",
+        title: "معرض الأرشيف",
+        subtitle: "استكشف الصور التاريخية والدراسات المعمارية والوثائق البصرية لتراث أنطاكية الحي.",
+        badge: "مجموعة بصرية",
       },
       cta: {
         eyebrow: "احفظ الذاكرة",

@@ -1,98 +1,81 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config();
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-/**
- * Create Nodemailer SMTP transporter (Gmail or standard SMTP)
- */
-const createTransporter = () => {
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[char]);
+}
+
+function createTransporter() {
   const user = process.env.GMAIL_USER || process.env.MAIL_USER;
   const pass = process.env.GMAIL_PASS || process.env.MAIL_PASS;
+  if (!user || !pass) throw new Error("SMTP credentials are not configured.");
 
   return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // TLS / STARTTLS
-    connectionTimeout: 5000, // 5 sec timeout for network check
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     auth: { user, pass },
-    tls: {
-      rejectUnauthorized: false,
-    },
   });
-};
+}
 
-/**
- * Send contribution notification email
- * @param {Object} payload - { name, email, message }
- */
 export async function sendContributionMail({ name, email, message }) {
-  const recipient = process.env.MAIL_TO || "balabanabdullah00@gmail.com";
-  const user = process.env.GMAIL_USER || process.env.MAIL_USER;
-  const pass = process.env.GMAIL_PASS || process.env.MAIL_PASS;
+  const mode = String(process.env.MAIL_MODE || "mock").toLowerCase();
+  if (!['mock', 'smtp'].includes(mode)) {
+    throw new Error("MAIL_MODE must be either 'mock' or 'smtp'.");
+  }
 
-  const mailOptions = {
-    from: '"AntiochiaArchive" <no-reply@antiochiaarchive.org>',
+  if (mode === "mock") {
+    console.log("[Mailer] Mock mode: notification email was not sent.");
+    return { status: "mock" };
+  }
+
+  const recipient = process.env.MAIL_TO;
+  const sender = process.env.MAIL_FROM || process.env.MAIL_USER || process.env.GMAIL_USER;
+  if (!recipient || !sender) throw new Error("Mail sender or recipient is not configured.");
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message);
+  const timestamp = new Date().toLocaleString("tr-TR");
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: `"AntiochiaArchive" <${sender}>`,
     to: recipient,
-    replyTo: `"${name}" <${email}>`,
+    replyTo: email,
     subject: "Yeni katkı gönderildi",
-    text: `
-Yeni katkı gönderildi — AntiochiaArchive
-----------------------------------------
-Gönderen Adı : ${name}
-E-posta      : ${email}
-Tarih        : ${new Date().toLocaleString("tr-TR")}
-
-Mesaj / Katkı:
-${message}
-----------------------------------------
-    `.trim(),
+    text: [
+      "Yeni katkı gönderildi — AntiochiaArchive",
+      `Gönderen Adı: ${name}`,
+      `E-posta: ${email}`,
+      `Tarih: ${timestamp}`,
+      "",
+      message,
+    ].join("\n"),
     html: `
-<div style="font-family: 'DM Sans', Arial, sans-serif; background-color: #f2ead8; padding: 24px; color: #1c1814;">
-  <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #903628; padding: 32px; border-radius: 4px;">
-    <h2 style="font-family: Georgia, serif; color: #903628; margin-top: 0;">AntiochiaArchive — Yeni katkı gönderildi</h2>
-    <p style="font-size: 14px; color: #5a5145;">Antakya Dijital Arşivi web sitesinden yeni bir katkı gönderildi.</p>
-    
-    <hr style="border: 0; border-top: 1px solid #e6dbc4; margin: 20px 0;" />
-    
-    <p><strong>Gönderen:</strong> ${name}</p>
-    <p><strong>E-posta:</strong> <a href="mailto:${email}" style="color: #903628;">${email}</a></p>
-    <p><strong>Tarih:</strong> ${new Date().toLocaleString("tr-TR")}</p>
-    
-    <div style="background: #f9f4ea; border-left: 3px solid #903628; padding: 16px; margin-top: 16px;">
-      <p style="margin: 0; font-weight: bold; color: #6e2920; font-size: 13px; text-transform: uppercase;">Katkı / Mesaj:</p>
-      <p style="margin-top: 8px; white-space: pre-wrap; line-height: 1.6;">${message}</p>
-    </div>
-    
-    <hr style="border: 0; border-top: 1px solid #e6dbc4; margin: 24px 0 16px 0;" />
-    <p style="font-size: 11px; color: #8a8e68; margin: 0;">AntiochiaArchive · Open Source & Community Memory Project</p>
-  </div>
-</div>
+      <div style="font-family: Arial, sans-serif; padding: 24px; color: #1c1814;">
+        <h2 style="color: #903628;">AntiochiaArchive — Yeni katkı</h2>
+        <p><strong>Gönderen:</strong> ${safeName}</p>
+        <p><strong>E-posta:</strong> ${safeEmail}</p>
+        <p><strong>Tarih:</strong> ${escapeHtml(timestamp)}</p>
+        <div style="white-space: pre-wrap;">${safeMessage}</div>
+      </div>
     `.trim(),
-  };
+  });
 
-  // If no real SMTP credentials provided, log payload and simulate success for dev testing
-  if (!user || user === "your-email@gmail.com" || !pass || pass === "your-app-password") {
-    console.log("[Mailer Mock Mode] GMAIL_USER/GMAIL_PASS not configured. Simulating mail send:");
-    console.log({ to: recipient, subject: mailOptions.subject, payload: { name, email, message } });
-    return { mock: true, recipient, status: "sent" };
-  }
-
-  try {
-    const transporter = createTransporter();
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Mailer Success] Email sent to ${recipient} via Gmail SMTP.`);
-    return { ...info, status: "sent" };
-  } catch (smtpErr) {
-    console.warn(`[Mailer Warning] Real SMTP send failed (${smtpErr.message}). Falling back to mock mode logging.`);
-    console.log({ to: recipient, subject: mailOptions.subject, payload: { name, email, message } });
-    return { mock: true, recipient, status: "sent", warning: smtpErr.message };
-  }
+  return { status: "sent" };
 }

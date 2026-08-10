@@ -210,6 +210,7 @@
   <!-- Scripts -->
   <script src="/lang.js"></script>
   <script src="/script.js"></script>
+  <script src="/admin-api.js"></script>
   <script>
     document.getElementById("footer-year").textContent = new Date().getFullYear();
 
@@ -238,11 +239,13 @@
       const countBadge = document.getElementById("submissions-count");
       const lang = document.documentElement.lang || "tr";
 
-      const deleteText = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.submissions?.btnDelete) || "Sil";
-      const colName = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.submissions?.colName) || "Katkı Sahibi";
-      const colEmail = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.submissions?.colEmail) || "E-posta";
-      const colMessage = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.submissions?.colMessage) || "Mesaj";
-      const colDate = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.submissions?.colDate) || "Tarih";
+      const translations = TRANSLATIONS[lang]?.pages?.submissions || {};
+      const deleteText = translations.btnDelete || "Sil";
+      const colName = translations.colName || "Katkı Sahibi";
+      const colEmail = translations.colEmail || "E-posta";
+      const colMessage = translations.colMessage || "Mesaj";
+      const colDate = translations.colDate || "Tarih";
+      const escapeHtml = AntiochiaAdminAPI.escapeHtml;
 
       if (countBadge) {
         countBadge.textContent = `${items.length} Katkı`;
@@ -257,24 +260,25 @@
       if (emptyEl) emptyEl.style.display = "none";
 
       tbody.innerHTML = items.map((sub) => {
-        const searchStr = `${sub.name} ${sub.email} ${sub.message}`.toLowerCase().replace(/"/g, '&quot;');
+        const searchStr = escapeHtml(`${sub.name} ${sub.email} ${sub.message}`.toLowerCase());
+        const safeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(sub.email || "")) ? String(sub.email) : "";
         return `
-          <tr data-search="${searchStr}" data-submission-id="${sub.id}">
-            <td data-label="${colName}">
-              <div class="submission-user-name">${sub.name}</div>
+          <tr data-search="${searchStr}" data-submission-id="${escapeHtml(sub.id)}">
+            <td data-label="${escapeHtml(colName)}">
+              <div class="submission-user-name">${escapeHtml(sub.name)}</div>
             </td>
-            <td data-label="${colEmail}">
-              <a href="mailto:${sub.email}" class="submission-user-email">${sub.email}</a>
+            <td data-label="${escapeHtml(colEmail)}">
+              <a href="mailto:${escapeHtml(safeEmail)}" class="submission-user-email">${escapeHtml(safeEmail)}</a>
             </td>
-            <td data-label="${colMessage}">
-              <div class="submission-user-msg">${sub.message}</div>
+            <td data-label="${escapeHtml(colMessage)}">
+              <div class="submission-user-msg">${escapeHtml(sub.message)}</div>
             </td>
-            <td data-label="${colDate}">
-              <span class="submission-date">${formatDate(sub.createdAt)}</span>
+            <td data-label="${escapeHtml(colDate)}">
+              <span class="submission-date">${escapeHtml(formatDate(sub.createdAt))}</span>
             </td>
             <td data-label="" class="text-end">
-              <button class="btn-delete-sub" type="button" data-sub-id="${sub.id}" aria-label="${deleteText}">
-                <span aria-hidden="true">🗑</span> ${deleteText}
+              <button class="btn-delete-sub" type="button" data-sub-id="${escapeHtml(sub.id)}" aria-label="${escapeHtml(deleteText)}">
+                <span aria-hidden="true">🗑</span> ${escapeHtml(deleteText)}
               </button>
             </td>
           </tr>`;
@@ -288,64 +292,39 @@
 
     async function fetchSubmissions() {
       try {
-        let res = null;
-        const candidatePaths = [
-          "http://localhost:5000/api/submissions",
-          "/api/submissions",
-          "/submissions.json",
-          "../public/submissions.json"
-        ];
-
-        for (const p of candidatePaths) {
-          try {
-            const r = await fetch(p);
-            if (r && r.ok) { res = r; break; }
-          } catch (_) {}
-        }
-
-        if (res) {
-          const json = await res.json();
-          cachedSubmissions = Array.isArray(json) ? json : (json.data || []);
-        } else {
-          cachedSubmissions = [];
-        }
+        const json = await AntiochiaAdminAPI.request("/api/submissions", { admin: true });
+        cachedSubmissions = Array.isArray(json) ? json : (json.data || []);
         renderSubmissionsTable(cachedSubmissions);
       } catch (err) {
         console.error("Submissions load error:", err);
+        cachedSubmissions = [];
+        renderSubmissionsTable(cachedSubmissions);
+        const emptyText = document.querySelector("#submissions-empty p");
+        if (emptyText) emptyText.textContent = err.message || "Administrator authentication required.";
       }
     }
 
     async function handleDeleteSubmission(id) {
       const lang = document.documentElement.lang || "tr";
-      const confirmMsg = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.submissions?.confirmDelete) 
+      const confirmMsg = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.pages?.submissions?.confirmDelete)
         || "Bu katkı kaydını silmek istediğinizden emin misiniz?";
 
       if (!confirm(confirmMsg)) return;
 
       try {
-        const candidateEndpoints = [
-          `http://localhost:5000/api/submissions/${id}`,
-          `/api/submissions/${id}`
-        ];
-
-        let success = false;
-        for (const ep of candidateEndpoints) {
-          try {
-            const res = await fetch(ep, { method: "DELETE" });
-            if (res.ok) {
-              success = true;
-              break;
-            }
-          } catch (_) {}
-        }
-
-        // Update local array state
+        await AntiochiaAdminAPI.request(`/api/submissions/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          admin: true,
+        });
         cachedSubmissions = cachedSubmissions.filter((s) => String(s.id) !== String(id));
         renderSubmissionsTable(cachedSubmissions);
       } catch (err) {
         console.error("Delete submission error:", err);
+        window.alert(err.message || "Submission could not be deleted.");
       }
     }
+
+    window.updateSubmissionsLang = () => renderSubmissionsTable(cachedSubmissions);
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchSubmissions();

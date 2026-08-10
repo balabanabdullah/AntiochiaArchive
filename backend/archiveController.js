@@ -4,14 +4,19 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Resolve absolute path to public/archive.json
-const archiveFilePath = path.resolve(__dirname, "../public/archive.json");
+// Filesystem JSON is temporary local/development persistence, not durable Cloud Run storage.
+function getArchiveFilePath() {
+  return process.env.ARCHIVE_JSON_PATH
+    ? path.resolve(process.env.ARCHIVE_JSON_PATH)
+    : path.resolve(__dirname, "../public/archive.json");
+}
 
 /**
  * GET /api/archive — Fetch current archive.json contents
  */
 export async function getArchive(_req, res) {
   try {
+    const archiveFilePath = getArchiveFilePath();
     const fileData = await fs.readFile(archiveFilePath, "utf-8");
     const json = JSON.parse(fileData);
     return res.status(200).json({
@@ -32,6 +37,7 @@ export async function getArchive(_req, res) {
  */
 export async function updateArchive(req, res) {
   try {
+    const archiveFilePath = getArchiveFilePath();
     const newArchiveData = req.body;
 
     if (!newArchiveData || typeof newArchiveData !== "object") {
@@ -42,7 +48,7 @@ export async function updateArchive(req, res) {
     }
 
     // Basic structure validation: ensure expected arrays exist
-    const requiredKeys = ["history", "stories", "structures", "beliefs", "music"];
+    const requiredKeys = ["history", "stories", "structures", "beliefs", "music", "gallery"];
     for (const key of requiredKeys) {
       if (!Array.isArray(newArchiveData[key])) {
         return res.status(400).json({
@@ -54,7 +60,9 @@ export async function updateArchive(req, res) {
 
     // Format JSON with 2 spaces indent and write to public/archive.json
     const formattedJson = JSON.stringify(newArchiveData, null, 2);
-    await fs.writeFile(archiveFilePath, formattedJson, "utf-8");
+    const temporaryPath = `${archiveFilePath}.tmp`;
+    await fs.writeFile(temporaryPath, formattedJson, "utf-8");
+    await fs.rename(temporaryPath, archiveFilePath);
 
     console.log(`[Backend] ✓ archive.json successfully updated at ${new Date().toISOString()}`);
 

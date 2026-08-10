@@ -1,148 +1,134 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import { sendContributionMail } from "./mailer.js";
 import { getArchive, updateArchive } from "./archiveController.js";
 import { getSubmissions, addSubmissionToStore, deleteSubmission } from "./submissionsController.js";
-
-import path from "path";
-import { fileURLToPath } from "url";
+import { requireAdmin } from "./auth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config();
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-/* ── Middleware ─────────────────────────────────────────────────────────────── */
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:3000",
-  "http://localhost:8080",   // Nginx production
-  "http://localhost:5173",   // Vite dev server
-  "http://localhost:5000",   // Express backend
+  process.env.CLIENT_URL,
+  "http://localhost:8080",
+  "http://localhost:5173",
   "http://127.0.0.1:8080",
   "http://127.0.0.1:5173",
-  "http://127.0.0.1:5000",
-];
+].filter(Boolean);
 
+app.disable("x-powered-by");
 app.use(cors({
-  origin: (origin, cb) => {
-    // Allow requests with no origin (mobile apps, curl, Postman) or matched origins / localhost
-    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-      return cb(null, true);
-    }
-    cb(new Error(`CORS: origin ${origin} not allowed`));
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("CORS origin not allowed."));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
-app.use(express.json({ limit: "2mb" }));
-app.use("/pages", express.static(path.join(__dirname, "../pages")));
-app.use(express.static(path.join(__dirname, "..")));
+app.use(express.json({ limit: "64kb" }));
 
-/* ── Health check ───────────────────────────────────────────────────────────── */
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "AntiochiaArchive Backend", timestamp: new Date() });
 });
 
-/* ── Helper: email validation ───────────────────────────────────────────────── */
 function isValidEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(String(email).toLowerCase());
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).toLowerCase());
 }
 
-/* ────────────────────────────────────────────────────────────────────────────
-   Archive API Endpoints (GET /api/archive, PUT /api/archive)
-   ──────────────────────────────────────────────────────────────────────────── */
+const contributionAttempts = new Map();
+function contributionRateLimit(req, res, next) {
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  const key = req.ip || "unknown";
+  const recent = (contributionAttempts.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
+  if (recent.length >= 5) {
+    return res.status(429).json({ success: false, error: "Too many contribution attempts. Please try again later." });
+  }
+  recent.push(now);
+  contributionAttempts.set(key, recent);
+  next();
+}
+
 app.get("/api/archive", getArchive);
-app.put("/api/archive", updateArchive);
+app.put("/api/archive", requireAdmin, updateArchive);
 
-/* ────────────────────────────────────────────────────────────────────────────
-   Submissions API Endpoints (GET /api/submissions, DELETE /api/submissions/:id)
-   ──────────────────────────────────────────────────────────────────────────── */
-app.get("/api/submissions", getSubmissions);
-app.delete("/api/submissions/:id", deleteSubmission);
+app.get("/api/submissions", requireAdmin, getSubmissions);
+app.delete("/api/submissions/:id", requireAdmin, deleteSubmission);
 
-/* ────────────────────────────────────────────────────────────────────────────
-   GET /api/contribute — Information for direct browser requests
-   ──────────────────────────────────────────────────────────────────────────── */
 app.get("/api/contribute", (_req, res) => {
-  res.json({
-    status: "active",
-    message: "AntiochiaArchive Contribution API is running. Submit data using POST method with JSON body: { name, email, message }.",
-    endpoint: "POST /api/contribute",
-  });
+  res.json({ status: "active", endpoint: "POST /api/contribute" });
 });
 
-/* ────────────────────────────────────────────────────────────────────────────
-   POST /api/contribute  — Contribution form handler
-   Body: { name: string, email: string, message: string }
-   ──────────────────────────────────────────────────────────────────────────── */
-app.post("/api/contribute", async (req, res) => {
+app.post("/api/contribute", contributionRateLimit, async (req, res) => {
   try {
     const { name, email, message } = req.body || {};
-
-    // Log incoming payload (mask email for privacy in logs)
-    console.log(`[Backend] Incoming contribution — name: "${name}" email: "${email?.slice(0, 3)}***"`);
-
-    /* ── Validation ─── */
     if (!name || typeof name !== "string" || !name.trim()) {
-      return res.status(400).json({ status: "error", success: false, error: "Name field is required." });
+      return res.status(400).json({ success: false, error: "Name field is required." });
     }
-    if (!email || !isValidEmail(email)) {
-      return res.status(400).json({ status: "error", success: false, error: "A valid email address is required." });
+    if (name.trim().length > 120) {
+      return res.status(400).json({ success: false, error: "Name must not exceed 120 characters." });
+    }
+    if (!email || typeof email !== "string" || email.length > 254 || !isValidEmail(email)) {
+      return res.status(400).json({ success: false, error: "A valid email address is required." });
     }
     if (!message || typeof message !== "string" || !message.trim()) {
-      return res.status(400).json({ status: "error", success: false, error: "Contribution message is required." });
+      return res.status(400).json({ success: false, error: "Contribution message is required." });
+    }
+    if (message.trim().length > 5000) {
+      return res.status(400).json({ success: false, error: "Contribution message must not exceed 5000 characters." });
     }
 
-    /* ── Send notification e-mail & save to store ─── */
-    const mailResult = await sendContributionMail({
+    const contribution = {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       message: message.trim(),
-    });
+    };
 
-    // Save contribution entry to public/submissions.json
-    const savedEntry = await addSubmissionToStore({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      message: message.trim(),
-    });
+    // Persistence is authoritative: never report success if the record was not saved.
+    await addSubmissionToStore(contribution);
 
-    console.log(`[Backend] ✓ Contribution processed — ${mailResult.mock ? "mock mode" : `messageId: ${mailResult.messageId}`}`);
+    let mailStatus = "failed";
+    try {
+      const mailResult = await sendContributionMail(contribution);
+      mailStatus = mailResult.status;
+    } catch (mailError) {
+      console.error("[Mailer] Notification delivery failed:", mailError.message);
+    }
 
-    return res.status(200).json({
-      status: "sent",
+    return res.status(201).json({
+      status: "saved",
       success: true,
-      message: "Yeni katkı başarıyla gönderildi.",
-      result: mailResult,
+      saved: true,
+      mail: { status: mailStatus },
+      message: mailStatus === "failed"
+        ? "Contribution saved, but notification email could not be delivered."
+        : "Contribution saved successfully.",
     });
   } catch (err) {
-    console.error("[Backend Error]", err.message);
+    console.error("[Backend] Contribution persistence failed:", err.message);
     return res.status(500).json({
       status: "error",
       success: false,
-      error: err.message || "An error occurred while sending your contribution. Please try again later.",
+      saved: false,
+      error: "The contribution could not be saved. Please try again later.",
     });
   }
 });
 
-/* ── Backward-compat alias: /submit → /api/contribute ──────────────────────── */
-app.post("/submit", (req, res) => {
-  req.url = "/api/contribute";
-  app.handle(req, res);
-});
-
-/* ── 404 fallback ───────────────────────────────────────────────────────────── */
 app.use((_req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
-/* ── Start server ───────────────────────────────────────────────────────────── */
-app.listen(PORT, () => {
-  console.log(`🚀 AntiochiaArchive Backend  →  http://localhost:${PORT}`);
-  console.log(`   POST /api/contribute  — contribution intake endpoint`);
-  console.log(`   GET  /health          — health check`);
+app.use((err, _req, res, _next) => {
+  console.error("[Backend] Request error:", err.message);
+  res.status(500).json({ success: false, error: "Request could not be processed." });
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`AntiochiaArchive backend listening on port ${PORT}`);
 });

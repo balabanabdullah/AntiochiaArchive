@@ -3,7 +3,6 @@
 #
 #  Stage 1 — builder  (node:20-alpine)
 #    • npm ci → installs only devDependencies (vite)
-#    • prebuild script copies script.js → public/script.js
 #    • vite build → outputs to dist/
 #       - index.html → dist/index.html  (processed by Vite)
 #       - style.css  → dist/assets/*.css (hashed)
@@ -13,10 +12,10 @@
 #  Stage 2 — serve  (nginx:1.27-alpine)
 #    • No Node, no Vite, no npm — pure nginx binary
 #    • Copies only dist/ from the builder stage
-#    • Port 80
+#    • Port 8080
 #
 # Build:  docker build -t antiochia-archive:nginx .
-# Run:    docker run -p 8080:80 antiochia-archive:nginx
+# Run:    docker run -p 8080:8080 antiochia-archive:nginx
 # =============================================================================
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -33,7 +32,6 @@ RUN npm ci
 # 2. Copy source files
 COPY index.html     ./index.html
 COPY style.css      ./style.css
-COPY script.js      ./script.js
 COPY vite.config.js ./vite.config.js
 COPY pages/         ./pages/
 # 3. Copy public/ assets (lang.js lives here)
@@ -41,7 +39,6 @@ COPY pages/         ./pages/
 COPY public/        ./public/
 
 # 4. Run production build
-#    - prebuild: copies script.js → public/script.js  (npm runs it automatically)
 #    - vite build: bundles index.html/CSS into dist/, copies public/* to dist/
 RUN npm run build
 
@@ -56,9 +53,13 @@ FROM nginx:1.27-alpine AS serve
 LABEL maintainer="AntiochiaArchive Contributors"
 LABEL description="AntiochiaArchive — nginx static file server (production)"
 
+# Docker Compose overrides this with the backend service name. Cloud Run must set
+# it to the deployed backend URL until the services are consolidated.
+ENV BACKEND_UPSTREAM=http://127.0.0.1:5000
+
 # Replace default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf /etc/nginx/templates/default.conf.template
 
 # Copy the full Vite build output from stage 1
 # Expected layout inside /usr/share/nginx/html/:
@@ -70,7 +71,7 @@ COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist/ /usr/share/nginx/html/
 
 # Expose HTTP port
-EXPOSE 80
+EXPOSE 8080
 
 # Start nginx in foreground (daemon off keeps the container alive)
 CMD ["nginx", "-g", "daemon off;"]

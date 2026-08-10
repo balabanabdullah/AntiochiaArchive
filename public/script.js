@@ -19,6 +19,27 @@ let isMenuOpen  = false;
 let menuToggleBtn = null;
 let mobileNavEl   = null;
 
+/** Escape untrusted text before inserting it into a trusted HTML template. */
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+  })[char]);
+}
+
+/** Allow only HTTP(S) URLs (including same-origin relative URLs) in media attributes. */
+function safeHttpUrl(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(String(value), window.location.origin);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 /* ==========================================================================
    Language Utilities
    ========================================================================== */
@@ -101,6 +122,9 @@ function applyLanguage(lang) {
   renderArchiveSections(lang);
   if (typeof window.updateContributionsLang === "function") {
     window.updateContributionsLang();
+  }
+  if (typeof window.updateSubmissionsLang === "function") {
+    window.updateSubmissionsLang();
   }
 }
 
@@ -237,17 +261,8 @@ async function handleContributionFormSubmit(e) {
   btn.disabled = true;
   showFormMessage(msgEl, "loading", loadingText);
 
-  // --- API endpoint: POST /api/contribute ---
-  // On the Vite dev server (:5173) we call the backend on :5000 explicitly.
-  // When served directly from the Express process on :5000 we use a relative path.
-  const backendBase = window.location.port === "5000"
-    ? ""                           // same origin
-    : "http://localhost:5000";     // cross-origin from Vite
-
-  const endpoint = `${backendBase}/api/contribute`;
-
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch("/api/contribute", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, message }),
@@ -319,6 +334,9 @@ function initBackToTopButton() {
    ========================================================================== */
 
 function buildSvg(type, color, bg) {
+  const safeColor = (value, fallback) => /^#[0-9a-f]{3,8}$/i.test(String(value || "")) ? value : fallback;
+  color = safeColor(color, "#903628");
+  bg = safeColor(bg, "#ded4c0");
   const g = (paths) =>
     `<g fill="none" stroke="${color}" stroke-width="1.3" opacity="0.42">${paths}</g>`;
   const svgs = {
@@ -341,48 +359,42 @@ function buildSvg(type, color, bg) {
    ========================================================================== */
 
 function renderHistory(items, lang) {
-  const readMore = resolveKey(lang, "readMore") ?? "Read more";
   return items.map((item) => {
     const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
     const title = item.title[lang] ?? item.title.en;
     const era = item.era[lang] ?? item.era.en;
     const body = item.body[lang] ?? item.body.en;
     const cat = item.categoryKey || "all";
-    const searchStr = `${title} ${era} ${body}`.replace(/"/g, '&quot;');
+    const searchStr = escapeHtml(`${title} ${era} ${body}`);
     return `
-      <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${cat}">
-        <span class="timeline-era">${era}</span>
+      <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+        <span class="timeline-era">${escapeHtml(era)}</span>
         <div class="timeline-visual" aria-hidden="true">${svg}</div>
-        <h3 class="timeline-title">${title}</h3>
-        <p class="timeline-desc">${body}</p>
+        <h3 class="timeline-title">${escapeHtml(title)}</h3>
+        <p class="timeline-desc">${escapeHtml(body)}</p>
       </article>`;
   }).join("");
 }
 
 function renderStories(items, lang) {
-  const readMoreLabel = resolveKey(lang, "readMore") ?? "Read Story";
-  return items.map((item, idx) => {
+  return items.map((item) => {
     const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
     const title = item.title[lang] ?? item.title.en;
     const tag = item.tag[lang] ?? item.tag.en;
     const body = item.body[lang] ?? item.body.en;
     const cat = item.categoryKey || "all";
-    const searchStr = `${title} ${tag} ${body}`.replace(/"/g, '&quot;');
+    const searchStr = escapeHtml(`${title} ${tag} ${body}`);
     return `
-      <article class="story-card" data-reveal data-search="${searchStr}" data-category="${cat}" aria-label="Story: ${title}">
+      <article class="story-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" aria-label="Story: ${escapeHtml(title)}">
         <div class="story-image-wrap">
           <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
           </svg>
-          <span class="story-tag">${tag}</span>
+          <span class="story-tag">${escapeHtml(tag)}</span>
         </div>
         <div class="story-content">
-          <h3 class="story-title">${title}</h3>
-          <p class="story-body">${body}</p>
-          <button class="story-read-btn" type="button" data-story-id="${idx + 1}">
-            <span>${readMoreLabel}</span>
-            <span class="story-link-arrow" aria-hidden="true">→</span>
-          </button>
+          <h3 class="story-title">${escapeHtml(title)}</h3>
+          <p class="story-body">${escapeHtml(body)}</p>
         </div>
       </article>`;
   }).join("");
@@ -395,18 +407,18 @@ function renderStructures(items, lang) {
     const tag = item.tag[lang] ?? item.tag.en;
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
-    const searchStr = `${title} ${tag} ${desc}`.replace(/"/g, '&quot;');
+    const searchStr = escapeHtml(`${title} ${tag} ${desc}`);
     return `
-      <article class="struct-card" data-reveal data-search="${searchStr}" data-category="${cat}">
+    <article class="struct-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
         <div class="struct-media">
           <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
           </svg>
-          <span class="struct-tag">${tag}</span>
+          <span class="struct-tag">${escapeHtml(tag)}</span>
         </div>
         <div class="struct-info">
-          <h3 class="struct-title">${title}</h3>
-          <p class="struct-desc">${desc}</p>
+          <h3 class="struct-title">${escapeHtml(title)}</h3>
+          <p class="struct-desc">${escapeHtml(desc)}</p>
         </div>
       </article>`;
   }).join("");
@@ -417,35 +429,31 @@ function renderBeliefs(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
-    const searchStr = `${title} ${desc}`.replace(/"/g, '&quot;');
+    const searchStr = escapeHtml(`${title} ${desc}`);
     return `
-    <div class="belief-card" data-reveal data-search="${searchStr}" data-category="${cat}">
-      <div class="belief-icon" aria-hidden="true">${item.icon}</div>
-      <h3 class="belief-title">${title}</h3>
-      <p class="belief-desc">${desc}</p>
+    <div class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+      <div class="belief-icon" aria-hidden="true">${escapeHtml(item.icon)}</div>
+      <h3 class="belief-title">${escapeHtml(title)}</h3>
+      <p class="belief-desc">${escapeHtml(desc)}</p>
     </div>`;
   }).join("");
 }
 
 function renderMusic(items, lang) {
-  const playLabel = resolveKey(lang, "musicSection.playLabel") ?? "Play audio sample";
   return items.map((item) => {
     const title = item.title[lang] ?? item.title.en;
     const tag = item.tag[lang] ?? item.tag.en;
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
-    const searchStr = `${title} ${tag} ${desc}`.replace(/"/g, '&quot;');
+    const searchStr = escapeHtml(`${title} ${tag} ${desc}`);
     return `
-    <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${cat}">
-      <div class="track-badge" aria-hidden="true">${item.badge}</div>
+    <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+      <div class="track-badge" aria-hidden="true">${escapeHtml(item.badge)}</div>
       <div class="track-info">
-        <span class="track-tag">${tag}</span>
-        <h3 class="track-title">${title}</h3>
-        <p class="track-desc">${desc}</p>
+        <span class="track-tag">${escapeHtml(tag)}</span>
+        <h3 class="track-title">${escapeHtml(title)}</h3>
+        <p class="track-desc">${escapeHtml(desc)}</p>
       </div>
-      <button class="track-play-btn" type="button" aria-label="${playLabel}">
-        <span class="play-icon" aria-hidden="true">▶</span>
-      </button>
     </article>`;
   }).join("");
 }
@@ -457,26 +465,27 @@ function renderGallery(items, lang) {
     const cat = item.category[lang] ?? item.category.en;
     const caption = item.caption[lang] ?? item.caption.en;
     const catKey = item.categoryKey || "all";
-    const searchStr = `${title} ${cat} ${caption}`.replace(/"/g, '&quot;');
+    const searchStr = escapeHtml(`${title} ${cat} ${caption}`);
     
     let mediaHtml = "";
-    if (item.src) {
-      mediaHtml = `<img class="gallery-img" src="${item.src}" alt="${title}" loading="lazy">`;
+    const mediaUrl = safeHttpUrl(item.src);
+    if (mediaUrl) {
+      mediaHtml = `<img class="gallery-img" src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(title)}" loading="lazy">`;
     } else {
       const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
       mediaHtml = `<svg class="gallery-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;
     }
 
     return `
-      <article class="gallery-card" data-reveal data-search="${searchStr}" data-category="${catKey}" data-gallery-idx="${idx}" tabindex="0" role="button" aria-label="View ${title}">
+      <article class="gallery-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(catKey)}" data-gallery-idx="${idx}" tabindex="0" role="button" aria-label="View ${escapeHtml(title)}">
         <div class="gallery-media-wrap">
           ${mediaHtml}
-          <span class="gallery-category">${cat}</span>
+          <span class="gallery-category">${escapeHtml(cat)}</span>
           <div class="gallery-overlay-icon" aria-hidden="true">🔍</div>
         </div>
         <div class="gallery-info">
-          <h3 class="gallery-title">${title}</h3>
-          <p class="gallery-caption">${caption}</p>
+          <h3 class="gallery-title">${escapeHtml(title)}</h3>
+          <p class="gallery-caption">${escapeHtml(caption)}</p>
         </div>
       </article>`;
   }).join("");
@@ -516,6 +525,7 @@ function renderArchiveSections(lang) {
   initMusicTrackButtons();
   initStoryButtons();
   initGalleryClickHandlers();
+  applyCombinedFilters();
 }
 
 /** Fetch archive.json once, then render for the current language. */
@@ -601,11 +611,13 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Search filtering --- */
   initSearch();
 
+  /* --- Category filtering (desktop buttons and mobile selects) --- */
+  initFilterListeners();
+
   /* --- Lightbox modal init --- */
   initLightbox();
 
-  /* --- Contributions Map --- */
-  initContributionsMap();
+  /* Contribution map intentionally disabled until submissions have location data. */
 });
 
 /* ==========================================================================
@@ -669,12 +681,13 @@ function renderContributionsMap(items) {
       validLocations++;
       const marker = L.marker([location.lat, location.lng], { icon: terracottaIcon }).addTo(contributionsMap);
 
-      const popupContent = `
-        <div class="leaflet-popup-content">
-          <h4>${name}</h4>
-          <p>${message}</p>
-        </div>
-      `;
+      const popupContent = document.createElement("div");
+      popupContent.className = "leaflet-popup-content";
+      const heading = document.createElement("h4");
+      heading.textContent = name || "";
+      const body = document.createElement("p");
+      body.textContent = message || "";
+      popupContent.append(heading, body);
       marker.bindPopup(popupContent);
     }
   });
@@ -710,8 +723,14 @@ function openLightbox(itemIndex) {
   const cat = item.category[lang] ?? item.category.en;
   const caption = item.caption[lang] ?? item.caption.en;
 
-  if (item.src) {
-    mediaContainer.innerHTML = `<img src="${item.src}" alt="${title}" class="lightbox-img">`;
+  const mediaUrl = safeHttpUrl(item.src);
+  if (mediaUrl) {
+    mediaContainer.replaceChildren();
+    const image = document.createElement("img");
+    image.src = mediaUrl;
+    image.alt = title;
+    image.className = "lightbox-img";
+    mediaContainer.appendChild(image);
   } else {
     const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
     mediaContainer.innerHTML = `<svg class="lightbox-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;

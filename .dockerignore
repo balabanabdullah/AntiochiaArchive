@@ -6,6 +6,7 @@ node_modules
 
 # ── Backend source (served separately) ─────────────────────────────────────
 backend
+data
 
 # ── Git metadata ───────────────────────────────────────────────────────────
 .git

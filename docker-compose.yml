@@ -27,16 +27,17 @@ services:
     volumes:
       - ./index.html:/app/index.html:ro
       - ./style.css:/app/style.css:ro
-      - ./script.js:/app/script.js:ro
       - ./vite.config.js:/app/vite.config.js:ro
       - ./package.json:/app/package.json:ro
       - ./package-lock.json:/app/package-lock.json:ro
       # public/ contains lang.js (served as /lang.js by Vite publicDir)
       - ./public:/app/public:ro
+      - ./pages:/app/pages:ro
       # Named volume keeps node_modules inside the container
       - antiochia_nodemodules:/app/node_modules
     environment:
       - NODE_ENV=development
+      - VITE_API_PROXY_TARGET=http://antiochia-archive-backend:5000
     restart: unless-stopped
     depends_on:
       - antiochia-archive-backend
@@ -51,12 +52,14 @@ services:
     image: antiochia-archive:nginx
     container_name: antiochia-archive-nginx
     ports:
-      - "8080:80"
+      - "8080:8080"
+    environment:
+      - BACKEND_UPSTREAM=http://antiochia-archive-backend:5000
     restart: unless-stopped
     depends_on:
       - antiochia-archive-backend
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -73,6 +76,15 @@ services:
       - "5000:5000"
     env_file:
       - ./backend/.env
+    environment:
+      - ARCHIVE_JSON_PATH=/appdata/public/archive.json
+      - SUBMISSIONS_JSON_PATH=/appdata/private/submissions.json
+      - MAIL_MODE=${MAIL_MODE:-mock}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+    volumes:
+      # Temporary local/development persistence only. Cloud Run needs durable shared storage.
+      - ./public:/appdata/public
+      - ./data:/appdata/private
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health',(r)=>process.exit(r.statusCode===200?0:1))"]

@@ -374,6 +374,11 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label" for="field-category-key">Filtre Kategorisi (categoryKey)</label>
+          <input class="form-input" type="text" id="field-category-key" placeholder="all">
+        </div>
+
+        <div class="form-group">
           <label class="form-label">Etiket / Dönem (Tag / Era)</label>
           <div class="form-row">
             <div>
@@ -439,11 +444,12 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Admin JavaScript Logic -->
+  <script src="/admin-api.js"></script>
   <script>
     /* ── Global State ────────────────────────────────────────────────────────── */
     let archiveState = null;
     let currentCategory = "history";
-    const API_BASE = "http://localhost:5000/api/archive";
+    const API_BASE = "/api/archive";
 
     /* ── DOM Elements ────────────────────────────────────────────────────────── */
     const tableBody = document.getElementById("table-body");
@@ -465,17 +471,19 @@
     /* ── Fetch Data from GET /api/archive ────────────────────────────────────── */
     async function loadArchiveData() {
       try {
-        let res = await fetch(API_BASE).catch(() => null);
-        if (!res || !res.ok) {
-          res = await fetch("/archive.json").catch(() => null);
+        let result;
+        let backendConnected = true;
+        try {
+          result = await AntiochiaAdminAPI.request(API_BASE);
+        } catch (_) {
+          backendConnected = false;
+          const res = await fetch("/archive.json");
+          if (!res.ok) throw new Error("Arşiv verisi yüklenemedi.");
+          result = await res.json();
         }
-
-        if (!res || !res.ok) throw new Error("API isteği başarısız oldu.");
-
-        const result = await res.json();
         archiveState = result.data || result;
-        apiBadge.textContent = "● Backend API Bağlandı";
-        apiBadge.className = "api-badge online";
+        apiBadge.textContent = backendConnected ? "● Backend API Bağlandı" : "● Salt Okunur Yerel Veri";
+        apiBadge.className = backendConnected ? "api-badge online" : "api-badge offline";
 
         renderTable();
       } catch (err) {
@@ -499,6 +507,7 @@
         return;
       }
 
+      const escapeHtml = AntiochiaAdminAPI.escapeHtml;
       tableBody.innerHTML = items.map((item, index) => {
         const tagOrEra = item.tag ? (item.tag.tr || item.tag.en) : (item.era ? (item.era.tr || item.era.en) : (item.badge || "-"));
         const titleTr = item.title ? (item.title.tr || item.title.en) : "-";
@@ -506,10 +515,10 @@
 
         return `
           <tr>
-            <td class="cell-id">${item.id || (index + 1)}</td>
-            <td><span class="cell-tag">${tagOrEra}</span></td>
-            <td class="cell-title">${titleTr}</td>
-            <td class="cell-desc">${descTr}</td>
+            <td class="cell-id">${escapeHtml(item.id || (index + 1))}</td>
+            <td><span class="cell-tag">${escapeHtml(tagOrEra)}</span></td>
+            <td class="cell-title">${escapeHtml(titleTr)}</td>
+            <td class="cell-desc">${escapeHtml(descTr)}</td>
             <td style="text-align: right; white-space: nowrap;">
               <button class="btn-admin btn-admin-secondary" onclick="editItem(${index})" style="padding: 4px 8px; font-size: 0.78rem;">✏️ Düzenle</button>
               <button class="btn-admin btn-admin-danger" onclick="deleteItem(${index})" style="padding: 4px 8px; font-size: 0.78rem;">🗑️ Sil</button>
@@ -525,6 +534,7 @@
 
       document.getElementById("edit-item-index").value = index;
       document.getElementById("field-id").value = item.id || "";
+      document.getElementById("field-category-key").value = item.categoryKey || "all";
 
       const tagObj = item.tag || item.era || {};
       document.getElementById("field-tag-tr").value = tagObj.tr || "";
@@ -558,6 +568,7 @@
       document.getElementById("edit-item-index").value = "-1";
       document.getElementById("editor-form").reset();
       document.getElementById("field-id").value = `${currentCategory.slice(0, 2)}${Date.now().toString().slice(-3)}`;
+      document.getElementById("field-category-key").value = "all";
       modalHeading.textContent = "Yeni Kayıt Ekle";
       editorModal.classList.add("open");
     });
@@ -574,6 +585,7 @@
       e.preventDefault();
       const index = parseInt(document.getElementById("edit-item-index").value, 10);
       const id = document.getElementById("field-id").value.trim();
+      const categoryKey = document.getElementById("field-category-key").value.trim() || "all";
 
       const tagObj = {
         tr: document.getElementById("field-tag-tr").value.trim(),
@@ -593,7 +605,7 @@
         ar: document.getElementById("field-desc-ar").value.trim(),
       };
 
-      const newItem = { id };
+      const newItem = { id, categoryKey };
 
       if (currentCategory === "history") {
         newItem.era = tagObj;
@@ -668,14 +680,14 @@
       if (!archiveState) return;
 
       try {
-        const res = await fetch(API_BASE, {
+        const result = await AntiochiaAdminAPI.request(API_BASE, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(archiveState),
+          admin: true,
         });
 
-        const result = await res.json();
-        if (res.ok && result.success) {
+        if (result.success) {
           showToast("✅ Değişiklikler başarıyla `public/archive.json` dosyasına kaydedildi!");
         } else {
           throw new Error(result.error || "Kaydetme hatası");

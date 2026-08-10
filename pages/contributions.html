@@ -9,7 +9,6 @@
   <title data-i18n="pages.contributions.title">Shared Memories &amp; Contributions — AntiochiaArchive</title>
 
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 </head>
 <body>
 
@@ -35,7 +34,6 @@
         <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
         <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
-        <a href="/pages/contributions.html" data-i18n="pages.contributions.title" class="is-active">Contributions</a>
       </nav>
 
       <!-- Header actions -->
@@ -78,7 +76,6 @@
         <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
         <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
-        <a href="/pages/contributions.html" data-i18n="pages.contributions.title" class="is-active">Contributions</a>
       </div>
     </nav>
   </header>
@@ -104,8 +101,8 @@
       </div>
     </section>
 
-    <!-- Contributions Map Section -->
-    <section class="section-contributions-map">
+    <!-- Intentionally disabled until location-backed submissions are supported. -->
+    <section class="section-contributions-map" hidden aria-hidden="true">
       <div class="container">
         <div class="map-overlay-box" data-reveal>
           <h2 class="map-overlay-title" data-i18n="pages.contributions.mapTitle">Contributions Map</h2>
@@ -131,11 +128,11 @@
 
         <!-- Contributions Grid -->
         <div class="contributions-grid" id="contributions-grid-container" aria-live="polite">
-          <!-- Dynamically populated from /api/submissions -->
+          <!-- Public visitor submissions are intentionally disabled for this release. -->
         </div>
 
         <!-- Empty State -->
-        <div class="contributions-empty" id="contributions-empty-container" style="display: none;">
+        <div class="contributions-empty" id="contributions-empty-container" style="display: flex;">
           <span class="empty-icon" aria-hidden="true">📜</span>
           <p data-i18n="pages.contributions.emptyState">Henüz katkı gönderilmedi.</p>
         </div>
@@ -184,7 +181,6 @@
             <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
             <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
             <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
-            <a href="/pages/contributions.html" data-i18n="pages.contributions.title">Contributions</a>
           </nav>
         </div>
 
@@ -207,116 +203,8 @@
   <!-- Scripts -->
   <script src="/lang.js"></script>
   <script src="/script.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     document.getElementById("footer-year").textContent = new Date().getFullYear();
-
-    /* ── Render Contributions Logic ── */
-    let fetchedContributionsList = [];
-
-    function formatContributionDate(dateStr, lang) {
-      if (!dateStr) return "";
-      try {
-        const d = new Date(dateStr);
-        const locale = lang === "ar" ? "ar-EG" : (lang === "en" ? "en-US" : "tr-TR");
-        return d.toLocaleDateString(locale, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      } catch (_) {
-        return dateStr;
-      }
-    }
-
-    function renderPublicContributions(items) {
-      const container = document.getElementById("contributions-grid-container");
-      const emptyEl = document.getElementById("contributions-empty-container");
-      const countTextEl = document.getElementById("contributions-count-text");
-      const lang = document.documentElement.lang || "tr";
-
-      const countLabel = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.contributions?.countLabel) || "Katkı Sayısı";
-      const byLabel = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.contributions?.by) || "Katkıda Bulunan:";
-
-      if (countTextEl) {
-        countTextEl.textContent = `${countLabel}: ${items.length}`;
-      }
-
-      if (!items || items.length === 0) {
-        container.innerHTML = "";
-        if (emptyEl) emptyEl.style.display = "flex";
-        return;
-      }
-
-      if (emptyEl) emptyEl.style.display = "none";
-
-      container.innerHTML = items.map((item) => {
-        const formattedDate = formatContributionDate(item.createdAt, lang);
-        const searchStr = `${item.name} ${item.message}`.toLowerCase().replace(/"/g, '&quot;');
-        
-        return `
-          <article class="contribution-card" data-search="${searchStr}" data-reveal>
-            <div class="contribution-card-header">
-              <div class="contribution-user-info">
-                <span class="contribution-by-label">${byLabel}</span>
-                <h3 class="contribution-author-name">${item.name}</h3>
-              </div>
-              <time class="contribution-date" datetime="${item.createdAt || ''}">${formattedDate}</time>
-            </div>
-
-            <div class="contribution-card-body">
-              <p class="contribution-message">${item.message}</p>
-            </div>
-
-            <div class="contribution-card-footer">
-              <span class="contribution-tag">📜 Topluluk Hafızası</span>
-            </div>
-          </article>`;
-      }).join("");
-    }
-
-    async function loadContributions() {
-      try {
-        let res = null;
-        const candidateEndpoints = [
-          "http://localhost:5000/api/submissions",
-          "/api/submissions",
-          "/submissions.json",
-          "../public/submissions.json"
-        ];
-
-        for (const ep of candidateEndpoints) {
-          try {
-            const r = await fetch(ep);
-            if (r && r.ok) { res = r; break; }
-          } catch (_) {}
-        }
-
-        if (res) {
-          const json = await res.json();
-          fetchedContributionsList = Array.isArray(json) ? json : (json.data || []);
-        } else {
-          fetchedContributionsList = [];
-        }
-        renderPublicContributions(fetchedContributionsList);
-        if (typeof renderContributionsMap === "function") {
-          renderContributionsMap(fetchedContributionsList);
-        }
-      } catch (err) {
-        console.error("Contributions fetch error:", err);
-      }
-    }
-
-    // Expose for language switcher callback
-    window.updateContributionsLang = () => {
-      renderPublicContributions(fetchedContributionsList);
-    };
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadContributions();
-    });
   </script>
 
   <!-- Back to Top Button -->

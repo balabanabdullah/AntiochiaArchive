@@ -38,6 +38,8 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json({ limit: "2mb" }));
+app.use("/pages", express.static(path.join(__dirname, "../pages")));
+app.use(express.static(path.join(__dirname, "..")));
 
 /* ── Health check ───────────────────────────────────────────────────────────── */
 app.get("/health", (_req, res) => {

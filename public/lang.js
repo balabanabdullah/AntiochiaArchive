@@ -274,6 +274,14 @@ const TRANSLATIONS = {
         confirmDelete: "Are you sure you want to delete this contribution record?",
         deletedSuccess: "Contribution record deleted successfully.",
       },
+      contributions: {
+        badge: "Community Contributions",
+        title: "Shared Memories & Contributions",
+        subtitle: "Explore place memories, family accounts, and testimonies preserved by the community.",
+        countLabel: "Contributions",
+        emptyState: "No community contributions shared yet.",
+        by: "Contributor:",
+      },
       cta: {
         eyebrow: "Preserve the Memory",
         title: "Do you have a memory, photo, or recording to share?",
@@ -560,6 +568,14 @@ const TRANSLATIONS = {
         confirmDelete: "Bu katkı kaydını silmek istediğinizden emin misiniz?",
         deletedSuccess: "Katkı kaydı başarıyla silindi.",
       },
+      contributions: {
+        badge: "Topluluk Katkıları",
+        title: "Paylaşılan Hatıralar & Katkılar",
+        subtitle: "Topluluk tarafından korunan mekan anılarını, sözlü tarih anlatımlarını ve görselleri keşfedin.",
+        countLabel: "Katkı Sayısı",
+        emptyState: "Henüz katkı gönderilmedi.",
+        by: "Katkıda Bulunan:",
+      },
       cta: {
         eyebrow: "Hafızayı Yaşatın",
         title: "Paylaşmak istediğiniz bir anı, fotoğraf veya kayıt var mı?",
@@ -845,6 +861,14 @@ const TRANSLATIONS = {
         emptyState: "لا توجد مساهمات زوار للعرض حالياً.",
         confirmDelete: "هل أنت تأكد من رغبتك في حذف سجل المساهمة هذا؟",
         deletedSuccess: "تم حذف سجل المساهمة بنجاح.",
+      },
+      contributions: {
+        badge: "مساهمات المجتمع",
+        title: "الذكريات والمساهمات المشتركة",
+        subtitle: "استكشف ذكريات المكان والشهادات التاريخية المحفوظة من قبل المجتمع.",
+        countLabel: "عدد المساهمات",
+        emptyState: "لم يتم مشاركة أي مساهمات حتى الآن.",
+        by: "بواسطة:",
       },
       cta: {
         eyebrow: "احفظ الذاكرة",

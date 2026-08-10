@@ -4,7 +4,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  appType: "mpa",
+  appType: "spa",
 
   // ── Kök dizin ──────────────────────────────────────────────────────
   root: ".",
@@ -19,14 +19,15 @@ export default defineConfig({
     strictPort: true,
     historyApiFallback: {
       rewrites: [
-        { from: /^\/pages\/history\.html/, to: "/pages/history.html" },
-        { from: /^\/pages\/stories\.html/, to: "/pages/stories.html" },
-        { from: /^\/pages\/structures\.html/, to: "/pages/structures.html" },
-        { from: /^\/pages\/beliefs\.html/, to: "/pages/beliefs.html" },
-        { from: /^\/pages\/music\.html/, to: "/pages/music.html" },
-        { from: /^\/pages\/admin\.html/, to: "/pages/admin.html" },
-        { from: /^\/pages\/gallery\.html/, to: "/pages/gallery.html" },
-        { from: /^\/pages\/submissions\.html/, to: "/pages/submissions.html" },
+        { from: /^\/pages\/history\.html$/, to: "/pages/history.html" },
+        { from: /^\/pages\/stories\.html$/, to: "/pages/stories.html" },
+        { from: /^\/pages\/structures\.html$/, to: "/pages/structures.html" },
+        { from: /^\/pages\/beliefs\.html$/, to: "/pages/beliefs.html" },
+        { from: /^\/pages\/music\.html$/, to: "/pages/music.html" },
+        { from: /^\/pages\/admin\.html$/, to: "/pages/admin.html" },
+        { from: /^\/pages\/gallery\.html$/, to: "/pages/gallery.html" },
+        { from: /^\/pages\/submissions\.html$/, to: "/pages/submissions.html" },
+        { from: /^\/pages\/contributions\.html$/, to: "/pages/contributions.html" },
       ],
     },
     watch: {
@@ -42,15 +43,16 @@ export default defineConfig({
     sourcemap:    false,
     rollupOptions: {
       input: {
-        main:       "index.html",
-        history:    "pages/history.html",
-        stories:    "pages/stories.html",
-        structures: "pages/structures.html",
-        beliefs:    "pages/beliefs.html",
-        music:      "pages/music.html",
-        admin:      "pages/admin.html",
-        gallery:    "pages/gallery.html",
-        submissions:"pages/submissions.html",
+        main:          "index.html",
+        history:       "pages/history.html",
+        stories:       "pages/stories.html",
+        structures:    "pages/structures.html",
+        beliefs:       "pages/beliefs.html",
+        music:         "pages/music.html",
+        admin:         "pages/admin.html",
+        gallery:       "pages/gallery.html",
+        submissions:   "pages/submissions.html",
+        contributions: "pages/contributions.html",
       },
     },
   },

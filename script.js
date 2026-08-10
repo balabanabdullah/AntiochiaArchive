@@ -99,6 +99,9 @@ function applyLanguage(lang) {
 
   // 9. Re-render archive sections in new language
   renderArchiveSections(lang);
+  if (typeof window.updateContributionsLang === "function") {
+    window.updateContributionsLang();
+  }
 }
 
 /* ==========================================================================

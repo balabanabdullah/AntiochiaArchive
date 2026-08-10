@@ -2121,4 +2121,166 @@ html[dir="rtl"] .footer-nav a:focus-visible {
   }
 }
 
+/* --------------------------------------------------------------------------
+   20. Public Visitor Contributions Page (#contributions)
+   -------------------------------------------------------------------------- */
+.section-contributions {
+  padding-block: var(--sp-8);
+  background: var(--clr-paper);
+}
+
+.contributions-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: var(--sp-6);
+}
+
+.contributions-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: var(--clr-paper-deep);
+  border: 1px solid var(--clr-line-strong);
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--clr-red);
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.contributions-count-badge .badge-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--clr-red);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* 2-Column Grid on Desktop, 1-Column on Mobile */
+.contributions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-5);
+  align-items: stretch;
+}
+
+@media (max-width: 860px) {
+  .contributions-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+}
+
+/* Contribution Card (.contribution-card) */
+.contribution-card {
+  background-color: #f9f5ec; /* Açık krem / parchment */
+  border: 1px solid var(--clr-line-strong);
+  border-left: 4px solid var(--clr-red); /* Terrakotta bordo accent */
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
+}
+
+html[dir="rtl"] .contribution-card {
+  border-left: 1px solid var(--clr-line-strong);
+  border-right: 4px solid var(--clr-red);
+}
+
+.contribution-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(144, 54, 40, 0.12);
+  border-color: var(--clr-red);
+}
+
+.contribution-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  border-bottom: 1px dashed var(--clr-line);
+  padding-bottom: var(--sp-3);
+}
+
+.contribution-by-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--clr-ink-muted);
+  margin-bottom: 2px;
+}
+
+.contribution-author-name {
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: var(--clr-red); /* Bordo #903628 */
+  line-height: 1.3;
+  margin: 0;
+}
+
+.contribution-date {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--clr-ink-muted);
+  white-space: nowrap;
+}
+
+.contribution-card-body {
+  flex: 1;
+}
+
+.contribution-message {
+  font-family: var(--font-sans);
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: var(--clr-ink);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.contribution-card-footer {
+  padding-top: var(--sp-3);
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.contribution-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--clr-olive);
+  background: rgba(94, 97, 66, 0.08);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.contributions-empty {
+  padding: var(--sp-8) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  color: var(--clr-ink-muted);
+  text-align: center;
+  background: #f9f5ec;
+  border: 1px dashed var(--clr-line-strong);
+  border-radius: var(--radius-md);
+}
+
+.contributions-empty .empty-icon {
+  font-size: 3rem;
+}
+
+
 

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Community Contributions — Explore place memories, oral histories, and family testimonies shared by visitors to AntiochiaArchive.">
+  <meta name="theme-color" content="#f2ead8">
+
+  <title data-i18n="pages.contributions.title">Shared Memories &amp; Contributions — AntiochiaArchive</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Skip link -->
+  <a class="skip-link" href="#main-content" data-i18n="a11y.skipLink">Skip to content</a>
+
+  <!-- Site Header -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+
+      <!-- Brand -->
+      <a class="brand" href="/index.html" aria-label="AntiochiaArchive home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span>AntiochiaArchive</span>
+      </a>
+
+      <!-- Primary Navigation -->
+      <nav class="nav-primary" aria-label="Primary navigation">
+        <a href="/index.html"           data-i18n="nav.home">Home</a>
+        <a href="/pages/history.html"    data-i18n="nav.history">History</a>
+        <a href="/pages/stories.html"    data-i18n="nav.stories">Stories</a>
+        <a href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
+        <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
+        <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
+        <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
+        <a href="/pages/contributions.html" data-i18n="pages.contributions.title" class="is-active">Contributions</a>
+      </nav>
+
+      <!-- Header actions -->
+      <div class="header-actions">
+        <!-- Search box -->
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="searchPlaceholder" placeholder="Bir şey ara...">
+        </div>
+
+        <div class="lang-switcher" role="group" aria-label="Choose language">
+          <button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button>
+          <button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button class="lang-btn" type="button" data-lang="ar" aria-pressed="false">AR</button>
+        </div>
+
+        <a class="btn-contribute" href="/index.html#contribute">
+          <span data-i18n="actions.contribute">Contribute</span>
+          <span aria-hidden="true">＋</span>
+        </a>
+
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav -->
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
+      <div class="container mobile-nav-inner">
+        <a href="/index.html"           data-i18n="nav.home">Home</a>
+        <a href="/pages/history.html"    data-i18n="nav.history">History</a>
+        <a href="/pages/stories.html"    data-i18n="nav.stories">Stories</a>
+        <a href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
+        <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
+        <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
+        <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
+        <a href="/pages/contributions.html" data-i18n="pages.contributions.title" class="is-active">Contributions</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- Page Hero Banner -->
+    <section class="page-hero">
+      <div class="container">
+        <div class="breadcrumb">
+          <a href="/index.html" data-i18n="nav.home">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <span data-i18n="pages.contributions.title">Contributions</span>
+        </div>
+        <div class="page-hero-header">
+          <div class="page-badge-wrap" data-i18n="pages.contributions.badge">Community Contributions</div>
+          <h1 class="page-hero-title" data-i18n="pages.contributions.title">Shared Memories &amp; Contributions</h1>
+          <p class="page-hero-desc" data-i18n="pages.contributions.subtitle">
+            Explore place memories, family accounts, and testimonies preserved by the community.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Public Contributions Grid Section -->
+    <section class="section-contributions subpage-container" id="contributions">
+      <div class="container">
+
+        <!-- Top Header Bar with Count Badge -->
+        <div class="contributions-top-bar" data-reveal>
+          <div class="contributions-count-badge" id="contributions-count-badge">
+            <span class="badge-dot"></span>
+            <span id="contributions-count-text">Katkı Sayısı: 0</span>
+          </div>
+        </div>
+
+        <!-- Contributions Grid -->
+        <div class="contributions-grid" id="contributions-grid-container" aria-live="polite">
+          <!-- Dynamically populated from /api/submissions -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="contributions-empty" id="contributions-empty-container" style="display: none;">
+          <span class="empty-icon" aria-hidden="true">📜</span>
+          <p data-i18n="pages.contributions.emptyState">Henüz katkı gönderilmedi.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Page CTA Banner -->
+    <section class="page-cta">
+      <div class="container page-cta-inner">
+        <span class="eyebrow" data-i18n="pages.cta.eyebrow">Preserve the Memory</span>
+        <h2 class="page-cta-title" data-i18n="pages.cta.title">Do you have a memory, photo, or recording to share?</h2>
+        <p class="page-cta-body" data-i18n="pages.cta.body">AntiochiaArchive grows through community contributions. Help us keep Antioch's living heritage vibrant.</p>
+        <a class="btn-cta-primary" href="/index.html#contribute">
+          <span data-i18n="pages.cta.btn">Contribute to Archive</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-wrap">
+          <a class="footer-brand" href="/index.html" aria-label="AntiochiaArchive home">
+            <span class="brand-mark" aria-hidden="true">A</span>
+            <span class="brand-name">AntiochiaArchive</span>
+          </a>
+          <p class="footer-about" data-i18n="footerAbout">A living digital memory preserving the voices, images, oral histories, and shared places of Antioch.</p>
+          <p class="footer-open-source">
+            <span data-i18n="openSource">Open source &amp; community driven project.</span>
+            <a href="https://github.com/balabanabdullah/AntiochiaArchive" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </p>
+        </div>
+
+        <div class="footer-nav-col">
+          <h4 class="footer-heading" data-i18n="footer.links.about">Navigation</h4>
+          <nav class="footer-nav" aria-label="Footer navigation">
+            <a href="/index.html"           data-i18n="nav.home">Home</a>
+            <a href="/pages/history.html"    data-i18n="nav.history">History</a>
+            <a href="/pages/stories.html"    data-i18n="nav.stories">Stories</a>
+            <a href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
+            <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
+            <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
+            <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
+            <a href="/pages/contributions.html" data-i18n="pages.contributions.title">Contributions</a>
+          </nav>
+        </div>
+
+        <div class="footer-social-col">
+          <h4 class="footer-heading" data-i18n="footer.connect">Connect</h4>
+          <div class="footer-social-links">
+            <a class="social-link" href="https://github.com/balabanabdullah/AntiochiaArchive" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="social-link" href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="copyright-line">&copy; <span id="footer-year">2026</span> <span data-i18n="copyright">AntiochiaArchive. Open source, open memory.</span></p>
+        <p class="coords-line">36.2021° N · 36.1608° E</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/lang.js"></script>
+  <script src="/script.js"></script>
+  <script>
+    document.getElementById("footer-year").textContent = new Date().getFullYear();
+
+    /* ── Render Contributions Logic ── */
+    let fetchedContributionsList = [];
+
+    function formatContributionDate(dateStr, lang) {
+      if (!dateStr) return "";
+      try {
+        const d = new Date(dateStr);
+        const locale = lang === "ar" ? "ar-EG" : (lang === "en" ? "en-US" : "tr-TR");
+        return d.toLocaleDateString(locale, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      } catch (_) {
+        return dateStr;
+      }
+    }
+
+    function renderPublicContributions(items) {
+      const container = document.getElementById("contributions-grid-container");
+      const emptyEl = document.getElementById("contributions-empty-container");
+      const countTextEl = document.getElementById("contributions-count-text");
+      const lang = document.documentElement.lang || "tr";
+
+      const countLabel = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.contributions?.countLabel) || "Katkı Sayısı";
+      const byLabel = (typeof TRANSLATIONS !== "undefined" && TRANSLATIONS[lang]?.contributions?.by) || "Katkıda Bulunan:";
+
+      if (countTextEl) {
+        countTextEl.textContent = `${countLabel}: ${items.length}`;
+      }
+
+      if (!items || items.length === 0) {
+        container.innerHTML = "";
+        if (emptyEl) emptyEl.style.display = "flex";
+        return;
+      }
+
+      if (emptyEl) emptyEl.style.display = "none";
+
+      container.innerHTML = items.map((item) => {
+        const formattedDate = formatContributionDate(item.createdAt, lang);
+        const searchStr = `${item.name} ${item.message}`.toLowerCase().replace(/"/g, '&quot;');
+        
+        return `
+          <article class="contribution-card" data-search="${searchStr}" data-reveal>
+            <div class="contribution-card-header">
+              <div class="contribution-user-info">
+                <span class="contribution-by-label">${byLabel}</span>
+                <h3 class="contribution-author-name">${item.name}</h3>
+              </div>
+              <time class="contribution-date" datetime="${item.createdAt || ''}">${formattedDate}</time>
+            </div>
+
+            <div class="contribution-card-body">
+              <p class="contribution-message">${item.message}</p>
+            </div>
+
+            <div class="contribution-card-footer">
+              <span class="contribution-tag">📜 Topluluk Hafızası</span>
+            </div>
+          </article>`;
+      }).join("");
+    }
+
+    async function loadContributions() {
+      try {
+        let res = null;
+        const candidateEndpoints = [
+          "http://localhost:5000/api/submissions",
+          "/api/submissions",
+          "/submissions.json",
+          "../public/submissions.json"
+        ];
+
+        for (const ep of candidateEndpoints) {
+          try {
+            const r = await fetch(ep);
+            if (r && r.ok) { res = r; break; }
+          } catch (_) {}
+        }
+
+        if (res) {
+          const json = await res.json();
+          fetchedContributionsList = Array.isArray(json) ? json : (json.data || []);
+        } else {
+          fetchedContributionsList = [];
+        }
+        renderPublicContributions(fetchedContributionsList);
+      } catch (err) {
+        console.error("Contributions fetch error:", err);
+      }
+    }
+
+    // Expose for language switcher callback
+    window.updateContributionsLang = () => {
+      renderPublicContributions(fetchedContributionsList);
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadContributions();
+    });
+  </script>
+</body>
+</html>

@@ -5,6 +5,8 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  appType: "mpa",
+
   // ── Kök dizin: index.html buradan sunulur ──────────────────────────
   root: ".",
 

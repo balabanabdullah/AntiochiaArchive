@@ -35,7 +35,7 @@ COPY index.html     ./index.html
 COPY style.css      ./style.css
 COPY script.js      ./script.js
 COPY vite.config.js ./vite.config.js
-
+COPY pages/         ./pages/
 # 3. Copy public/ assets (lang.js lives here)
 #    Vite will copy everything in public/ verbatim to dist/
 COPY public/        ./public/

@@ -317,9 +317,10 @@ function renderHistory(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const era = item.era[lang] ?? item.era.en;
     const body = item.body[lang] ?? item.body.en;
+    const cat = item.categoryKey || "all";
     const searchStr = `${title} ${era} ${body}`.replace(/"/g, '&quot;');
     return `
-      <article class="timeline-card" data-reveal data-search="${searchStr}">
+      <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${cat}">
         <span class="timeline-era">${era}</span>
         <div class="timeline-visual" aria-hidden="true">${svg}</div>
         <h3 class="timeline-title">${title}</h3>
@@ -335,9 +336,10 @@ function renderStories(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const tag = item.tag[lang] ?? item.tag.en;
     const body = item.body[lang] ?? item.body.en;
+    const cat = item.categoryKey || "all";
     const searchStr = `${title} ${tag} ${body}`.replace(/"/g, '&quot;');
     return `
-      <article class="story-card" data-reveal data-search="${searchStr}" aria-label="Story: ${title}">
+      <article class="story-card" data-reveal data-search="${searchStr}" data-category="${cat}" aria-label="Story: ${title}">
         <div class="story-image-wrap">
           <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
@@ -362,9 +364,10 @@ function renderStructures(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const tag = item.tag[lang] ?? item.tag.en;
     const desc = item.desc[lang] ?? item.desc.en;
+    const cat = item.categoryKey || "all";
     const searchStr = `${title} ${tag} ${desc}`.replace(/"/g, '&quot;');
     return `
-      <article class="struct-card" data-reveal data-search="${searchStr}">
+      <article class="struct-card" data-reveal data-search="${searchStr}" data-category="${cat}">
         <div class="struct-media">
           <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
@@ -383,9 +386,10 @@ function renderBeliefs(items, lang) {
   return items.map((item) => {
     const title = item.title[lang] ?? item.title.en;
     const desc = item.desc[lang] ?? item.desc.en;
+    const cat = item.categoryKey || "all";
     const searchStr = `${title} ${desc}`.replace(/"/g, '&quot;');
     return `
-    <div class="belief-card" data-reveal data-search="${searchStr}">
+    <div class="belief-card" data-reveal data-search="${searchStr}" data-category="${cat}">
       <div class="belief-icon" aria-hidden="true">${item.icon}</div>
       <h3 class="belief-title">${title}</h3>
       <p class="belief-desc">${desc}</p>
@@ -399,9 +403,10 @@ function renderMusic(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const tag = item.tag[lang] ?? item.tag.en;
     const desc = item.desc[lang] ?? item.desc.en;
+    const cat = item.categoryKey || "all";
     const searchStr = `${title} ${tag} ${desc}`.replace(/"/g, '&quot;');
     return `
-    <article class="music-track-card" data-reveal data-search="${searchStr}">
+    <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${cat}">
       <div class="track-badge" aria-hidden="true">${item.badge}</div>
       <div class="track-info">
         <span class="track-tag">${tag}</span>
@@ -421,6 +426,7 @@ function renderGallery(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const cat = item.category[lang] ?? item.category.en;
     const caption = item.caption[lang] ?? item.caption.en;
+    const catKey = item.categoryKey || "all";
     const searchStr = `${title} ${cat} ${caption}`.replace(/"/g, '&quot;');
     
     let mediaHtml = "";
@@ -432,7 +438,7 @@ function renderGallery(items, lang) {
     }
 
     return `
-      <article class="gallery-card" data-reveal data-search="${searchStr}" data-gallery-idx="${idx}" tabindex="0" role="button" aria-label="View ${title}">
+      <article class="gallery-card" data-reveal data-search="${searchStr}" data-category="${catKey}" data-gallery-idx="${idx}" tabindex="0" role="button" aria-label="View ${title}">
         <div class="gallery-media-wrap">
           ${mediaHtml}
           <span class="gallery-category">${cat}</span>
@@ -647,32 +653,80 @@ function initLightbox() {
 }
 
 /* ==========================================================================
-   Search Functionality — handleSearch
+   Combined Category Filter & Live Search Logic
    ========================================================================== */
 
-/** Filter archive cards across all sections based on input query */
-function handleSearch(query) {
-  const q = (query || "").trim().toLowerCase();
+let currentActiveFilter = "all";
+let currentSearchQuery = "";
+
+/** Apply both Category Filter and Search Query simultaneously */
+function applyCombinedFilters() {
+  const q = (currentSearchQuery || "").trim().toLowerCase();
+  const cat = currentActiveFilter || "all";
+
   const allCards = document.querySelectorAll(
-    ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card"
+    ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card, .gallery-card"
   );
 
   allCards.forEach((card) => {
-    if (!q) {
-      card.classList.remove("hidden");
-      return;
-    }
-
+    const cardCategory = card.getAttribute("data-category") || "all";
     const dataSearch = (card.getAttribute("data-search") || "").toLowerCase();
     const textContent = (card.textContent || "").toLowerCase();
-    const matches = dataSearch.includes(q) || textContent.includes(q);
 
-    if (matches) {
+    // 1. Search Query Match
+    const matchesSearch = !q || dataSearch.includes(q) || textContent.includes(q);
+
+    // 2. Category Filter Match
+    const matchesCategory = (cat === "all") || (cardCategory === cat);
+
+    if (matchesSearch && matchesCategory) {
       card.classList.remove("hidden");
     } else {
       card.classList.add("hidden");
     }
   });
+}
+
+/** Update category filter and refresh card visibility */
+function handleFilter(category) {
+  currentActiveFilter = category || "all";
+
+  // Update button UI states
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    if (btn.dataset.filter === currentActiveFilter) {
+      btn.classList.add("is-active");
+    } else {
+      btn.classList.remove("is-active");
+    }
+  });
+
+  // Update dropdown select UI values
+  document.querySelectorAll(".filter-select").forEach((sel) => {
+    sel.value = currentActiveFilter;
+  });
+
+  applyCombinedFilters();
+}
+
+/** Wire filter buttons and select dropdown event listeners */
+function initFilterListeners() {
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      handleFilter(btn.dataset.filter);
+    });
+  });
+
+  document.querySelectorAll(".filter-select").forEach((sel) => {
+    sel.addEventListener("change", (e) => {
+      handleFilter(e.target.value);
+    });
+  });
+}
+
+/** Filter archive cards across all sections based on input query */
+function handleSearch(query) {
+  currentSearchQuery = query || "";
+  applyCombinedFilters();
 }
 
 /** Wire search input event listeners */

@@ -102,6 +102,22 @@
     <!-- Dynamic Beliefs Content -->
     <section class="section-beliefs subpage-container" id="beliefs">
       <div class="container">
+        <!-- Category Filter Bar -->
+        <div class="filter-bar-wrap" data-reveal>
+          <div class="filter-bar" role="group" aria-label="Filter beliefs" data-i18n-aria="filters.filterLabel">
+            <button class="filter-btn is-active" type="button" data-filter="all" data-i18n="filters.all">Tümü</button>
+            <button class="filter-btn" type="button" data-filter="mosque" data-i18n="filters.mosque">Camiler & Türbeler</button>
+            <button class="filter-btn" type="button" data-filter="church" data-i18n="filters.church">Kiliseler</button>
+            <button class="filter-btn" type="button" data-filter="synagogue" data-i18n="filters.synagogue">Havralar</button>
+          </div>
+          <select class="filter-select" aria-label="Filter beliefs" data-i18n-aria="filters.filterLabel">
+            <option value="all" data-i18n="filters.all">Tümü</option>
+            <option value="mosque" data-i18n="filters.mosque">Camiler & Türbeler</option>
+            <option value="church" data-i18n="filters.church">Kiliseler</option>
+            <option value="synagogue" data-i18n="filters.synagogue">Havralar</option>
+          </select>
+        </div>
+
         <div class="beliefs-grid" id="beliefs-grid-container" aria-live="polite">
           <!-- dynamically populated from archive.json -->
         </div>

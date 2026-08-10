@@ -1833,3 +1833,84 @@ html[dir="rtl"] .footer-nav a:focus-visible {
   color: var(--clr-ink-muted);
 }
 
+/* --------------------------------------------------------------------------
+   18. Subpage Category Filter Bar & Select
+   -------------------------------------------------------------------------- */
+.filter-bar-wrap {
+  margin-bottom: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--clr-paper-deep);
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--clr-line-strong);
+}
+
+.filter-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--clr-ink-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  color: var(--clr-ink);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.filter-btn.is-active {
+  background: var(--clr-red);
+  color: #ffffff;
+  border-color: var(--clr-red);
+  box-shadow: 0 3px 10px rgba(144, 54, 40, 0.25);
+}
+
+.filter-select {
+  display: none;
+  width: 100%;
+  max-width: 320px;
+  height: 44px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--clr-line-strong);
+  background-color: #ffffff;
+  color: var(--clr-ink);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  border-color: var(--clr-red);
+  box-shadow: 0 0 0 3px rgba(144, 54, 40, 0.12);
+}
+
+@media (max-width: 767px) {
+  .filter-bar {
+    display: none;
+  }
+  .filter-select {
+    display: block;
+  }
+}
+

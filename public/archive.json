@@ -2,6 +2,7 @@
   "history": [
     {
       "id": "h1",
+      "categoryKey": "infrastructure",
       "era": {
         "en": "300 BCE — Roman Capital",
         "tr": "MÖ 300 — Roma Başkenti",
@@ -24,6 +25,7 @@
     },
     {
       "id": "h2",
+      "categoryKey": "courtyard",
       "era": {
         "en": "Medieval & Ottoman Eras",
         "tr": "Ortaçağ ve Osmanlı Dönemleri",
@@ -46,6 +48,7 @@
     },
     {
       "id": "h3",
+      "categoryKey": "all",
       "era": {
         "en": "Modern Memory",
         "tr": "Modern Hafıza",
@@ -70,6 +73,7 @@
   "stories": [
     {
       "id": "s1",
+      "categoryKey": "courtyard",
       "tag": {
         "en": "Kurtuluş Street",
         "tr": "Kurtuluş Caddesi",
@@ -92,6 +96,7 @@
     },
     {
       "id": "s2",
+      "categoryKey": "infrastructure",
       "tag": {
         "en": "Orontes River",
         "tr": "Asi Nehri",
@@ -114,6 +119,7 @@
     },
     {
       "id": "s3",
+      "categoryKey": "all",
       "tag": {
         "en": "Old Quarter",
         "tr": "Eski Mahalle",
@@ -138,6 +144,7 @@
   "structures": [
     {
       "id": "st1",
+      "categoryKey": "mosque",
       "tag": {
         "en": "Historic Mosque",
         "tr": "Tarihi Cami",
@@ -160,6 +167,7 @@
     },
     {
       "id": "st2",
+      "categoryKey": "church",
       "tag": {
         "en": "Cave Sanctuary",
         "tr": "Kaya Kilisesi",
@@ -182,6 +190,7 @@
     },
     {
       "id": "st3",
+      "categoryKey": "mosaic",
       "tag": {
         "en": "Roman Heritage",
         "tr": "Roma Mirası",
@@ -204,6 +213,7 @@
     },
     {
       "id": "st4",
+      "categoryKey": "courtyard",
       "tag": {
         "en": "Urban Fabric",
         "tr": "Kent Dokusu",
@@ -228,6 +238,7 @@
   "beliefs": [
     {
       "id": "b1",
+      "categoryKey": "mosque",
       "icon": "🕌",
       "title": {
         "en": "Habib-i Neccar Shrine",
@@ -242,6 +253,7 @@
     },
     {
       "id": "b2",
+      "categoryKey": "church",
       "icon": "⛪",
       "title": {
         "en": "St. Pierre Cave Church",
@@ -256,6 +268,7 @@
     },
     {
       "id": "b3",
+      "categoryKey": "synagogue",
       "icon": "🕍",
       "title": {
         "en": "Antioch Synagogue",
@@ -272,6 +285,7 @@
   "music": [
     {
       "id": "m1",
+      "categoryKey": "folk",
       "badge": "🎵",
       "tag": {
         "en": "Ancient Heritage",
@@ -291,6 +305,7 @@
     },
     {
       "id": "m2",
+      "categoryKey": "hymn",
       "badge": "📜",
       "tag": {
         "en": "Sacred Chants",
@@ -310,6 +325,7 @@
     },
     {
       "id": "m3",
+      "categoryKey": "folk",
       "badge": "🪕",
       "tag": {
         "en": "Local Folk Songs",
@@ -331,6 +347,7 @@
   "gallery": [
     {
       "id": "g1",
+      "categoryKey": "courtyard",
       "src": null,
       "svgType": "house",
       "svgColor": "#903628",
@@ -341,6 +358,7 @@
     },
     {
       "id": "g2",
+      "categoryKey": "church",
       "src": null,
       "svgType": "arch",
       "svgColor": "#903628",
@@ -351,6 +369,7 @@
     },
     {
       "id": "g3",
+      "categoryKey": "mosaic",
       "src": null,
       "svgType": "mosaic",
       "svgColor": "#1c1814",
@@ -361,6 +380,7 @@
     },
     {
       "id": "g4",
+      "categoryKey": "mosque",
       "src": null,
       "svgType": "minaret",
       "svgColor": "#5e6142",
@@ -371,6 +391,7 @@
     },
     {
       "id": "g5",
+      "categoryKey": "infrastructure",
       "src": null,
       "svgType": "wheel",
       "svgColor": "#5d6645",
@@ -381,6 +402,7 @@
     },
     {
       "id": "g6",
+      "categoryKey": "infrastructure",
       "src": null,
       "svgType": "aqueduct",
       "svgColor": "#1c1814",

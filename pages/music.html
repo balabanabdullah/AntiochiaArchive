@@ -102,6 +102,20 @@
     <!-- Dynamic Music Content -->
     <section class="section-music subpage-container" id="music">
       <div class="container">
+        <!-- Category Filter Bar -->
+        <div class="filter-bar-wrap" data-reveal>
+          <div class="filter-bar" role="group" aria-label="Filter music" data-i18n-aria="filters.filterLabel">
+            <button class="filter-btn is-active" type="button" data-filter="all" data-i18n="filters.all">Tümü</button>
+            <button class="filter-btn" type="button" data-filter="folk" data-i18n="filters.folk">Türküler & Ezgiler</button>
+            <button class="filter-btn" type="button" data-filter="hymn" data-i18n="filters.hymn">İlahiler</button>
+          </div>
+          <select class="filter-select" aria-label="Filter music" data-i18n-aria="filters.filterLabel">
+            <option value="all" data-i18n="filters.all">Tümü</option>
+            <option value="folk" data-i18n="filters.folk">Türküler & Ezgiler</option>
+            <option value="hymn" data-i18n="filters.hymn">İlahiler</option>
+          </select>
+        </div>
+
         <div class="music-list" id="music-list-container" aria-live="polite">
           <!-- dynamically populated from archive.json -->
         </div>

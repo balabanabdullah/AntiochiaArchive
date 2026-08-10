@@ -102,6 +102,20 @@
     <!-- Dynamic Stories Content -->
     <section class="stories-section subpage-container" id="stories">
       <div class="container">
+        <!-- Category Filter Bar -->
+        <div class="filter-bar-wrap" data-reveal>
+          <div class="filter-bar" role="group" aria-label="Filter stories" data-i18n-aria="filters.filterLabel">
+            <button class="filter-btn is-active" type="button" data-filter="all" data-i18n="filters.all">Tümü</button>
+            <button class="filter-btn" type="button" data-filter="courtyard" data-i18n="filters.courtyard">Avlulu Evler</button>
+            <button class="filter-btn" type="button" data-filter="infrastructure" data-i18n="filters.infrastructure">Su & Mühendislik</button>
+          </div>
+          <select class="filter-select" aria-label="Filter stories" data-i18n-aria="filters.filterLabel">
+            <option value="all" data-i18n="filters.all">Tümü</option>
+            <option value="courtyard" data-i18n="filters.courtyard">Avlulu Evler</option>
+            <option value="infrastructure" data-i18n="filters.infrastructure">Su & Mühendislik</option>
+          </select>
+        </div>
+
         <div class="stories-grid" id="stories-grid-container" aria-live="polite">
           <!-- dynamically populated from archive.json -->
         </div>

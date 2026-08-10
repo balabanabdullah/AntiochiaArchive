@@ -104,6 +104,26 @@
     <!-- Dynamic Gallery Grid -->
     <section class="section-gallery subpage-container" id="gallery">
       <div class="container">
+        <!-- Category Filter Bar -->
+        <div class="filter-bar-wrap" data-reveal>
+          <div class="filter-bar" role="group" aria-label="Filter gallery" data-i18n-aria="filters.filterLabel">
+            <button class="filter-btn is-active" type="button" data-filter="all" data-i18n="filters.all">Tümü</button>
+            <button class="filter-btn" type="button" data-filter="mosque" data-i18n="filters.mosque">Camiler</button>
+            <button class="filter-btn" type="button" data-filter="church" data-i18n="filters.church">Kiliseler</button>
+            <button class="filter-btn" type="button" data-filter="mosaic" data-i18n="filters.mosaic">Mozaikler</button>
+            <button class="filter-btn" type="button" data-filter="courtyard" data-i18n="filters.courtyard">Avlulu Evler</button>
+            <button class="filter-btn" type="button" data-filter="infrastructure" data-i18n="filters.infrastructure">Su & Mühendislik</button>
+          </div>
+          <select class="filter-select" aria-label="Filter gallery" data-i18n-aria="filters.filterLabel">
+            <option value="all" data-i18n="filters.all">Tümü</option>
+            <option value="mosque" data-i18n="filters.mosque">Camiler</option>
+            <option value="church" data-i18n="filters.church">Kiliseler</option>
+            <option value="mosaic" data-i18n="filters.mosaic">Mozaikler</option>
+            <option value="courtyard" data-i18n="filters.courtyard">Avlulu Evler</option>
+            <option value="infrastructure" data-i18n="filters.infrastructure">Su & Mühendislik</option>
+          </select>
+        </div>
+
         <div class="gallery-grid" id="gallery-grid-container" aria-live="polite">
           <!-- dynamically populated from archive.json -->
         </div>

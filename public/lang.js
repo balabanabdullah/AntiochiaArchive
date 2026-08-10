@@ -20,6 +20,18 @@ const TRANSLATIONS = {
       learnMore:  "Learn more",
     },
     searchPlaceholder: "Search...",
+    filters: {
+      all: "All",
+      filterLabel: "Filter by Category",
+      mosque: "Mosques",
+      church: "Churches",
+      synagogue: "Synagogues",
+      folk: "Folk Melodies",
+      hymn: "Sacred Hymns",
+      courtyard: "Courtyard Homes",
+      mosaic: "Roman Mosaics",
+      infrastructure: "Water & Engineering"
+    },
     hero: {
       eyebrow: "A living digital memory",
       titleHtml: "Every memory<br>has a <em>place.</em>",
@@ -279,6 +291,18 @@ const TRANSLATIONS = {
       learnMore:  "Daha fazla",
     },
     searchPlaceholder: "Bir şey ara...",
+    filters: {
+      all: "Tümü",
+      filterLabel: "Kategori Filtrele",
+      mosque: "Camiler",
+      church: "Kiliseler",
+      synagogue: "Havralar",
+      folk: "Türküler & Ezgiler",
+      hymn: "İlahiler",
+      courtyard: "Avlulu Evler",
+      mosaic: "Roma Mozaikleri",
+      infrastructure: "Su & Roma Mühendisliği"
+    },
     hero: {
       eyebrow: "Yaşayan bir dijital hafıza",
       titleHtml: "Her hatıranın<br>bir <em>yeri vardır.</em>",
@@ -538,6 +562,18 @@ const TRANSLATIONS = {
       learnMore:  "اعرف أكثر",
     },
     searchPlaceholder: "ابحث...",
+    filters: {
+      all: "الكل",
+      filterLabel: "تصفية الفئات",
+      mosque: "المساجد",
+      church: "الكنائس",
+      synagogue: "المعابد",
+      folk: "الأغاني الشعبية",
+      hymn: "الترانيم المقدسة",
+      courtyard: "منازل الفناء",
+      mosaic: "الفسيفساء الرومانية",
+      infrastructure: "الهندسة المائية"
+    },
     hero: {
       eyebrow: "ذاكرة رقمية حيّة",
       titleHtml: "لكل ذكرى<br><em>مكان.</em>",

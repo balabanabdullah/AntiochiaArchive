@@ -1,12 +1,5 @@
 [
   {
-    "id": "sub-101",
-    "name": "Mehmet Yılmaz",
-    "email": "mehmet.yilmaz@example.com",
-    "message": "Kurtuluş Caddesi'ndeki eski evimizin 1970'li yıllara ait bahçe fotoğraflarını dijitalleştirip arşive eklemek istiyorum.",
-    "createdAt": "2026-08-08T14:30:00.000Z"
-  },
-  {
     "id": "sub-102",
     "name": "Eleni Constantinidis",
     "email": "eleni.c@example.org",

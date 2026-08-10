@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { sendContributionMail } from "./mailer.js";
 import { getArchive, updateArchive } from "./archiveController.js";
+import { getSubmissions, addSubmissionToStore, deleteSubmission } from "./submissionsController.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -33,7 +34,7 @@ app.use(cors({
     }
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
-  methods: ["GET", "POST", "PUT", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json({ limit: "2mb" }));
@@ -54,6 +55,12 @@ function isValidEmail(email) {
    ──────────────────────────────────────────────────────────────────────────── */
 app.get("/api/archive", getArchive);
 app.put("/api/archive", updateArchive);
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Submissions API Endpoints (GET /api/submissions, DELETE /api/submissions/:id)
+   ──────────────────────────────────────────────────────────────────────────── */
+app.get("/api/submissions", getSubmissions);
+app.delete("/api/submissions/:id", deleteSubmission);
 
 /* ────────────────────────────────────────────────────────────────────────────
    GET /api/contribute — Information for direct browser requests
@@ -88,8 +95,15 @@ app.post("/api/contribute", async (req, res) => {
       return res.status(400).json({ status: "error", success: false, error: "Contribution message is required." });
     }
 
-    /* ── Send notification e-mail ─── */
+    /* ── Send notification e-mail & save to store ─── */
     const mailResult = await sendContributionMail({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      message: message.trim(),
+    });
+
+    // Save contribution entry to public/submissions.json
+    const savedEntry = await addSubmissionToStore({
       name: name.trim(),
       email: email.trim().toLowerCase(),
       message: message.trim(),

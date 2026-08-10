@@ -1914,3 +1914,211 @@ html[dir="rtl"] .footer-nav a:focus-visible {
   }
 }
 
+/* --------------------------------------------------------------------------
+   19. Visitor Submissions Page & Table (#submissions)
+   -------------------------------------------------------------------------- */
+.section-submissions {
+  padding-block: var(--sp-8);
+  background: var(--clr-paper-light);
+}
+
+.submissions-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.submissions-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  background: var(--clr-paper-deep);
+  border: 1px solid var(--clr-line-strong);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--clr-red);
+  letter-spacing: 0.04em;
+}
+
+.btn-refresh-submissions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1px solid var(--clr-line-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--clr-ink);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.btn-refresh-submissions:hover {
+  background: var(--clr-paper-deep);
+  border-color: var(--clr-red);
+}
+
+.submissions-table-card {
+  background: #ffffff;
+  border: 1px solid var(--clr-line-strong);
+  border-radius: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: inset-start;
+}
+
+.submissions-table th {
+  background: var(--clr-paper-deep);
+  color: var(--clr-ink);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 14px 18px;
+  border-bottom: 2px solid var(--clr-line-strong);
+  white-space: nowrap;
+}
+
+.submissions-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--clr-line);
+  vertical-align: top;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.submissions-table tr:hover td {
+  background: rgba(242, 234, 216, 0.35);
+}
+
+.submission-user-name {
+  font-weight: 700;
+  color: var(--clr-ink);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+}
+
+.submission-user-email {
+  color: var(--clr-red);
+  text-decoration: none;
+  font-size: 0.88rem;
+  word-break: break-all;
+}
+
+.submission-user-email:hover {
+  text-decoration: underline;
+}
+
+.submission-user-msg {
+  color: var(--clr-ink-muted);
+  max-width: 520px;
+  white-space: pre-wrap;
+}
+
+.submission-date {
+  font-size: 0.82rem;
+  color: var(--clr-ink-muted);
+  white-space: nowrap;
+}
+
+.btn-delete-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: rgba(185, 28, 28, 0.08);
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  border-radius: var(--radius-sm);
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.btn-delete-sub:hover {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+
+.submissions-empty {
+  padding: var(--sp-8) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  color: var(--clr-ink-muted);
+  text-align: center;
+}
+
+.submissions-empty .empty-icon {
+  font-size: 2.8rem;
+}
+
+/* Mobile Responsive Table (Cell Stacking) */
+@media (max-width: 767px) {
+  .submissions-table thead {
+    display: none;
+  }
+
+  .submissions-table,
+  .submissions-table tbody,
+  .submissions-table tr,
+  .submissions-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .submissions-table tr {
+    margin-bottom: var(--sp-4);
+    border: 1px solid var(--clr-line-strong);
+    background: #ffffff;
+    padding: var(--sp-3);
+  }
+
+  .submissions-table td {
+    border-bottom: 1px solid var(--clr-line);
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: inset-start !important;
+  }
+
+  .submissions-table td:last-child {
+    border-bottom: none;
+    align-items: flex-start;
+    padding-top: 12px;
+  }
+
+  .submissions-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--clr-red);
+  }
+}
+
+

@@ -26,6 +26,7 @@ export default defineConfig({
         { from: /^\/pages\/music\.html/, to: "/pages/music.html" },
         { from: /^\/pages\/admin\.html/, to: "/pages/admin.html" },
         { from: /^\/pages\/gallery\.html/, to: "/pages/gallery.html" },
+        { from: /^\/pages\/submissions\.html/, to: "/pages/submissions.html" },
       ],
     },
     watch: {
@@ -49,6 +50,7 @@ export default defineConfig({
         music:      "pages/music.html",
         admin:      "pages/admin.html",
         gallery:    "pages/gallery.html",
+        submissions:"pages/submissions.html",
       },
     },
   },

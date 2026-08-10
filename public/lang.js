@@ -20,6 +20,7 @@ const TRANSLATIONS = {
       learnMore:  "Learn more",
     },
     searchPlaceholder: "Search...",
+    backToTop: "Back to Top",
     filters: {
       all: "All",
       filterLabel: "Filter by Category",
@@ -281,6 +282,8 @@ const TRANSLATIONS = {
         countLabel: "Contributions",
         emptyState: "No community contributions shared yet.",
         by: "Contributor:",
+        mapTitle: "Contributions Map",
+        mapDesc: "Explore the geographic distribution of shared memories and testimonies from the community.",
       },
       cta: {
         eyebrow: "Preserve the Memory",
@@ -314,6 +317,7 @@ const TRANSLATIONS = {
       learnMore:  "Daha fazla",
     },
     searchPlaceholder: "Bir şey ara...",
+    backToTop: "Yukarı Çık",
     filters: {
       all: "Tümü",
       filterLabel: "Kategori Filtrele",
@@ -575,6 +579,8 @@ const TRANSLATIONS = {
         countLabel: "Katkı Sayısı",
         emptyState: "Henüz katkı gönderilmedi.",
         by: "Katkıda Bulunan:",
+        mapTitle: "Katkı Haritası",
+        mapDesc: "Topluluktan paylaşılan anıların ve tanıklıkların coğrafi dağılımını keşfedin.",
       },
       cta: {
         eyebrow: "Hafızayı Yaşatın",
@@ -608,6 +614,7 @@ const TRANSLATIONS = {
       learnMore:  "اعرف أكثر",
     },
     searchPlaceholder: "ابحث...",
+    backToTop: "العودة إلى الأعلى",
     filters: {
       all: "الكل",
       filterLabel: "تصفية الفئات",
@@ -869,6 +876,8 @@ const TRANSLATIONS = {
         countLabel: "عدد المساهمات",
         emptyState: "لم يتم مشاركة أي مساهمات حتى الآن.",
         by: "بواسطة:",
+        mapTitle: "خريطة المساهمات",
+        mapDesc: "استكشف التوزيع الجغرافي للذكريات والشهادات المشتركة من المجتمع.",
       },
       cta: {
         eyebrow: "احفظ الذاكرة",

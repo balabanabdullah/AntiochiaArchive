@@ -288,6 +288,33 @@ function initContributeForm() {
 }
 
 /* ==========================================================================
+   Back to Top Button
+   ========================================================================== */
+
+function initBackToTopButton() {
+  const btn = document.getElementById("back-to-top");
+  if (!btn) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const toggleVisibility = () => {
+    const shouldShow = window.scrollY > 420;
+    btn.classList.toggle("is-visible", shouldShow);
+    btn.setAttribute("aria-hidden", String(!shouldShow));
+  };
+
+  btn.setAttribute("aria-hidden", "true");
+  toggleVisibility();
+
+  window.addEventListener("scroll", toggleVisibility, { passive: true });
+  btn.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: reduceMotion.matches ? "auto" : "smooth",
+    });
+  });
+}
+
+/* ==========================================================================
    SVG Builders (used by archive renderers)
    ========================================================================== */
 
@@ -556,6 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Contribute form --- */
   initContributeForm();
 
+  /* --- Back to top button --- */
+  initBackToTopButton();
+
   /* --- Load saved or detected language --- */
   const saved    = (() => { try { return localStorage.getItem("aa-lang"); } catch (_) { return null; } })();
   const detected = navigator.language?.slice(0, 2);
@@ -573,7 +603,91 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Lightbox modal init --- */
   initLightbox();
+
+  /* --- Contributions Map --- */
+  initContributionsMap();
 });
+
+/* ==========================================================================
+   Contributions Map Logic
+   ========================================================================== */
+
+let contributionsMap = null;
+
+/**
+ * Initialize the Leaflet map on the Contributions page.
+ */
+function initContributionsMap() {
+  const mapContainer = document.getElementById("map-container");
+  if (!mapContainer || contributionsMap) return;
+
+  try {
+    contributionsMap = L.map("map-container", {
+      center: [36.2021, 36.1608],
+      zoom: 10,
+      scrollWheelZoom: false,
+    });
+
+    L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    }).addTo(contributionsMap);
+
+    // Add zoom controls to bottom-right
+    contributionsMap.zoomControl.setPosition("bottomright");
+
+  } catch (err) {
+    console.error("Failed to initialize Leaflet map:", err);
+    mapContainer.innerHTML = `<p style="padding: 1rem; text-align: center; color: var(--clr-red-dark);">Could not load map.</p>`;
+  }
+}
+
+/**
+ * Render contribution markers on the map.
+ */
+function renderContributionsMap(items) {
+  if (!contributionsMap || !items || !items.length) return;
+
+  // Clear existing markers
+  contributionsMap.eachLayer((layer) => {
+    if (layer instanceof L.Marker) {
+      contributionsMap.removeLayer(layer);
+    }
+  });
+
+  const terracottaIcon = L.divIcon({
+    className: "terracotta-marker",
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -14]
+  });
+
+  let validLocations = 0;
+  items.forEach(item => {
+    const { name, message, location } = item;
+    if (location && typeof location.lat === "number" && typeof location.lng === "number") {
+      validLocations++;
+      const marker = L.marker([location.lat, location.lng], { icon: terracottaIcon }).addTo(contributionsMap);
+
+      const popupContent = `
+        <div class="leaflet-popup-content">
+          <h4>${name}</h4>
+          <p>${message}</p>
+        </div>
+      `;
+      marker.bindPopup(popupContent);
+    }
+  });
+
+  // If there's only one marker, center and zoom in on it
+  if (validLocations === 1) {
+    const singleItem = items.find(item => item.location && typeof item.location.lat === "number");
+    if(singleItem) {
+      contributionsMap.setView([singleItem.location.lat, singleItem.location.lng], 13);
+    }
+  }
+}
+
 
 /* ==========================================================================
    Gallery Lightbox Logic

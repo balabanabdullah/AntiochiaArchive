@@ -3,27 +3,54 @@
 // Vanilla HTML/CSS/JS projesi; Vite bunu doğrudan sunabilir.
 
 import { defineConfig } from "vite";
+import fs from "node:fs";
+import path from "node:path";
+
+/** Vite dev server middleware to reliably serve subpages from /pages/*.html */
+function mpaServerPlugin() {
+  return {
+    name: "mpa-server-plugin",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const rawUrl = (req.url || "").split("?")[0];
+        if (rawUrl.includes("pages/") && rawUrl.endsWith(".html")) {
+          const relativePath = rawUrl.substring(rawUrl.indexOf("pages/"));
+          const filePath = path.join(process.cwd(), relativePath);
+          if (fs.existsSync(filePath)) {
+            try {
+              let html = fs.readFileSync(filePath, "utf-8");
+              html = await server.transformIndexHtml(rawUrl, html);
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              return res.end(html);
+            } catch (e) {
+              return next(e);
+            }
+          }
+        }
+        next();
+      });
+    }
+  };
+}
 
 export default defineConfig({
-  appType: "mpa",
+  plugins: [mpaServerPlugin()],
 
   // ── Kök dizin: index.html buradan sunulur ──────────────────────────
   root: ".",
 
   // ── Public assets (statik olarak kopyalanacak dosyalar) ────────────
-  publicDir: "public",   // mevcut değilse boş bırakılabilir
+  publicDir: "public",
 
   // ── Geliştirme sunucusu ────────────────────────────────────────────
   server: {
-    host: "0.0.0.0",   // Docker içinden dışarıya erişilebilmesi için zorunlu
+    host: "0.0.0.0",
     port: 5173,
-    strictPort: true,   // port doluysa hata ver, rastgele port seçme
-
-    // Docker bind-mount + Windows/macOS'ta dosya değişikliklerini
-    // algılayabilmek için polling zorunludur (inotify desteği yoktur).
+    strictPort: true,
     watch: {
       usePolling: true,
-      interval:   300,  // ms — düşük tutarak hot-reload gecikmesini azalt
+      interval:   300,
     },
   },
 

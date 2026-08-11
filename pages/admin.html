@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AntiochiaArchive Yönetici Paneli — archive.json dosyasını düzenleme arayüzü">
+  <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#1c1814">
 
   <title>Admin Panel — AntiochiaArchive</title>
@@ -283,6 +284,43 @@
     .toast.success { background-color: #15803d; }
     .toast.error { background-color: #b91c1c; }
 
+    .backup-panel {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--sp-4);
+      padding: var(--sp-3);
+      border: 1px solid var(--clr-line);
+      background: var(--clr-paper);
+    }
+
+    .backup-panel h2 {
+      margin: 0 0 4px;
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .backup-panel p {
+      margin: 0;
+      max-width: 660px;
+      color: var(--clr-ink-muted);
+      font-size: 0.84rem;
+    }
+
+    .backup-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .backup-actions button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
     @keyframes slideUp {
       from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
@@ -323,6 +361,18 @@
         <button class="btn-admin btn-admin-primary" type="button" id="btn-save-all">💾 Değişiklikleri Kaydet (PUT)</button>
       </div>
     </div>
+
+    <section class="backup-panel" aria-labelledby="backup-heading">
+      <div>
+        <h2 id="backup-heading">Güvenli JSON Yedekleri</h2>
+        <p id="backup-description">Dışa aktarımlar salt okunurdur. Katkı ve tam yedek dosyaları özel ziyaretçi bilgileri içerir; güvenli biçimde saklayın. Geri yükleme/içe aktarma bilinçli olarak ertelenmiştir.</p>
+      </div>
+      <div class="backup-actions" aria-describedby="backup-description">
+        <button class="btn-admin btn-admin-secondary" type="button" data-backup="archive">Arşiv JSON Yedeği</button>
+        <button class="btn-admin btn-admin-secondary" type="button" data-backup="submissions">Katkılar JSON Yedeği</button>
+        <button class="btn-admin btn-admin-secondary" type="button" data-backup="full">Tam Yedek</button>
+      </div>
+    </section>
 
     <!-- Category Tabs -->
     <div class="admin-tabs" id="category-tabs">
@@ -696,6 +746,49 @@
         console.error("Save error:", err);
         showToast(`❌ Hata: ${err.message}`, "error");
       }
+    });
+
+    /* ── Read-only JSON backup downloads ─────────────────────────────────────── */
+    const backupOptions = {
+      archive: {
+        path: "/api/admin/export/archive",
+        fallback: "antiochia-archive-backup.json",
+      },
+      submissions: {
+        path: "/api/admin/export/submissions",
+        fallback: "antiochia-submissions-backup.json",
+      },
+      full: {
+        path: "/api/admin/export/full",
+        fallback: "antiochia-full-backup.json",
+      },
+    };
+
+    async function downloadBackup(button, option, allowAuthRetry = true) {
+      try {
+        const filename = await AntiochiaAdminAPI.download(option.path, option.fallback);
+        showToast(`Yedek indirildi: ${filename}`);
+      } catch (error) {
+        const authenticationFailed = /authentication|required|kimlik/i.test(error.message);
+        if (authenticationFailed && allowAuthRetry) {
+          const refreshedToken = await AntiochiaAdminAPI.getToken({ promptIfMissing: true });
+          if (refreshedToken) return downloadBackup(button, option, false);
+        }
+        showToast(`Yedek indirilemedi: ${error.message}`, "error");
+      }
+    }
+
+    document.querySelectorAll("[data-backup]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const option = backupOptions[button.dataset.backup];
+        if (!option) return;
+        button.disabled = true;
+        try {
+          await downloadBackup(button, option);
+        } finally {
+          button.disabled = false;
+        }
+      });
     });
 
     /* ── Init ────────────────────────────────────────────────────────────────── */

@@ -8,6 +8,7 @@ import { getArchive, updateArchive } from "./archiveController.js";
 import { getSubmissions, addSubmissionToStore, deleteSubmission } from "./submissionsController.js";
 import { requireAdmin } from "./auth.js";
 import { getSelectedDataStoreName, initializeDataStore } from "./dataStore.js";
+import { backupHandlers, preventBackupCaching } from "./backupController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -65,6 +66,10 @@ app.put("/api/archive", requireAdmin, updateArchive);
 
 app.get("/api/submissions", requireAdmin, getSubmissions);
 app.delete("/api/submissions/:id", requireAdmin, deleteSubmission);
+
+app.get("/api/admin/export/archive", preventBackupCaching, requireAdmin, backupHandlers.archive);
+app.get("/api/admin/export/submissions", preventBackupCaching, requireAdmin, backupHandlers.submissions);
+app.get("/api/admin/export/full", preventBackupCaching, requireAdmin, backupHandlers.full);
 
 app.get("/api/contribute", (_req, res) => {
   res.json({ status: "active", endpoint: "POST /api/contribute" });

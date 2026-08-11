@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Update these URLs when AntiochiaArchive moves to a custom domain. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/</loc></url>
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html</loc></url>
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/pages/stories.html</loc></url>
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/pages/structures.html</loc></url>
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/pages/beliefs.html</loc></url>
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/pages/music.html</loc></url>
+  <url><loc>https://antiochia-app-6939593871.europe-west1.run.app/pages/gallery.html</loc></url>
+</urlset>

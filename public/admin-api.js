@@ -98,5 +98,43 @@
     return data;
   }
 
-  window.AntiochiaAdminAPI = { request, getToken, clearToken, escapeHtml };
+  function filenameFromDisposition(value, fallback) {
+    const match = String(value || "").match(/filename="?([^";\r\n]+)"?/i);
+    const filename = match?.[1] || fallback;
+    return /^[a-z0-9][a-z0-9._-]*\.json$/i.test(filename) ? filename : fallback;
+  }
+
+  async function download(path, fallbackFilename = "antiochia-backup.json") {
+    const token = await getToken({ promptIfMissing: true });
+    if (!token) throw new Error("Administrator authentication required.");
+
+    const response = await fetch(path, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      let data = null;
+      try { data = await response.json(); } catch (_) { /* response may be empty */ }
+      if (response.status === 401 || response.status === 403) clearToken();
+      throw new Error(data?.error || `Backup request failed (${response.status}).`);
+    }
+
+    const filename = filenameFromDisposition(
+      response.headers.get("Content-Disposition"),
+      fallbackFilename,
+    );
+    const objectUrl = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    link.hidden = true;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    return filename;
+  }
+
+  window.AntiochiaAdminAPI = { request, download, getToken, clearToken, escapeHtml };
 })();

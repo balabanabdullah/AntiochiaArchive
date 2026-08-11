@@ -431,11 +431,11 @@ function renderBeliefs(items, lang) {
     const cat = item.categoryKey || "all";
     const searchStr = escapeHtml(`${title} ${desc}`);
     return `
-    <div class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+    <article class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
       <div class="belief-icon" aria-hidden="true">${escapeHtml(item.icon)}</div>
       <h3 class="belief-title">${escapeHtml(title)}</h3>
       <p class="belief-desc">${escapeHtml(desc)}</p>
-    </div>`;
+    </article>`;
   }).join("");
 }
 

@@ -14,6 +14,32 @@
 
   <link rel="canonical" href="https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html">
   <link rel="stylesheet" href="/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html#collection",
+        "name": "History of Antioch",
+        "description": "Explore twenty-five centuries of Mediterranean civilization, silk routes, and living heritage along the Orontes.",
+        "url": "https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html",
+        "inLanguage": ["tr", "en", "ar"],
+        "isPartOf": { "@id": "https://antiochia-app-6939593871.europe-west1.run.app/#website" },
+        "breadcrumb": { "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html#breadcrumb" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html#breadcrumb",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://antiochia-app-6939593871.europe-west1.run.app/" },
+          { "@type": "ListItem", "position": 2, "name": "History", "item": "https://antiochia-app-6939593871.europe-west1.run.app/pages/history.html" }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
@@ -88,16 +114,16 @@
   <main id="main-content">
 
     <!-- Page Hero Banner -->
-    <section class="page-hero">
+    <section class="page-hero" aria-labelledby="history-page-title">
       <div class="container">
-        <div class="breadcrumb">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
           <a href="/index.html" data-i18n="nav.home">Home</a>
           <span class="breadcrumb-separator">/</span>
           <span data-i18n="nav.history">History</span>
-        </div>
+        </nav>
         <div class="page-hero-header">
           <div class="page-badge-wrap" data-i18n="pages.history.badge">Timeline Chronicle</div>
-          <h1 class="page-hero-title" data-i18n="pages.history.title">History of Antioch</h1>
+          <h1 class="page-hero-title" id="history-page-title" data-i18n="pages.history.title">History of Antioch</h1>
           <p class="page-hero-desc" data-i18n="pages.history.subtitle">
             Explore twenty-five centuries of Mediterranean civilization, silk routes, and living heritage along the Orontes.
           </p>

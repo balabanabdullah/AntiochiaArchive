@@ -467,8 +467,10 @@ function renderBeliefs(items, lang) {
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
     const searchStr = escapeHtml(`${title} ${desc}`);
+    const realImage = renderRecordImage(item, lang, title, "belief-image");
     return `
     <article class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+      ${realImage ? `<div class="belief-media">${realImage}</div>` : ""}
       <div class="belief-icon" aria-hidden="true">${escapeHtml(item.icon)}</div>
       <h3 class="belief-title">${escapeHtml(title)}</h3>
       <p class="belief-desc">${escapeHtml(desc)}</p>

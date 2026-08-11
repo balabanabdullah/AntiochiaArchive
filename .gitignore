@@ -6,3 +6,4 @@ backend/.env
 *.log
 service-account*.json
 *-credentials.json
+image-staging/

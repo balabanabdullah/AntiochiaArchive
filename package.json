@@ -11,7 +11,7 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test test/archive-api.test.js test/admin-archive.test.js",
+    "test": "node --test test/archive-api.test.js test/admin-archive.test.js test/archive-media.test.js",
     "validate:seo": "node scripts/validate-semantic-seo.js",
     "validate:archive-source": "node scripts/validate-archive-source.js"
   },

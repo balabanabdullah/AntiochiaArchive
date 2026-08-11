@@ -1,9 +1,27 @@
 # Media and Provenance Policy
 
 This document defines the metadata and review workflow that AntiochiaArchive
-will use when verified sources and real archival media are added. The current
-22 archive records have not been populated or migrated as part of this change.
-An empty or missing field is not evidence of a fact.
+uses when verified sources and real archival media are added. A first controlled
+local integration has populated image metadata for approved images on 15 of the
+22 existing archive records. An empty or missing field is not evidence of a
+fact, and no image provenance has been converted into a historical record
+source automatically.
+
+## Current integration boundary
+
+- Downloaded source files remain preserved in the ignored `image-staging/`
+  workspace and are never shipped to the browser.
+- Optimized, metadata-free WebP derivatives live in `public/images/`.
+- `h2` remains on its SVG placeholder because the available download is only a
+  150-by-121-pixel service thumbnail.
+- `b3` remains on its icon placeholder because the staged file is watermarked
+  and its reviewed license does not permit the derivative workflow used here.
+- `s3`, `m1`, `m2`, `m3`, and `g1` have no approved image yet.
+- Research item `b4` remains a deferred new-record proposal and has not been
+  added to the 22-record archive or its public assets.
+- The three stereoscopic hero derivatives are presentation assets only. They
+  are not archive records, not an API category, and are not currently wired
+  into the map-based homepage hero.
 
 ## Record sources
 

@@ -1033,6 +1033,24 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 }
 .belief-card:hover { transform: translateY(-4px); }
 
+.belief-media {
+  width: 100%;
+  height: 170px;
+  margin-bottom: var(--sp-2);
+  overflow: hidden;
+  border: 1px solid var(--clr-line);
+  background: var(--clr-paper-deep);
+}
+
+.belief-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease);
+}
+
+.belief-card:hover .belief-image { transform: scale(1.04); }
+
 .belief-icon {
   font-size: 1.8rem;
   margin-bottom: 4px;

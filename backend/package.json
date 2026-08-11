@@ -6,9 +6,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "migrate:firestore": "node scripts/migrate-json-to-firestore.js"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^8.7.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

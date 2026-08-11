@@ -4,3 +4,5 @@ dist/
 backend/.env
 .DS_Store
 *.log
+service-account*.json
+*-credentials.json

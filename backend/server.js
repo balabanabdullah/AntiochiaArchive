@@ -7,6 +7,7 @@ import { sendContributionMail } from "./mailer.js";
 import { getArchive, updateArchive } from "./archiveController.js";
 import { getSubmissions, addSubmissionToStore, deleteSubmission } from "./submissionsController.js";
 import { requireAdmin } from "./auth.js";
+import { getSelectedDataStoreName, initializeDataStore } from "./dataStore.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -129,6 +130,12 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ success: false, error: "Request could not be processed." });
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`AntiochiaArchive backend listening on port ${PORT}`);
-});
+try {
+  await initializeDataStore();
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`AntiochiaArchive backend listening on port ${PORT} using ${getSelectedDataStoreName()} storage`);
+  });
+} catch (error) {
+  console.error("[Backend] Data store initialization failed:", error.message);
+  process.exitCode = 1;
+}

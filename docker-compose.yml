@@ -77,10 +77,11 @@ services:
     env_file:
       - ./backend/.env
     environment:
+      # Local Compose intentionally uses file storage. Cloud Run must set DATA_STORE=firestore.
+      - DATA_STORE=${DATA_STORE:-file}
       - ARCHIVE_JSON_PATH=/appdata/public/archive.json
       - SUBMISSIONS_JSON_PATH=/appdata/private/submissions.json
       - MAIL_MODE=${MAIL_MODE:-mock}
-      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
     volumes:
       # Temporary local/development persistence only. Cloud Run needs durable shared storage.
       - ./public:/appdata/public

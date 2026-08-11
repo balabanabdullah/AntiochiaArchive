@@ -6,8 +6,8 @@
 #    • vite build → outputs to dist/
 #       - index.html → dist/index.html  (processed by Vite)
 #       - style.css  → dist/assets/*.css (hashed)
-#       - public/lang.js   → dist/lang.js   (publicDir: verbatim copy)
-#       - public/script.js → dist/script.js (publicDir: verbatim copy)
+#       - public/*.js → dist/assets/*-<hash>.js (versioned production copies)
+#         while publicDir originals remain available as revalidated fallbacks
 #
 #  Stage 2 — serve  (nginx:1.27-alpine)
 #    • No Node, no Vite, no npm — pure nginx binary
@@ -34,6 +34,7 @@ COPY index.html     ./index.html
 COPY style.css      ./style.css
 COPY vite.config.js ./vite.config.js
 COPY pages/         ./pages/
+COPY scripts/       ./scripts/
 # 3. Copy public/ assets (lang.js lives here)
 #    Vite will copy everything in public/ verbatim to dist/
 COPY public/        ./public/
@@ -64,10 +65,10 @@ COPY nginx/default.conf /etc/nginx/templates/default.conf.template
 # Copy the full Vite build output from stage 1
 # Expected layout inside /usr/share/nginx/html/:
 #   index.html
-#   lang.js
-#   script.js
 #   assets/
-#     index-<hash>.css
+#     style-<hash>.css
+#     script-<hash>.js
+#     lang-<hash>.js
 COPY --from=builder /app/dist/ /usr/share/nginx/html/
 
 # Expose HTTP port

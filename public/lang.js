@@ -60,6 +60,9 @@ const TRANSLATIONS = {
         "A multilingual archive preserving the voices, images, songs, and shared places of Antioch — for generations to come.",
       mapLabel: "Antioch & the Orontes Valley",
       coordLabel: "Coordinates",
+      imageSourceLabel: "Source",
+      imageRightsLabel: "Rights",
+      imageRights: "Public Domain / No known copyright restrictions",
     },
     mission: {
       eyebrow: "Our Mission",
@@ -377,6 +380,9 @@ const TRANSLATIONS = {
         "Antakya'nın seslerini, görüntülerini, şarkılarını ve ortak mekânlarını gelecek nesiller için koruyan çok dilli bir arşiv.",
       mapLabel: "Antakya ve Asi Vadisi",
       coordLabel: "Koordinatlar",
+      imageSourceLabel: "Kaynak",
+      imageRightsLabel: "Haklar",
+      imageRights: "Kamu malı / Bilinen telif hakkı kısıtlaması yok",
     },
     mission: {
       eyebrow: "Misyonumuz",
@@ -694,6 +700,9 @@ const TRANSLATIONS = {
         "أرشيف متعدد اللغات يحفظ أصوات أنطاكية وصورها وأغانيها وأماكنها المشتركة — للأجيال القادمة.",
       mapLabel: "أنطاكية ووادي العاصي",
       coordLabel: "الإحداثيات",
+      imageSourceLabel: "المصدر",
+      imageRightsLabel: "الحقوق",
+      imageRights: "الملكية العامة / لا توجد قيود حقوق نشر معروفة",
     },
     mission: {
       eyebrow: "مهمتنا",

@@ -447,10 +447,41 @@ body.nav-open { overflow: hidden; }
   overflow: hidden;
 }
 
+.hero-archive-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/images/hero/antakya-silpius-panorama-1900.webp");
+  background-position: center 58%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.hero-archive-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(230, 219, 196, 0.94) 0%,
+      rgba(230, 219, 196, 0.82) 52%,
+      rgba(230, 219, 196, 0.62) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(242, 234, 216, 0.1) 0%,
+      rgba(230, 219, 196, 0.35) 100%
+    );
+}
+
 .hero-map {
   position: absolute;
   inset: 0;
   z-index: 0;
+  opacity: 0.48;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 .hero-map svg {
@@ -466,9 +497,9 @@ body.nav-open { overflow: hidden; }
   background:
     linear-gradient(
       to bottom,
-      rgba(242, 234, 216, 0.08) 0%,
-      rgba(242, 234, 216, 0.5)  60%,
-      rgba(230, 219, 196, 0.85) 100%
+      rgba(242, 234, 216, 0.04) 0%,
+      rgba(242, 234, 216, 0.14) 60%,
+      rgba(230, 219, 196, 0.42) 100%
     );
 }
 
@@ -590,6 +621,33 @@ html[dir="rtl"] .btn-explore:hover .btn-explore-arrow { transform: translateX(-4
 .hero-card-link .arrow { font-size: 1.3rem; transition: transform var(--dur-fast) var(--ease); }
 .hero-card-link:hover .arrow { transform: translateX(5px); }
 html[dir="rtl"] .hero-card-link:hover .arrow { transform: translateX(-5px); }
+
+.hero-attribution {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
+  margin: 0;
+  padding: 7px 10px;
+  border-inline-start: 2px solid rgba(144, 54, 40, 0.5);
+  background: rgba(242, 234, 216, 0.82);
+  color: var(--clr-ink-muted);
+  font-size: 0.7rem;
+  line-height: 1.45;
+  text-align: end;
+}
+
+.hero-attribution strong {
+  color: var(--clr-ink);
+  font-weight: 600;
+}
+
+.hero-attribution-separator {
+  opacity: 0.55;
+}
 
 .hero-coords {
   display: flex;
@@ -1582,6 +1640,17 @@ html[dir="rtl"] .back-to-top {
   .footer-bottom { flex-direction: column; align-items: flex-start; }
 }
 
+@media (max-width: 900px) {
+  .nav-primary,
+  .btn-contribute {
+    display: none;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+}
+
 /* --------------------------------------------------------------------------
    16. Responsive — Mobile (≤ 767px)
    -------------------------------------------------------------------------- */
@@ -1594,13 +1663,22 @@ html[dir="rtl"] .back-to-top {
     grid-template-columns: auto 1fr auto;
   }
 
-  .nav-primary { display: none; }
-  .lang-switcher,
-  .btn-contribute { display: none; }
-  .menu-toggle { display: flex; }
-
   .hero {
     min-height: calc(100svh - var(--header-height));
+  }
+
+  .hero-archive-photo {
+    background-position: 52% center;
+  }
+
+  .hero-archive-photo::after {
+    background:
+      linear-gradient(rgba(230, 219, 196, 0.88), rgba(230, 219, 196, 0.78)),
+      linear-gradient(to bottom, rgba(242, 234, 216, 0.1), rgba(230, 219, 196, 0.42));
+  }
+
+  .hero-content {
+    padding-block: var(--sp-6) var(--sp-4);
   }
 
   .hero-text .eyebrow {
@@ -1613,6 +1691,19 @@ html[dir="rtl"] .back-to-top {
 
   .hero-subtitle {
     font-size: 0.92rem;
+  }
+
+  .hero-attribution {
+    justify-self: stretch;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.66rem;
+    text-align: start;
+  }
+
+  .hero-attribution-separator {
+    display: none;
   }
 
   .history-timeline,
@@ -1640,6 +1731,20 @@ html[dir="rtl"] .back-to-top {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--sp-1);
+  }
+}
+
+@media (max-width: 520px) {
+  .header-inner {
+    gap: var(--sp-2);
+  }
+
+  .search-box {
+    display: none;
+  }
+
+  .brand {
+    font-size: 1rem;
   }
 }
 

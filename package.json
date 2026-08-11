@@ -10,6 +10,7 @@
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
+    "postbuild": "node scripts/validate-built-assets.js",
     "preview": "vite preview",
     "test": "node --test test/archive-api.test.js test/admin-archive.test.js test/archive-media.test.js",
     "validate:seo": "node scripts/validate-semantic-seo.js",

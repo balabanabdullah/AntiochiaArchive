@@ -16,6 +16,7 @@
   <title>AntiochiaArchive — A living memory of Antioch</title>
 
   <link rel="canonical" href="https://antiochia-app-6939593871.europe-west1.run.app/">
+  <link rel="preload" as="image" href="/images/hero/antakya-silpius-panorama-1900.webp" type="image/webp">
   <link rel="stylesheet" href="style.css">
 
   <script type="application/ld+json">
@@ -131,6 +132,9 @@
          ------------------------------------------------------------------- -->
     <section class="hero" id="home" aria-labelledby="hero-title">
 
+      <!-- Reviewed historic context image; decorative because attribution follows in text. -->
+      <div class="hero-archive-photo" aria-hidden="true"></div>
+
       <!-- SVG map background -->
       <div class="hero-map" aria-hidden="true">
         <svg viewBox="0 0 1440 820" preserveAspectRatio="xMidYMid slice"
@@ -245,6 +249,18 @@
               <span class="arrow" aria-hidden="true">→</span>
             </a>
           </aside>
+
+          <p class="hero-attribution">
+            <span>
+              <strong data-i18n="hero.imageSourceLabel">Source</strong>:
+              Library of Congress / Matson Collection
+            </span>
+            <span class="hero-attribution-separator" aria-hidden="true">·</span>
+            <span>
+              <strong data-i18n="hero.imageRightsLabel">Rights</strong>:
+              <span data-i18n="hero.imageRights">Public Domain / No known copyright restrictions</span>
+            </span>
+          </p>
 
         </div>
       </div>

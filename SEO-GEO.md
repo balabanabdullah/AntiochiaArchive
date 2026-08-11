@@ -157,8 +157,9 @@ field, but typed relationships are the better long-term representation.
 
 ## Source and citation model
 
-The current archive contains no explicit sources, bibliography, references, or
-record-level external links. Add sources only after human verification.
+The archive schema and admin editor now support optional record-level sources.
+The current 22 cultural records were intentionally not populated during that
+infrastructure change; add source values only after human verification.
 
 ```json
 {
@@ -167,7 +168,7 @@ record-level external links. Add sources only after human verification.
       "id": "source-stable-id",
       "type": "book",
       "title": "...",
-      "creator": "...",
+      "author": "...",
       "publisher": "...",
       "year": "...",
       "url": "https://...",
@@ -175,16 +176,18 @@ record-level external links. Add sources only after human verification.
       "accessedAt": "YYYY-MM-DD",
       "language": "tr",
       "rights": "...",
-      "provenanceNote": "..."
+      "note": "..."
     }
   ]
 }
 ```
 
-Useful controlled source types are `book`, `article`, `archiveRecord`,
-`oralHistory`, `photograph`, `institutionalRecord`, and `website`. Required
-fields should vary by source type. Oral histories and private collections also
-need consent, access, and rights handling outside the public citation object.
+The implemented controlled source types are `book`, `article`, `archive`,
+`oralHistory`, `photograph`, `institutionalRecord`, `website`, and `other`.
+Source IDs use a stable `source-<UUID>` pattern. Fields remain optional because
+useful metadata varies by source type. Oral histories and private collections
+also need consent, access, and rights handling outside the public citation
+object.
 
 Source metadata improves human verification, historical reliability, academic
 reuse, provenance tracking, entity reconciliation, and the quality of evidence
@@ -236,37 +239,34 @@ after relationship data and stable entity pages exist.
 ## Image semantics and future media model
 
 The current archive contains placeholder SVG metadata rather than curated
-archival images. Generated SVGs are decorative and hidden from assistive
-technology. If a gallery `src` is later populated, the current renderer uses the
-visible record title as a safe basic `alt`; a dedicated localized `imageAlt`
-will be more accurate. Gallery captions are visible, but source, creator, date,
-license, and original URL are absent.
-
-Prefer a future `media` array so one entity can have multiple assets while the
-legacy `image` and `src` fields continue to work:
+archival images. Generated SVGs remain decorative and hidden from assistive
+technology. The implemented optional `imageMetadata` model prepares the legacy
+`image` and `src` asset fields for reviewed real images without changing current
+records:
 
 ```json
 {
-  "media": [
-    {
-      "id": "media-id",
-      "type": "image",
-      "url": "https://...",
-      "alt": { "tr": "...", "en": "...", "ar": "..." },
-      "caption": { "tr": "...", "en": "...", "ar": "..." },
-      "source": "...",
-      "creator": "...",
-      "license": "...",
-      "date": "...",
-      "originalUrl": "https://..."
-    }
-  ]
+  "image": "/images/reviewed-example.jpg",
+  "imageMetadata": {
+    "alt": { "tr": "...", "en": "...", "ar": "..." },
+    "caption": { "tr": "...", "en": "...", "ar": "..." },
+    "source": "...",
+    "author": "...",
+    "license": "...",
+    "date": "...",
+    "originalUrl": "https://...",
+    "accessedAt": "...",
+    "rightsNote": "...",
+    "aiGenerated": false
+  }
 }
 ```
 
-Do not infer dates, people, locations, or licenses from an image. Decorative
-assets keep `alt=""` or `aria-hidden="true"`; meaningful media needs truthful
-localized alternatives and visible attribution.
+The renderer uses localized metadata alt text, then another available metadata
+language, then the localized record title. It supports localized lightbox
+captions, non-empty attribution, and an explicit multilingual illustrative label
+only when `aiGenerated` is `true`. Do not infer dates, people, locations, or
+licenses from an image. See `MEDIA-PROVENANCE.md` for the operational workflow.
 
 ## Multilingual search limitations
 
@@ -302,12 +302,13 @@ standard requirement for visibility and must not replace crawlable pages,
 sources, or sitemaps.
 
 The homepage clearly states the archive's cultural-memory purpose and content
-organization. Trust is limited by the absence of a public methodology, source
-policy, editorial review explanation, rights policy, and record-level
-provenance. A concise About/Methodology/Sources page would materially improve
-human verification once the actual editorial process is documented. It must not
-claim institutional affiliation, credentials, or review practices that do not
-exist.
+organization. Trust is limited because the current records do not yet contain
+verified source or media provenance, and there is no public methodology,
+editorial review explanation, rights policy, or correction process. The new
+schema makes those records possible; it does not prove that review occurred. A
+concise About/Methodology/Sources page would materially improve human
+verification once the actual editorial process is documented. It must not claim
+institutional affiliation, credentials, or review practices that do not exist.
 
 ## Application-level knowledge graph
 
@@ -348,7 +349,8 @@ The strategy is entity-first and evidence-first:
 - all record cards require JavaScript and `/api/archive`;
 - record content is not present in initial HTML for non-JavaScript crawlers;
 - records have no stable slugs or detail URLs;
-- there is no complete source/citation or media-rights model;
+- optional source/citation and image-rights fields exist, but current records
+  have not yet been populated with verified metadata;
 - current media is placeholder SVG content;
 - multilingual content shares one canonical URL;
 - no record-level relationships or knowledge graph exist;
@@ -360,7 +362,7 @@ The strategy is entity-first and evidence-first:
 ### P1 — establish trustworthy entities
 
 1. Define editorial/source and media-rights policies.
-2. Add optional source/citation fields and validation.
+2. Populate the implemented optional source/citation fields after verification.
 3. Add immutable public slugs and controlled entity types.
 4. Generate future entity pages from an explicitly reviewed Firestore/API snapshot.
 5. Curate real archival images with alt text, provenance, rights, and dates.

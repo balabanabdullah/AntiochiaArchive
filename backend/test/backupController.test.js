@@ -17,6 +17,14 @@ function sampleArchive() {
     id: "history-1",
     categoryKey: "history",
     title: { tr: "Antakya", en: "Antioch", ar: "أنطاكية" },
+    sources: [{ id: "source-backup", type: "book", title: "Verified title" }],
+    image: "/images/archive/example.jpg",
+    imageMetadata: {
+      alt: { tr: "Arşiv görseli", en: "Archive image", ar: "صورة أرشيفية" },
+      source: "Example Archive",
+      license: "CC BY 4.0",
+      aiGenerated: false,
+    },
     customMetadata: { preserved: true },
   });
   return archive;
@@ -107,6 +115,9 @@ test("authenticated archive export returns all categories and a safe filename", 
   assert.equal(response.statusCode, 200);
   assert.deepEqual(Object.keys(body), ARCHIVE_CATEGORIES);
   assert.deepEqual(body.history[0].customMetadata, { preserved: true });
+  assert.deepEqual(body.history[0].sources, archive.history[0].sources);
+  assert.deepEqual(body.history[0].imageMetadata, archive.history[0].imageMetadata);
+  assert.equal(body.history[0].image, "/images/archive/example.jpg");
   assert.equal(
     response.headers["Content-Disposition"],
     'attachment; filename="antiochia-archive-backup-2026-08-11-123456.json"',
@@ -155,6 +166,8 @@ test("full export contains snapshots but never environment secrets", async () =>
   assert.equal(body.version, 1);
   assert.equal(body.exportedAt, fixedDate.toISOString());
   assert.equal(body.archive.history.length, 1);
+  assert.deepEqual(body.archive.history[0].sources, sampleArchive().history[0].sources);
+  assert.deepEqual(body.archive.history[0].imageMetadata, sampleArchive().history[0].imageMetadata);
   assert.equal(body.submissions.length, 1);
   assert.doesNotMatch(response.body, /never-export-this-admin-token/);
   assert.doesNotMatch(response.body, /never-export-this-mail-secret/);

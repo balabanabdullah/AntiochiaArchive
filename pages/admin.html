@@ -244,7 +244,7 @@
       color: var(--clr-ink);
     }
 
-    .form-input, .form-textarea {
+    .form-input, .form-textarea, .form-select {
       width: 100%;
       padding: 8px 12px;
       border: 1px solid var(--clr-line-strong);
@@ -259,6 +259,62 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+    }
+
+    .form-row-two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .editor-section {
+      margin-top: var(--sp-4);
+      padding: var(--sp-3);
+      border: 1px solid var(--clr-line-strong);
+      background: var(--clr-paper-light);
+    }
+
+    .editor-section > summary {
+      cursor: pointer;
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .editor-section-body { margin-top: var(--sp-3); }
+
+    .source-editor {
+      margin-bottom: var(--sp-3);
+      padding: var(--sp-3);
+      border: 1px solid var(--clr-line);
+      background: #fff;
+    }
+
+    .source-editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: var(--sp-2);
+    }
+
+    .source-editor-title {
+      color: var(--clr-ink-muted);
+      font-family: monospace;
+      font-size: 0.75rem;
+      overflow-wrap: anywhere;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-block: 8px;
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row, .form-row-two { grid-template-columns: 1fr; }
     }
 
     /* Toast Notification */
@@ -482,6 +538,79 @@
           </div>
         </div>
 
+        <details class="editor-section" open>
+          <summary>Görsel Bilgileri / Image Information</summary>
+          <div class="editor-section-body">
+            <div class="form-group">
+              <label class="form-label" for="field-media-path">Görsel Yolu veya URL / Image Path or URL</label>
+              <input class="form-input" type="text" id="field-media-path" placeholder="/images/example.jpg veya https://…">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Alternatif Metin / Alt Text</label>
+              <div class="form-row">
+                <input class="form-input" type="text" id="field-alt-tr" aria-label="Alt text TR" placeholder="TR">
+                <input class="form-input" type="text" id="field-alt-en" aria-label="Alt text EN" placeholder="EN">
+                <input class="form-input" type="text" id="field-alt-ar" aria-label="Alt text AR" placeholder="AR">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Görsel Açıklaması / Image Caption</label>
+              <div class="form-row">
+                <textarea class="form-textarea" id="field-image-caption-tr" aria-label="Image caption TR" placeholder="TR"></textarea>
+                <textarea class="form-textarea" id="field-image-caption-en" aria-label="Image caption EN" placeholder="EN"></textarea>
+                <textarea class="form-textarea" id="field-image-caption-ar" aria-label="Image caption AR" placeholder="AR"></textarea>
+              </div>
+            </div>
+
+            <div class="form-row-two">
+              <div class="form-group">
+                <label class="form-label" for="field-image-source">Görsel Kaynağı / Image Source</label>
+                <input class="form-input" type="text" id="field-image-source">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="field-image-author">Fotoğrafçı / Yazar</label>
+                <input class="form-input" type="text" id="field-image-author">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="field-image-license">Lisans / License</label>
+                <input class="form-input" type="text" id="field-image-license">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="field-image-date">Tarih / Date</label>
+                <input class="form-input" type="text" id="field-image-date" placeholder="YYYY veya YYYY-MM-DD">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="field-image-original-url">Özgün Kaynak URL / Original Source URL</label>
+                <input class="form-input" type="url" id="field-image-original-url" placeholder="https://…">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="field-image-accessed-at">Erişim Tarihi / Access Date</label>
+                <input class="form-input" type="date" id="field-image-accessed-at">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="field-image-rights-note">Haklar Notu / Rights Note</label>
+              <textarea class="form-textarea" id="field-image-rights-note"></textarea>
+            </div>
+
+            <label class="checkbox-row" for="field-image-ai-generated">
+              <input type="checkbox" id="field-image-ai-generated">
+              <span>Yapay zekâ ile oluşturulmuş / AI-generated</span>
+            </label>
+          </div>
+        </details>
+
+        <details class="editor-section" open>
+          <summary>Kaynaklar / Sources</summary>
+          <div class="editor-section-body">
+            <div id="sources-list"></div>
+            <button class="btn-admin btn-admin-secondary" type="button" id="btn-add-source">＋ Kaynak Ekle / Add Source</button>
+          </div>
+        </details>
+
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--sp-4);">
           <button class="btn-admin btn-admin-secondary" type="button" id="btn-cancel-modal">İptal</button>
           <button class="btn-admin btn-admin-primary" type="submit">Tamam (Listeye Ekle/Güncelle)</button>
@@ -495,6 +624,7 @@
 
   <!-- Admin JavaScript Logic -->
   <script src="/admin-api.js"></script>
+  <script src="/admin-archive.js"></script>
   <script>
     /* ── Global State ────────────────────────────────────────────────────────── */
     let archiveState = null;
@@ -519,6 +649,134 @@
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 3500);
     }
+
+    const sourceTypeLabels = {
+      book: "Kitap / Book",
+      article: "Makale / Article",
+      archive: "Arşiv Kaydı / Archive",
+      oralHistory: "Sözlü Tarih / Oral History",
+      photograph: "Fotoğraf / Photograph",
+      institutionalRecord: "Kurumsal Kayıt / Institutional Record",
+      website: "Web Sitesi / Website",
+      other: "Diğer / Other",
+    };
+
+    function setFieldValue(id, value) {
+      document.getElementById(id).value = value || "";
+    }
+
+    function createSourceEditor(source = {}) {
+      const original = { ...source };
+      const row = document.createElement("section");
+      row.className = "source-editor";
+      row.sourceOriginal = original;
+      row.innerHTML = `
+        <div class="source-editor-header">
+          <span class="source-editor-title"></span>
+          <button class="btn-admin btn-admin-danger source-remove" type="button">Kaynağı Kaldır / Remove Source</button>
+        </div>
+        <div class="form-row-two">
+          <div class="form-group"><label class="form-label">Tür / Type</label><select class="form-select source-field" data-field="type"></select></div>
+          <div class="form-group"><label class="form-label">Başlık / Title</label><input class="form-input source-field" data-field="title" type="text"></div>
+          <div class="form-group"><label class="form-label">Yazar / Author</label><input class="form-input source-field" data-field="author" type="text"></div>
+          <div class="form-group"><label class="form-label">Yayıncı / Publisher</label><input class="form-input source-field" data-field="publisher" type="text"></div>
+          <div class="form-group"><label class="form-label">Yıl / Year</label><input class="form-input source-field" data-field="year" type="text"></div>
+          <div class="form-group"><label class="form-label">URL</label><input class="form-input source-field" data-field="url" type="url" placeholder="https://…"></div>
+          <div class="form-group"><label class="form-label">Konum / Locator</label><input class="form-input source-field" data-field="locator" type="text" placeholder="Sayfa, folyo, katalog no."></div>
+          <div class="form-group"><label class="form-label">Erişim Tarihi / Access Date</label><input class="form-input source-field" data-field="accessedAt" type="date"></div>
+          <div class="form-group"><label class="form-label">Dil / Language</label><input class="form-input source-field" data-field="language" type="text" placeholder="tr, en, ar…"></div>
+          <div class="form-group"><label class="form-label">Haklar / Rights</label><input class="form-input source-field" data-field="rights" type="text"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Not / Note</label><textarea class="form-textarea source-field" data-field="note"></textarea></div>`;
+
+      const id = source.id || AntiochiaAdminArchive.createSourceId();
+      row.querySelector(".source-editor-title").textContent = id;
+      row.sourceOriginal.id = id;
+
+      const typeSelect = row.querySelector('[data-field="type"]');
+      AntiochiaAdminArchive.SOURCE_TYPES.forEach((type) => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = sourceTypeLabels[type];
+        typeSelect.appendChild(option);
+      });
+      typeSelect.value = AntiochiaAdminArchive.SOURCE_TYPES.includes(source.type) ? source.type : "other";
+
+      row.querySelectorAll(".source-field").forEach((field) => {
+        if (field.dataset.field !== "type") field.value = source[field.dataset.field] || "";
+      });
+      row.querySelector(".source-remove").addEventListener("click", () => row.remove());
+      return row;
+    }
+
+    function renderSourceEditors(sources = []) {
+      const list = document.getElementById("sources-list");
+      list.replaceChildren(...sources.map((source) => createSourceEditor(source)));
+    }
+
+    function collectSources() {
+      return [...document.querySelectorAll(".source-editor")].map((row) => {
+        const values = { id: row.sourceOriginal.id };
+        row.querySelectorAll(".source-field").forEach((field) => {
+          values[field.dataset.field] = field.value;
+        });
+        return AntiochiaAdminArchive.compactSource(values, row.sourceOriginal);
+      });
+    }
+
+    function loadImageMetadata(item) {
+      const metadata = item.imageMetadata || {};
+      const mediaKey = currentCategory === "gallery" ? "src" : "image";
+      setFieldValue("field-media-path", item[mediaKey]);
+      setFieldValue("field-alt-tr", metadata.alt?.tr);
+      setFieldValue("field-alt-en", metadata.alt?.en);
+      setFieldValue("field-alt-ar", metadata.alt?.ar);
+      setFieldValue("field-image-caption-tr", metadata.caption?.tr);
+      setFieldValue("field-image-caption-en", metadata.caption?.en);
+      setFieldValue("field-image-caption-ar", metadata.caption?.ar);
+      setFieldValue("field-image-source", metadata.source);
+      setFieldValue("field-image-author", metadata.author);
+      setFieldValue("field-image-license", metadata.license);
+      setFieldValue("field-image-date", metadata.date);
+      setFieldValue("field-image-original-url", metadata.originalUrl);
+      setFieldValue("field-image-accessed-at", metadata.accessedAt);
+      setFieldValue("field-image-rights-note", metadata.rightsNote);
+      document.getElementById("field-image-ai-generated").checked = metadata.aiGenerated === true;
+    }
+
+    function collectImageMetadata(existing = {}) {
+      return AntiochiaAdminArchive.compactImageMetadata({
+        alt: {
+          tr: document.getElementById("field-alt-tr").value,
+          en: document.getElementById("field-alt-en").value,
+          ar: document.getElementById("field-alt-ar").value,
+        },
+        caption: {
+          tr: document.getElementById("field-image-caption-tr").value,
+          en: document.getElementById("field-image-caption-en").value,
+          ar: document.getElementById("field-image-caption-ar").value,
+        },
+        source: document.getElementById("field-image-source").value,
+        author: document.getElementById("field-image-author").value,
+        license: document.getElementById("field-image-license").value,
+        date: document.getElementById("field-image-date").value,
+        originalUrl: document.getElementById("field-image-original-url").value,
+        accessedAt: document.getElementById("field-image-accessed-at").value,
+        rightsNote: document.getElementById("field-image-rights-note").value,
+        aiGenerated: document.getElementById("field-image-ai-generated").checked,
+      }, existing);
+    }
+
+    function configureCategoryFields() {
+      const tagRequired = currentCategory !== "beliefs";
+      ["field-tag-tr", "field-tag-en", "field-tag-ar"].forEach((id) => {
+        document.getElementById(id).required = tagRequired;
+      });
+    }
+
+    document.getElementById("btn-add-source").addEventListener("click", () => {
+      document.getElementById("sources-list").appendChild(createSourceEditor());
+    });
 
     /* ── Fetch Data from GET /api/archive ────────────────────────────────────── */
     async function loadArchiveData() {
@@ -602,6 +860,10 @@
       document.getElementById("field-desc-en").value = descObj.en || "";
       document.getElementById("field-desc-ar").value = descObj.ar || "";
 
+      loadImageMetadata(item);
+      renderSourceEditors(Array.isArray(item.sources) ? item.sources : []);
+      configureCategoryFields();
+
       modalHeading.textContent = `Kayıt Düzenle (#${item.id})`;
       editorModal.classList.add("open");
     };
@@ -620,6 +882,9 @@
       document.getElementById("editor-form").reset();
       document.getElementById("field-id").value = `${currentCategory.slice(0, 2)}${Date.now().toString().slice(-3)}`;
       document.getElementById("field-category-key").value = "all";
+      loadImageMetadata({});
+      renderSourceEditors([]);
+      configureCategoryFields();
       modalHeading.textContent = "Yeni Kayıt Ekle";
       editorModal.classList.add("open");
     });
@@ -656,53 +921,86 @@
         ar: document.getElementById("field-desc-ar").value.trim(),
       };
 
+      const existingItem = index >= 0 ? archiveState[currentCategory][index] : {};
       const newItem = { id, categoryKey };
 
       if (currentCategory === "history") {
         newItem.era = tagObj;
         newItem.title = titleObj;
         newItem.body = descObj;
-        newItem.svgType = "columns";
-        newItem.svgColor = "#903628";
-        newItem.svgBg = "#ded4c0";
+        if (index < 0) {
+          newItem.svgType = "columns";
+          newItem.svgColor = "#903628";
+          newItem.svgBg = "#ded4c0";
+        }
       } else if (currentCategory === "stories") {
         newItem.tag = tagObj;
         newItem.title = titleObj;
         newItem.body = descObj;
-        newItem.svgType = "house";
-        newItem.svgColor = "#903628";
-        newItem.svgBg = "#ded4c0";
+        if (index < 0) {
+          newItem.svgType = "house";
+          newItem.svgColor = "#903628";
+          newItem.svgBg = "#ded4c0";
+        }
       } else if (currentCategory === "structures") {
         newItem.tag = tagObj;
         newItem.title = titleObj;
         newItem.desc = descObj;
-        newItem.svgType = "arch";
-        newItem.svgColor = "#903628";
-        newItem.svgBg = "#e0d6c4";
+        if (index < 0) {
+          newItem.svgType = "arch";
+          newItem.svgColor = "#903628";
+          newItem.svgBg = "#e0d6c4";
+        }
       } else if (currentCategory === "beliefs") {
-        newItem.icon = "🕊";
+        if (index < 0) newItem.icon = "🕊";
         newItem.title = titleObj;
         newItem.desc = descObj;
       } else if (currentCategory === "music") {
-        newItem.badge = "🎵";
+        if (index < 0) newItem.badge = "🎵";
         newItem.tag = tagObj;
         newItem.title = titleObj;
         newItem.desc = descObj;
       } else if (currentCategory === "gallery") {
-        newItem.src = null;
-        newItem.svgType = "house";
-        newItem.svgColor = "#903628";
-        newItem.svgBg = "#ded4c0";
+        if (index < 0) {
+          newItem.svgType = "house";
+          newItem.svgColor = "#903628";
+          newItem.svgBg = "#ded4c0";
+        }
         newItem.category = tagObj;
         newItem.title = titleObj;
         newItem.caption = descObj;
       }
 
+      const mediaKey = currentCategory === "gallery" ? "src" : "image";
+      const mediaValue = document.getElementById("field-media-path").value.trim();
+      const sources = collectSources();
+      const imageMetadata = collectImageMetadata(existingItem.imageMetadata || {});
+
+      if (!AntiochiaAdminArchive.isAllowedMediaPath(mediaValue)) {
+        showToast("Görsel yolu yalnızca http(s) URL veya /images/... biçiminde olabilir.", "error");
+        return;
+      }
+      if (sources.some((source) => source.url && !AntiochiaAdminArchive.isHttpUrl(source.url))) {
+        showToast("Kaynak URL alanları http veya https kullanmalıdır.", "error");
+        return;
+      }
+      if (imageMetadata?.originalUrl && !AntiochiaAdminArchive.isHttpUrl(imageMetadata.originalUrl)) {
+        showToast("Özgün kaynak URL alanı http veya https kullanmalıdır.", "error");
+        return;
+      }
+
+      const mergedItem = AntiochiaAdminArchive.mergeArchiveRecord(existingItem, newItem, {
+        sources,
+        imageMetadata,
+        mediaKey,
+        mediaValue,
+      });
+
       if (index >= 0) {
-        archiveState[currentCategory][index] = { ...archiveState[currentCategory][index], ...newItem };
+        archiveState[currentCategory][index] = mergedItem;
         showToast("Kayıt yerel olarak güncellendi.");
       } else {
-        archiveState[currentCategory].push(newItem);
+        archiveState[currentCategory].push(mergedItem);
         showToast("Yeni kayıt listeye eklendi.");
       }
 

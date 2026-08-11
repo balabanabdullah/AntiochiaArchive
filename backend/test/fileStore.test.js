@@ -47,9 +47,33 @@ test("file store preserves archive and submission operations", async (context) =
 
   assert.deepEqual(await fileStore.getArchive(), archive);
 
-  archive.gallery.push({ id: "gallery-1", categoryKey: "gallery", src: "https://example.test/image.jpg" });
+  const provenance = {
+    sources: [{
+      id: "source-file-round-trip",
+      type: "archive",
+      title: "Catalog record",
+      url: "https://archive.example.test/catalog/1",
+    }],
+    imageMetadata: {
+      alt: { tr: "Arşiv görseli", en: "Archive image", ar: "صورة أرشيفية" },
+      caption: { en: "Verified caption" },
+      source: "Example Archive",
+      license: "CC BY 4.0",
+      originalUrl: "https://archive.example.test/image/1",
+      aiGenerated: false,
+    },
+  };
+  archive.gallery.push({
+    id: "gallery-1",
+    categoryKey: "gallery",
+    src: "https://example.test/image.jpg",
+    ...provenance,
+  });
   await fileStore.updateArchive(archive);
-  assert.deepEqual(await fileStore.getArchive(), archive);
+  const roundTrippedArchive = await fileStore.getArchive();
+  assert.deepEqual(roundTrippedArchive, archive);
+  assert.deepEqual(roundTrippedArchive.gallery[0].sources, provenance.sources);
+  assert.deepEqual(roundTrippedArchive.gallery[0].imageMetadata, provenance.imageMetadata);
 
   const created = await fileStore.addSubmission({
     name: " Test Visitor ",

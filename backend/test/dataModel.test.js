@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ARCHIVE_CATEGORIES,
+  SOURCE_TYPES,
+  isAllowedArchiveMediaPath,
   normalizeArchiveDocuments,
   normalizeCreatedAt,
   serializeSubmission,
@@ -23,10 +25,87 @@ test("archive validation identifies a missing category", () => {
   assert.match(validateArchive(archive).error, /music/);
 });
 
+test("legacy archive records remain valid without provenance metadata", () => {
+  const archive = validArchive();
+  archive.history.push({ id: "h1", categoryKey: "all", title: { en: "Legacy record" }, image: null });
+  assert.deepEqual(validateArchive(archive), { valid: true });
+});
+
+test("archive validation accepts the controlled source vocabulary and optional fields", () => {
+  const archive = validArchive();
+  archive.history.push({
+    id: "h1",
+    sources: SOURCE_TYPES.map((type, index) => ({
+      id: `source-${index}`,
+      type,
+      title: "Verified source",
+      url: "https://example.test/catalog/1",
+    })),
+  });
+  assert.deepEqual(validateArchive(archive), { valid: true });
+});
+
+test("archive validation rejects malformed sources and unsafe source URLs", () => {
+  const wrongType = validArchive();
+  wrongType.history.push({ id: "h1", sources: {} });
+  assert.match(validateArchive(wrongType).error, /sources must be an array/);
+
+  const wrongEntry = validArchive();
+  wrongEntry.history.push({ id: "h1", sources: ["not-an-object"] });
+  assert.match(validateArchive(wrongEntry).error, /sources\[0\] must be an object/);
+
+  const wrongVocabulary = validArchive();
+  wrongVocabulary.history.push({ id: "h1", sources: [{ type: "socialMediaPost" }] });
+  assert.match(validateArchive(wrongVocabulary).error, /type must be one of/);
+
+  const wrongUrl = validArchive();
+  wrongUrl.history.push({ id: "h1", sources: [{ type: "website", url: "javascript:alert(1)" }] });
+  assert.match(validateArchive(wrongUrl).error, /sources\[0\]\.url.*http/);
+});
+
+test("archive media paths allow local and http(s) assets but reject scripts", () => {
+  assert.equal(isAllowedArchiveMediaPath("/images/archive/example.jpg"), true);
+  assert.equal(isAllowedArchiveMediaPath("https://media.example.test/example.jpg"), true);
+  assert.equal(isAllowedArchiveMediaPath("javascript:alert(1)"), false);
+
+  const archive = validArchive();
+  archive.gallery.push({ id: "g1", src: "/images/archive/example.jpg" });
+  assert.deepEqual(validateArchive(archive), { valid: true });
+  archive.gallery[0].src = "javascript:alert(1)";
+  assert.match(validateArchive(archive).error, /gallery\[0\]\.src/);
+});
+
+test("image metadata validates multilingual text, external URLs, and AI flags", () => {
+  const archive = validArchive();
+  archive.gallery.push({
+    id: "g1",
+    imageMetadata: {
+      alt: { tr: "Taş yapı", en: "Stone structure", ar: "بناء حجري" },
+      caption: { en: "Verified caption" },
+      originalUrl: "https://archive.example.test/item/1",
+      aiGenerated: false,
+    },
+  });
+  assert.deepEqual(validateArchive(archive), { valid: true });
+
+  archive.gallery[0].imageMetadata.aiGenerated = "false";
+  assert.match(validateArchive(archive).error, /aiGenerated must be a boolean/);
+  archive.gallery[0].imageMetadata.aiGenerated = false;
+  archive.gallery[0].imageMetadata.originalUrl = "data:text/plain,unsafe";
+  assert.match(validateArchive(archive).error, /originalUrl.*http/);
+});
+
 test("archive document normalization always returns the frontend shape", () => {
-  const normalized = normalizeArchiveDocuments({ history: { items: [{ id: 1 }] } });
+  const item = {
+    id: 1,
+    sources: [{ id: "source-1", type: "archive" }],
+    imageMetadata: { alt: { en: "Archive image" }, aiGenerated: false },
+  };
+  const normalized = normalizeArchiveDocuments({ history: { items: [item] } });
   assert.deepEqual(Object.keys(normalized), ARCHIVE_CATEGORIES);
-  assert.deepEqual(normalized.history, [{ id: 1 }]);
+  assert.deepEqual(normalized.history, [item]);
+  assert.deepEqual(normalized.history[0].sources, item.sources);
+  assert.deepEqual(normalized.history[0].imageMetadata, item.imageMetadata);
   assert.deepEqual(normalized.gallery, []);
 });
 

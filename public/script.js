@@ -360,6 +360,42 @@ function buildSvg(type, color, bg) {
    Archive Renderers
    ========================================================================== */
 
+function localizedMetadataValue(value, lang, fallback = "") {
+  if (!value || typeof value !== "object") return fallback;
+  return value[lang] ?? value.en ?? value.tr ?? value.ar ?? fallback;
+}
+
+function imageAltText(item, lang, title) {
+  return localizedMetadataValue(item.imageMetadata?.alt, lang, title || "");
+}
+
+function formatImageAttribution(metadata, lang) {
+  if (!metadata || typeof metadata !== "object") return "";
+  const parts = [];
+  if (metadata.author) parts.push(`${resolveKey(lang, "provenance.photoBy") || "Photo"}: ${metadata.author}`);
+  if (metadata.source) parts.push(`${resolveKey(lang, "provenance.sourceLabel") || "Source"}: ${metadata.source}`);
+  if (metadata.license) parts.push(`${resolveKey(lang, "provenance.license") || "License"}: ${metadata.license}`);
+  return parts.join(" · ");
+}
+
+function renderAiImageLabel(metadata, lang) {
+  if (metadata?.aiGenerated !== true) return "";
+  const label = resolveKey(lang, "provenance.aiImageLabel")
+    || "Illustrative image — generated with artificial intelligence.";
+  return `<span class="archive-ai-label">${escapeHtml(label)}</span>`;
+}
+
+function renderRecordImage(item, lang, title, className) {
+  const mediaUrl = safeHttpUrl(item.image || item.src);
+  if (!mediaUrl) return null;
+  const alt = imageAltText(item, lang, title);
+  return `
+    <figure class="archive-media-figure">
+      <img class="${escapeHtml(className)}" src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(alt)}" loading="lazy">
+      ${renderAiImageLabel(item.imageMetadata, lang)}
+    </figure>`;
+}
+
 function renderHistory(items, lang) {
   return items.map((item) => {
     const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
@@ -368,10 +404,11 @@ function renderHistory(items, lang) {
     const body = item.body[lang] ?? item.body.en;
     const cat = item.categoryKey || "all";
     const searchStr = escapeHtml(`${title} ${era} ${body}`);
+    const mediaHtml = renderRecordImage(item, lang, title, "timeline-image") || svg;
     return `
       <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
         <span class="timeline-era">${escapeHtml(era)}</span>
-        <div class="timeline-visual" aria-hidden="true">${svg}</div>
+        <div class="timeline-visual"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
         <h3 class="timeline-title">${escapeHtml(title)}</h3>
         <p class="timeline-desc">${escapeHtml(body)}</p>
       </article>`;
@@ -386,12 +423,11 @@ function renderStories(items, lang) {
     const body = item.body[lang] ?? item.body.en;
     const cat = item.categoryKey || "all";
     const searchStr = escapeHtml(`${title} ${tag} ${body}`);
+    const realImage = renderRecordImage(item, lang, title, "story-image");
     return `
       <article class="story-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" aria-label="Story: ${escapeHtml(title)}">
         <div class="story-image-wrap">
-          <svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
-          </svg>
+          ${realImage || `<svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`}
           <span class="story-tag">${escapeHtml(tag)}</span>
         </div>
         <div class="story-content">
@@ -410,12 +446,11 @@ function renderStructures(items, lang) {
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
     const searchStr = escapeHtml(`${title} ${tag} ${desc}`);
+    const realImage = renderRecordImage(item, lang, title, "struct-image");
     return `
     <article class="struct-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
         <div class="struct-media">
-          <svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            ${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}
-          </svg>
+          ${realImage || `<svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`}
           <span class="struct-tag">${escapeHtml(tag)}</span>
         </div>
         <div class="struct-info">
@@ -470,9 +505,9 @@ function renderGallery(items, lang) {
     const searchStr = escapeHtml(`${title} ${cat} ${caption}`);
     
     let mediaHtml = "";
-    const mediaUrl = safeHttpUrl(item.src);
-    if (mediaUrl) {
-      mediaHtml = `<img class="gallery-img" src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(title)}" loading="lazy">`;
+    const realImage = renderRecordImage(item, lang, title, "gallery-img");
+    if (realImage) {
+      mediaHtml = realImage;
     } else {
       const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
       mediaHtml = `<svg class="gallery-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;
@@ -764,21 +799,39 @@ function openLightbox(itemIndex) {
   const catEl = document.getElementById("lightbox-category");
   const titleEl = document.getElementById("lightbox-title");
   const captionEl = document.getElementById("lightbox-caption");
+  const attributionEl = document.getElementById("lightbox-attribution");
 
   if (!modal || !mediaContainer) return;
 
   const title = item.title[lang] ?? item.title.en;
   const cat = item.category[lang] ?? item.category.en;
   const caption = item.caption[lang] ?? item.caption.en;
+  const imageCaption = localizedMetadataValue(item.imageMetadata?.caption, lang);
+  const attribution = formatImageAttribution(item.imageMetadata, lang);
 
   const mediaUrl = safeHttpUrl(item.src);
   if (mediaUrl) {
-    mediaContainer.replaceChildren();
+    const figure = document.createElement("figure");
     const image = document.createElement("img");
     image.src = mediaUrl;
-    image.alt = title;
+    image.alt = imageAltText(item, lang, title);
     image.className = "lightbox-img";
-    mediaContainer.appendChild(image);
+    figure.className = "lightbox-figure";
+    figure.appendChild(image);
+    if (imageCaption) {
+      const figcaption = document.createElement("figcaption");
+      figcaption.className = "lightbox-media-caption";
+      figcaption.textContent = imageCaption;
+      figure.appendChild(figcaption);
+    }
+    if (item.imageMetadata?.aiGenerated === true) {
+      const aiLabel = document.createElement("span");
+      aiLabel.className = "archive-ai-label";
+      aiLabel.textContent = resolveKey(lang, "provenance.aiImageLabel")
+        || "Illustrative image — generated with artificial intelligence.";
+      figure.appendChild(aiLabel);
+    }
+    mediaContainer.replaceChildren(figure);
   } else {
     const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
     mediaContainer.innerHTML = `<svg class="lightbox-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;
@@ -787,6 +840,10 @@ function openLightbox(itemIndex) {
   if (catEl) catEl.textContent = cat;
   if (titleEl) titleEl.textContent = title;
   if (captionEl) captionEl.textContent = caption;
+  if (attributionEl) {
+    attributionEl.textContent = attribution;
+    attributionEl.hidden = !attribution;
+  }
 
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AntiochiaArchive Yönetici Paneli — archive.json dosyasını düzenleme arayüzü">
+  <meta name="description" content="AntiochiaArchive Yönetici Paneli — seçili backend veri deposundaki arşivi düzenleme arayüzü">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#1c1814">
 
@@ -351,7 +351,7 @@
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: var(--sp-4);">
       <div>
         <h1 style="font-family: var(--font-serif); font-size: 2rem; font-weight: 400;">Arşiv Veri Yönetimi</h1>
-        <p style="color: var(--clr-ink-muted); font-size: 0.92rem;">`public/archive.json` verilerini düzenleyin, yeni kayıtlar ekleyin veya silin.</p>
+        <p style="color: var(--clr-ink-muted); font-size: 0.92rem;">Backend API tarafından sunulan arşiv verilerini düzenleyin, yeni kayıtlar ekleyin veya silin.</p>
       </div>
 
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -500,6 +500,7 @@
     let archiveState = null;
     let currentCategory = "history";
     const API_BASE = "/api/archive";
+    const ARCHIVE_CATEGORIES = ["history", "stories", "structures", "beliefs", "music", "gallery"];
 
     /* ── DOM Elements ────────────────────────────────────────────────────────── */
     const tableBody = document.getElementById("table-body");
@@ -507,6 +508,7 @@
     const editorModal = document.getElementById("editor-modal");
     const editorForm = document.getElementById("editor-form");
     const modalHeading = document.getElementById("modal-heading");
+    const saveButton = document.getElementById("btn-save-all");
 
     /* ── Toast Notification Helper ───────────────────────────────────────────── */
     function showToast(message, type = "success") {
@@ -520,26 +522,25 @@
 
     /* ── Fetch Data from GET /api/archive ────────────────────────────────────── */
     async function loadArchiveData() {
+      saveButton.disabled = true;
       try {
-        let result;
-        let backendConnected = true;
-        try {
-          result = await AntiochiaAdminAPI.request(API_BASE);
-        } catch (_) {
-          backendConnected = false;
-          const res = await fetch("/archive.json");
-          if (!res.ok) throw new Error("Arşiv verisi yüklenemedi.");
-          result = await res.json();
+        const result = await AntiochiaAdminAPI.request(API_BASE);
+        if (result.success !== true || !result.data || ARCHIVE_CATEGORIES.some((category) => !Array.isArray(result.data[category]))) {
+          throw new Error("Backend API geçersiz bir arşiv yanıtı döndürdü.");
         }
-        archiveState = result.data || result;
-        apiBadge.textContent = backendConnected ? "● Backend API Bağlandı" : "● Salt Okunur Yerel Veri";
-        apiBadge.className = backendConnected ? "api-badge online" : "api-badge offline";
+
+        archiveState = result.data;
+        apiBadge.textContent = "● Backend API Bağlandı";
+        apiBadge.className = "api-badge online";
+        saveButton.disabled = false;
 
         renderTable();
       } catch (err) {
         console.error("Archive fetch error:", err);
-        apiBadge.textContent = "● API Çevrimdışı (Yerel Önizleme)";
+        archiveState = null;
+        apiBadge.textContent = "● Backend API Kullanılamıyor";
         apiBadge.className = "api-badge offline";
+        renderTable();
         showToast("Backend API'sine bağlanılamadı. Lütfen sunucuyu kontrol edin.", "error");
       }
     }
@@ -720,9 +721,9 @@
     });
 
     /* ── Reload Button ───────────────────────────────────────────────────────── */
-    document.getElementById("btn-reload").addEventListener("click", () => {
-      loadArchiveData();
-      showToast("Veriler yeniden yüklendi.");
+    document.getElementById("btn-reload").addEventListener("click", async () => {
+      await loadArchiveData();
+      if (archiveState) showToast("Veriler API üzerinden yeniden yüklendi.");
     });
 
     /* ── Save All Changes to Backend via PUT /api/archive ────────────────────── */
@@ -738,7 +739,7 @@
         });
 
         if (result.success) {
-          showToast("✅ Değişiklikler başarıyla `public/archive.json` dosyasına kaydedildi!");
+          showToast("✅ Değişiklikler backend veri deposuna başarıyla kaydedildi!");
         } else {
           throw new Error(result.error || "Kaydetme hatası");
         }

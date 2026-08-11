@@ -1,18 +1,21 @@
 # Persistence modes
 
-The backend owns all data access. Browser code continues to use the existing
-`/api/*` routes and never connects to Firestore directly.
+The backend owns all data access. Browser code always reads archive records from
+`GET /api/archive`; it never reads a static archive snapshot and never connects
+to Firestore directly. Admin writes and JSON backups also use the selected
+backend datastore through the API.
 
 ## Local file mode
 
 `DATA_STORE=file` is the default for local Node and Docker Compose development.
 In this mode:
 
-- `public/archive.json` is the archive store and the initial Firestore seed/reference source.
+- `data/archive.json` is the archive store and the initial Firestore seed/reference source.
 - `data/submissions.json` is private local-development storage and a Firestore migration source.
 - `ARCHIVE_JSON_PATH` and `SUBMISSIONS_JSON_PATH` may override those paths.
 
-These JSON files are not durable production storage on Cloud Run.
+Neither file is copied into the public frontend build. These JSON files are not
+durable production storage on Cloud Run.
 
 ## Production Firestore mode
 
@@ -25,6 +28,15 @@ Firestore is authoritative whenever `DATA_STORE=firestore`. The process uses
 Application Default Credentials: a developer ADC login locally, or the attached
 Cloud Run service identity in production. The application does not load or need
 a service-account key file.
+
+## Runtime source of truth
+
+- Production: Firestore → Express → `GET /api/archive` → public pages.
+- Local file mode: `data/archive.json` → Express → `GET /api/archive` → public pages.
+- Admin: `GET` and protected `PUT /api/archive` use the same selected datastore.
+- Backups: protected export endpoints read the same selected datastore.
+- Static frontend: contains no authoritative archive dataset and has no stale
+  JSON fallback. An API failure is shown as unavailable to the visitor.
 
 ## Explicit migration
 

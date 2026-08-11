@@ -14,7 +14,7 @@ let mutationQueue = Promise.resolve();
 function getArchiveFilePath() {
   return process.env.ARCHIVE_JSON_PATH
     ? path.resolve(process.env.ARCHIVE_JSON_PATH)
-    : path.resolve(__dirname, "../../public/archive.json");
+    : path.resolve(__dirname, "../../data/archive.json");
 }
 
 function getSubmissionsFilePath() {

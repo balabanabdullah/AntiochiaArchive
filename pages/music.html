@@ -149,7 +149,7 @@
         </div>
 
         <div class="music-list" id="music-list-container" aria-live="polite">
-          <!-- dynamically populated from archive.json -->
+          <!-- dynamically populated from /api/archive -->
         </div>
       </div>
     </section>
@@ -216,6 +216,7 @@
 
   <!-- Scripts -->
   <script src="/lang.js"></script>
+  <script src="/archive-api.js"></script>
   <script src="/script.js"></script>
   <script>
     document.getElementById("footer-year").textContent = new Date().getFullYear();

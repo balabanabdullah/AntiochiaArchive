@@ -71,13 +71,17 @@ async function findExistingSubmissionIds(database, submissions) {
 
 async function migrate() {
   validateOptions();
-  const archivePath = path.join(repositoryRoot, "public", "archive.json");
+  const archivePath = path.join(repositoryRoot, "data", "archive.json");
   const submissionsPath = path.join(repositoryRoot, "data", "submissions.json");
   const archive = assertValidArchive(await readJson(archivePath));
   const submissions = validateSubmissions(await readJson(submissionsPath));
   const targetProject = String(process.env.GOOGLE_CLOUD_PROJECT || "").trim();
 
-  console.log(`Validated ${ARCHIVE_CATEGORIES.length} archive categories and ${submissions.length} submissions.`);
+  const archiveRecordCount = ARCHIVE_CATEGORIES.reduce((total, category) => total + archive[category].length, 0);
+  console.log(
+    `Validated ${ARCHIVE_CATEGORIES.length} archive categories, `
+    + `${archiveRecordCount} archive records, and ${submissions.length} submissions.`,
+  );
   console.log(`Migration mode: ${dryRun ? "dry-run" : "apply"}`);
   console.log(`Target project: ${targetProject || "not configured (not required for dry-run)"}`);
   console.log("Target Firestore database: (default)");

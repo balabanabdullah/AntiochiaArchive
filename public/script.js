@@ -1,11 +1,12 @@
 /**
  * AntiochiaArchive — script.js
  * Handles: language switching, mobile menu, scroll reveal, form UX, audio player toggles,
- *          and dynamic content rendering from archive.json
+ *          and dynamic content rendering from the archive API
  */
 
 /* Cached archive data (loaded once) */
 let archiveData = null;
+let archiveLoadState = "idle";
 
 /* ==========================================================================
    State
@@ -118,8 +119,9 @@ function applyLanguage(lang) {
   // 8. Persist preference
   try { localStorage.setItem("aa-lang", lang); } catch (_) { /* noop */ }
 
-  // 9. Re-render archive sections in new language
+  // 9. Re-render cached archive data (or its current error state) in the new language
   renderArchiveSections(lang);
+  if (archiveLoadState === "error") renderArchiveErrorState(lang);
   if (typeof window.updateContributionsLang === "function") {
     window.updateContributionsLang();
   }
@@ -491,23 +493,24 @@ function renderGallery(items, lang) {
   }).join("");
 }
 
-/**
- * Inject rendered content into the 5 dynamic containers.
- * Called after archive is loaded and on every language switch.
- */
+const ARCHIVE_SECTION_RENDERERS = Object.freeze([
+  { id: "history-timeline-container", fn: renderHistory, key: "history" },
+  { id: "stories-grid-container", fn: renderStories, key: "stories" },
+  { id: "structures-grid-container", fn: renderStructures, key: "structures" },
+  { id: "beliefs-grid-container", fn: renderBeliefs, key: "beliefs" },
+  { id: "music-list-container", fn: renderMusic, key: "music" },
+  { id: "gallery-grid-container", fn: renderGallery, key: "gallery" },
+]);
+
+function getArchiveSectionRenderers() {
+  return ARCHIVE_SECTION_RENDERERS.filter(({ id }) => document.getElementById(id));
+}
+
+/** Inject cached archive content into every container present on the current page. */
 function renderArchiveSections(lang) {
   if (!archiveData) return;
 
-  const map = [
-    { id: "history-timeline-container",  fn: renderHistory,    key: "history" },
-    { id: "stories-grid-container",      fn: renderStories,    key: "stories" },
-    { id: "structures-grid-container",   fn: renderStructures, key: "structures" },
-    { id: "beliefs-grid-container",      fn: renderBeliefs,    key: "beliefs" },
-    { id: "music-list-container",        fn: renderMusic,      key: "music" },
-    { id: "gallery-grid-container",      fn: renderGallery,    key: "gallery" },
-  ];
-
-  map.forEach(({ id, fn, key }) => {
+  getArchiveSectionRenderers().forEach(({ id, fn, key }) => {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = fn(archiveData[key], lang);
@@ -528,22 +531,67 @@ function renderArchiveSections(lang) {
   applyCombinedFilters();
 }
 
-/** Fetch archive.json once, then render for the current language. */
-async function initArchive() {
+function localizedArchiveText(key, lang) {
+  const fallback = {
+    archiveLoading: "Loading archive data…",
+    archiveLoadError: "Archive data could not be loaded.",
+    archiveRetry: "Try Again",
+  };
+  return resolveKey(lang, key) ?? fallback[key];
+}
+
+function renderArchiveLoadingState(lang) {
+  getArchiveSectionRenderers().forEach(({ id }) => {
+    const container = document.getElementById(id);
+    const status = document.createElement("div");
+    status.className = "archive-load-state";
+    status.setAttribute("role", "status");
+    status.textContent = localizedArchiveText("archiveLoading", lang);
+    container.replaceChildren(status);
+  });
+}
+
+function renderArchiveErrorState(lang) {
+  getArchiveSectionRenderers().forEach(({ id }) => {
+    const container = document.getElementById(id);
+    const status = document.createElement("div");
+    const message = document.createElement("p");
+    const retry = document.createElement("button");
+
+    status.className = "archive-load-state archive-load-error";
+    status.setAttribute("role", "alert");
+    message.textContent = localizedArchiveText("archiveLoadError", lang);
+    retry.className = "archive-load-retry";
+    retry.type = "button";
+    retry.textContent = localizedArchiveText("archiveRetry", lang);
+    retry.addEventListener("click", () => initArchive({ force: true }));
+    status.append(message, retry);
+    container.replaceChildren(status);
+  });
+}
+
+/** Fetch the backend archive once; language changes reuse the in-memory result. */
+async function initArchive({ force = false } = {}) {
+  if (!getArchiveSectionRenderers().length) return;
+  if (archiveLoadState === "loading") return;
+  if (archiveData && !force) {
+    renderArchiveSections(currentLang);
+    return;
+  }
+
+  archiveLoadState = "loading";
+  renderArchiveLoadingState(currentLang);
+
   try {
-    let res = null;
-    const candidatePaths = ["/archive.json", "archive.json", "../public/archive.json", "../archive.json"];
-    for (const p of candidatePaths) {
-      try {
-        const r = await fetch(p);
-        if (r && r.ok) { res = r; break; }
-      } catch (_) {}
-    }
-    if (!res) throw new Error("HTTP fetch failed for archive.json");
-    archiveData = await res.json();
+    if (!window.AntiochiaArchiveAPI) throw new Error("Archive API client is unavailable.");
+    archiveData = await window.AntiochiaArchiveAPI.fetchArchive();
+    archiveLoadState = "loaded";
     renderArchiveSections(currentLang);
   } catch (err) {
-    console.error("[AntiochiaArchive] Could not load archive.json:", err);
+    archiveData = null;
+    archiveLoadState = "error";
+    console.error("[AntiochiaArchive] Archive API is unavailable:", err);
+    renderArchiveErrorState(currentLang);
   }
 }
 
@@ -605,7 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   applyLanguage(initial);
 
-  /* --- Load archive content from archive.json --- */
+  /* --- Load archive content from the backend API --- */
   initArchive();
 
   /* --- Search filtering --- */

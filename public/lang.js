@@ -21,6 +21,9 @@ const TRANSLATIONS = {
     },
     searchPlaceholder: "Search...",
     backToTop: "Back to Top",
+    archiveLoading: "Loading archive data…",
+    archiveLoadError: "Archive data could not be loaded.",
+    archiveRetry: "Try Again",
     filters: {
       all: "All",
       filterLabel: "Filter by Category",
@@ -318,6 +321,9 @@ const TRANSLATIONS = {
     },
     searchPlaceholder: "Bir şey ara...",
     backToTop: "Yukarı Çık",
+    archiveLoading: "Arşiv verileri yükleniyor…",
+    archiveLoadError: "Arşiv verileri yüklenemedi.",
+    archiveRetry: "Tekrar Dene",
     filters: {
       all: "Tümü",
       filterLabel: "Kategori Filtrele",
@@ -615,6 +621,9 @@ const TRANSLATIONS = {
     },
     searchPlaceholder: "ابحث...",
     backToTop: "العودة إلى الأعلى",
+    archiveLoading: "جارٍ تحميل بيانات الأرشيف…",
+    archiveLoadError: "تعذر تحميل بيانات الأرشيف.",
+    archiveRetry: "إعادة المحاولة",
     filters: {
       all: "الكل",
       filterLabel: "تصفية الفئات",

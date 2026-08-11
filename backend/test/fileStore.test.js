@@ -11,6 +11,19 @@ function restoreEnvironment(name, value) {
   else process.env[name] = value;
 }
 
+test("default file mode reads the private data/archive.json seed", async (context) => {
+  const originalArchivePath = process.env.ARCHIVE_JSON_PATH;
+  delete process.env.ARCHIVE_JSON_PATH;
+  context.after(() => restoreEnvironment("ARCHIVE_JSON_PATH", originalArchivePath));
+
+  const archive = await fileStore.getArchive();
+  assert.deepEqual(Object.keys(archive), ARCHIVE_CATEGORIES);
+  assert.equal(
+    ARCHIVE_CATEGORIES.reduce((total, category) => total + archive[category].length, 0),
+    22,
+  );
+});
+
 test("file store preserves archive and submission operations", async (context) => {
   const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "antiochia-file-store-"));
   const archivePath = path.join(temporaryDirectory, "archive.json");

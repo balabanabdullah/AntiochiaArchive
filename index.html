@@ -261,7 +261,7 @@
           <p class="history-lead" data-i18n="historySection.body">Founded in 300 BCE along the Orontes River, Antioch grew into one of the ancient Mediterranean's great capitals.</p>
         </div>
         <div class="history-timeline" id="history-timeline-container" aria-live="polite">
-          <!-- dynamically populated from archive.json -->
+          <!-- dynamically populated from /api/archive -->
         </div>
       </div>
     </section>
@@ -277,7 +277,7 @@
           <p class="stories-intro" data-i18n="storiesSection.intro">Every neighborhood in Antioch holds memories carried across generations.</p>
         </div>
         <div class="stories-grid" id="stories-grid-container" aria-live="polite">
-          <!-- dynamically populated from archive.json -->
+          <!-- dynamically populated from /api/archive -->
         </div>
       </div>
     </section>
@@ -293,7 +293,7 @@
           <p class="structures-lead" data-i18n="structuresSection.body">Discover the historic courtyard houses, ancient places of worship, stone bridges, and narrow streets.</p>
         </div>
         <div class="structures-grid" id="structures-grid-container" aria-live="polite">
-          <!-- dynamically populated from archive.json -->
+          <!-- dynamically populated from /api/archive -->
         </div>
       </div>
     </section>
@@ -309,7 +309,7 @@
           <p class="beliefs-lead" data-i18n="beliefsSection.body">Antioch's spiritual landscape is unique—a city where churches, mosques, and synagogues stand side-by-side.</p>
         </div>
         <div class="beliefs-grid" id="beliefs-grid-container" aria-live="polite">
-          <!-- dynamically populated from archive.json -->
+          <!-- dynamically populated from /api/archive -->
         </div>
       </div>
     </section>
@@ -325,7 +325,7 @@
           <p class="music-lead" data-i18n="musicSection.body">The music of Antioch weaves together Levantine maqams, church hymns, local folk songs, and the resonant sounds of the Oud and Ney.</p>
         </div>
         <div class="music-list" id="music-list-container" aria-live="polite">
-          <!-- dynamically populated from archive.json -->
+          <!-- dynamically populated from /api/archive -->
         </div>
       </div>
     </section>
@@ -493,9 +493,10 @@
     </div>
   </footer>
 
-  <!-- Scripts — lang.js must precede script.js -->
+  <!-- Scripts — API/i18n helpers must precede script.js -->
   <!-- lang.js is served from /public/lang.js → Vite publicDir / nginx html root -->
   <script src="/lang.js"></script>
+  <script src="/archive-api.js"></script>
   <script src="/script.js"></script>
   <script>
     // Set footer year

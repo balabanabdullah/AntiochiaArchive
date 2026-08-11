@@ -33,7 +33,8 @@ to action, and footer. These existing summaries are accurate and sufficient;
 duplicating them as extra SEO text would reduce clarity.
 
 The 22 current records are not present in the initial HTML. `public/script.js`
-loads `/archive.json`, selects the active TR/EN/AR values, and renders:
+loads the authoritative `GET /api/archive` response once, selects the active
+TR/EN/AR values, and renders:
 
 - 3 history records;
 - 3 stories;
@@ -44,15 +45,16 @@ loads `/archive.json`, selects the active TR/EN/AR values, and renders:
 
 Search, filters, localized card text, gallery captions, and the lightbox depend
 on JavaScript. Capable crawlers can execute this, but extraction is less
-predictable than from stable record pages. The current public renderer reads the
-static `/archive.json` build asset, while Firestore is available through
-`/api/archive`. A future publishing workflow should explicitly decide how an
-approved Firestore archive snapshot becomes the public build source so admin
-updates and public pages cannot drift.
+predictable than from stable record pages. `/api/archive` is the only public
+runtime data source: in production it reads Firestore, while local file mode
+reads `data/archive.json` behind the same API. There is no parallel public
+archive snapshot. Future entity-detail page generation should use an explicitly
+reviewed Firestore/API snapshot during the publishing process.
 
 ## Current archive entity model
 
-`public/archive.json` is a six-category object. The current snapshot uses unique
+The archive API exposes a six-category object. The local seed/reference file is
+`data/archive.json`. The current dataset uses unique
 prefixed IDs (`h1`, `s1`, `st1`, `b1`, `m1`, `g1`, and related values), but those
 IDs are not yet public URLs and uniqueness is not enforced across releases.
 
@@ -343,8 +345,8 @@ The strategy is entity-first and evidence-first:
 
 ## Current limitations
 
-- all record cards require JavaScript and `/archive.json`;
-- the static public archive and Firestore publishing path can drift;
+- all record cards require JavaScript and `/api/archive`;
+- record content is not present in initial HTML for non-JavaScript crawlers;
 - records have no stable slugs or detail URLs;
 - there is no complete source/citation or media-rights model;
 - current media is placeholder SVG content;
@@ -360,7 +362,7 @@ The strategy is entity-first and evidence-first:
 1. Define editorial/source and media-rights policies.
 2. Add optional source/citation fields and validation.
 3. Add immutable public slugs and controlled entity types.
-4. Align the approved Firestore archive with the public publishing snapshot.
+4. Generate future entity pages from an explicitly reviewed Firestore/API snapshot.
 5. Curate real archival images with alt text, provenance, rights, and dates.
 
 ### P2 — publish discoverable entity pages

@@ -37,10 +37,12 @@ npm run migrate:firestore -- --dry-run
 Migrate once after configuring ADC and `GOOGLE_CLOUD_PROJECT`:
 
 ```text
-npm run migrate:firestore
+npm run migrate:firestore -- --apply
 ```
 
 The command refuses to replace existing archive documents. Use `--force` only
-after deliberately confirming that the JSON archive should replace Firestore.
+with `--apply`, and only after deliberately confirming that the JSON archive
+should replace Firestore. Running the command without either `--dry-run` or
+`--apply` fails without connecting to Firestore.
 Submission IDs are preserved and existing IDs are skipped, so reruns do not
 silently duplicate visitor records. The source JSON files are never deleted.

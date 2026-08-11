@@ -18,11 +18,22 @@ dotenv.config({ path: path.join(backendDirectory, ".env") });
 
 const flags = new Set(process.argv.slice(2));
 const dryRun = flags.has("--dry-run");
+const apply = flags.has("--apply");
 const forceArchive = flags.has("--force");
-const knownFlags = new Set(["--dry-run", "--force"]);
+const knownFlags = new Set(["--dry-run", "--apply", "--force"]);
 
-for (const flag of flags) {
-  if (!knownFlags.has(flag)) throw new Error(`Unknown option: ${flag}`);
+function validateOptions() {
+  for (const flag of flags) {
+    if (!knownFlags.has(flag)) throw new Error(`Unknown option: ${flag}`);
+  }
+
+  if (dryRun === apply) {
+    throw new Error("Choose exactly one migration mode: --dry-run or --apply.");
+  }
+
+  if (forceArchive && !apply) {
+    throw new Error("--force may only be used together with --apply.");
+  }
 }
 
 async function readJson(filePath) {
@@ -59,12 +70,17 @@ async function findExistingSubmissionIds(database, submissions) {
 }
 
 async function migrate() {
+  validateOptions();
   const archivePath = path.join(repositoryRoot, "public", "archive.json");
   const submissionsPath = path.join(repositoryRoot, "data", "submissions.json");
   const archive = assertValidArchive(await readJson(archivePath));
   const submissions = validateSubmissions(await readJson(submissionsPath));
+  const targetProject = String(process.env.GOOGLE_CLOUD_PROJECT || "").trim();
 
   console.log(`Validated ${ARCHIVE_CATEGORIES.length} archive categories and ${submissions.length} submissions.`);
+  console.log(`Migration mode: ${dryRun ? "dry-run" : "apply"}`);
+  console.log(`Target project: ${targetProject || "not configured (not required for dry-run)"}`);
+  console.log("Target Firestore database: (default)");
   if (dryRun) {
     console.log("Dry run complete. Firestore was not initialized and no data was written.");
     return;

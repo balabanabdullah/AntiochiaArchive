@@ -9,6 +9,8 @@ import { getSubmissions, addSubmissionToStore, deleteSubmission } from "./submis
 import { requireAdmin } from "./auth.js";
 import { getSelectedDataStoreName, initializeDataStore } from "./dataStore.js";
 import { backupHandlers, preventBackupCaching } from "./backupController.js";
+import v2Router from "./v2/routes/v2Routes.js";
+import { initializeV2Store } from "./v2/stores/v2Store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -70,6 +72,9 @@ app.delete("/api/submissions/:id", requireAdmin, deleteSubmission);
 app.get("/api/admin/export/archive", preventBackupCaching, requireAdmin, backupHandlers.archive);
 app.get("/api/admin/export/submissions", preventBackupCaching, requireAdmin, backupHandlers.submissions);
 app.get("/api/admin/export/full", preventBackupCaching, requireAdmin, backupHandlers.full);
+
+// v2 domain foundation: read-only, additive, and does not alter any v1 route above.
+app.use("/api/v2", v2Router);
 
 app.get("/api/contribute", (_req, res) => {
   res.json({ status: "active", endpoint: "POST /api/contribute" });
@@ -142,6 +147,7 @@ app.use((err, _req, res, _next) => {
 
 try {
   await initializeDataStore();
+  await initializeV2Store();
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`AntiochiaArchive backend listening on port ${PORT} using ${getSelectedDataStoreName()} storage`);
   });

@@ -7,6 +7,7 @@ const {
   compactImageMetadata,
   createSourceId,
   isAllowedMediaPath,
+  isValidSlug,
   mergeArchiveRecord,
 } = globalThis.AntiochiaAdminArchive;
 
@@ -25,6 +26,8 @@ test("ordinary admin edits preserve provenance and category-specific metadata", 
     customMetadata: { reviewed: true },
     sources: [{ id: "source-1", type: "archive", title: "Catalog" }],
     imageMetadata: { alt: { en: "Archive image" }, license: "CC BY 4.0", aiGenerated: false },
+    slug: "stable-record-slug",
+    entityType: "media",
   };
 
   const result = mergeArchiveRecord(existing, { title: { en: "Updated title" } });
@@ -34,6 +37,8 @@ test("ordinary admin edits preserve provenance and category-specific metadata", 
   assert.deepEqual(result.sources, existing.sources);
   assert.deepEqual(result.imageMetadata, existing.imageMetadata);
   assert.deepEqual(result.customMetadata, existing.customMetadata);
+  assert.equal(result.slug, "stable-record-slug");
+  assert.equal(result.entityType, "media");
 });
 
 test("admin provenance edits preserve unrelated record fields", () => {
@@ -79,4 +84,10 @@ test("admin media path validation rejects script and data protocols", () => {
   assert.equal(isAllowedMediaPath("https://media.example.test/example.jpg"), true);
   assert.equal(isAllowedMediaPath("javascript:alert(1)"), false);
   assert.equal(isAllowedMediaPath("data:image/svg+xml,test"), false);
+});
+
+test("admin validates stable slug syntax", () => {
+  assert.equal(isValidSlug("hz-hizir-ziyareti-samandag"), true);
+  assert.equal(isValidSlug("Hz Hızır"), false);
+  assert.equal(isValidSlug("unsafe/path"), false);
 });

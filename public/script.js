@@ -7,6 +7,7 @@
 /* Cached archive data (loaded once) */
 let archiveData = null;
 let archiveLoadState = "idle";
+let detailPageData = null;
 
 /* ==========================================================================
    State
@@ -128,6 +129,7 @@ function applyLanguage(lang) {
 
   // 9. Re-render cached archive data (or its current error state) in the new language
   renderArchiveSections(lang);
+  renderDetailPage(lang);
   if (archiveLoadState === "error") renderArchiveErrorState(lang);
   if (typeof window.updateContributionsLang === "function") {
     window.updateContributionsLang();
@@ -376,6 +378,25 @@ function imageAltText(item, lang, title) {
   return localizedMetadataValue(item.imageMetadata?.alt, lang, title || "");
 }
 
+function archiveDetailHref(item) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(item?.slug || ""))
+    ? `/archive/${item.slug}/`
+    : null;
+}
+
+function renderArchiveDetailLink(item, lang) {
+  const href = archiveDetailHref(item);
+  if (!href) return "";
+  const label = resolveKey(lang, "actions.viewRecord") || "View record";
+  return `<a class="archive-detail-link" href="${escapeHtml(href)}"><span>${escapeHtml(label)}</span><span aria-hidden="true">→</span></a>`;
+}
+
+function multilingualSearchText(...values) {
+  return escapeHtml(values.flatMap((value) => (
+    value && typeof value === "object" ? Object.values(value) : [value]
+  )).filter(Boolean).join(" "));
+}
+
 function formatImageAttribution(metadata, lang) {
   if (!metadata || typeof metadata !== "object") return "";
   const parts = [];
@@ -397,8 +418,8 @@ function renderRecordImage(item, lang, title, className) {
   if (!mediaUrl) return null;
   const alt = imageAltText(item, lang, title);
   return `
-    <figure class="archive-media-figure">
-      <img class="${escapeHtml(className)}" src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(alt)}" loading="lazy">
+    <figure class="archive-media-figure" data-fallback-type="${escapeHtml(item.svgType || "circles")}" data-fallback-color="${escapeHtml(item.svgColor || "#903628")}" data-fallback-bg="${escapeHtml(item.svgBg || "#ded4c0")}">
+      <img class="${escapeHtml(className)}" src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(alt)}" loading="lazy" data-archive-image>
       ${renderAiImageLabel(item.imageMetadata, lang)}
     </figure>`;
 }
@@ -410,7 +431,7 @@ function renderHistory(items, lang) {
     const era = item.era[lang] ?? item.era.en;
     const body = item.body[lang] ?? item.body.en;
     const cat = item.categoryKey || "all";
-    const searchStr = escapeHtml(`${title} ${era} ${body}`);
+    const searchStr = multilingualSearchText(item.title, item.era, item.body);
     const mediaHtml = renderRecordImage(item, lang, title, "timeline-image") || svg;
     return `
       <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
@@ -418,6 +439,7 @@ function renderHistory(items, lang) {
         <div class="timeline-visual"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
         <h3 class="timeline-title">${escapeHtml(title)}</h3>
         <p class="timeline-desc">${escapeHtml(body)}</p>
+        ${renderArchiveDetailLink(item, lang)}
       </article>`;
   }).join("");
 }
@@ -429,7 +451,7 @@ function renderStories(items, lang) {
     const tag = item.tag[lang] ?? item.tag.en;
     const body = item.body[lang] ?? item.body.en;
     const cat = item.categoryKey || "all";
-    const searchStr = escapeHtml(`${title} ${tag} ${body}`);
+    const searchStr = multilingualSearchText(item.title, item.tag, item.body);
     const realImage = renderRecordImage(item, lang, title, "story-image");
     return `
       <article class="story-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" aria-label="Story: ${escapeHtml(title)}">
@@ -440,6 +462,7 @@ function renderStories(items, lang) {
         <div class="story-content">
           <h3 class="story-title">${escapeHtml(title)}</h3>
           <p class="story-body">${escapeHtml(body)}</p>
+          ${renderArchiveDetailLink(item, lang)}
         </div>
       </article>`;
   }).join("");
@@ -452,7 +475,7 @@ function renderStructures(items, lang) {
     const tag = item.tag[lang] ?? item.tag.en;
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
-    const searchStr = escapeHtml(`${title} ${tag} ${desc}`);
+    const searchStr = multilingualSearchText(item.title, item.tag, item.desc);
     const realImage = renderRecordImage(item, lang, title, "struct-image");
     return `
     <article class="struct-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
@@ -463,6 +486,7 @@ function renderStructures(items, lang) {
         <div class="struct-info">
           <h3 class="struct-title">${escapeHtml(title)}</h3>
           <p class="struct-desc">${escapeHtml(desc)}</p>
+          ${renderArchiveDetailLink(item, lang)}
         </div>
       </article>`;
   }).join("");
@@ -473,7 +497,7 @@ function renderBeliefs(items, lang) {
     const title = item.title[lang] ?? item.title.en;
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
-    const searchStr = escapeHtml(`${title} ${desc}`);
+    const searchStr = multilingualSearchText(item.title, item.desc);
     const realImage = renderRecordImage(item, lang, title, "belief-image");
     return `
     <article class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
@@ -481,6 +505,7 @@ function renderBeliefs(items, lang) {
       <div class="belief-icon" aria-hidden="true">${escapeHtml(item.icon)}</div>
       <h3 class="belief-title">${escapeHtml(title)}</h3>
       <p class="belief-desc">${escapeHtml(desc)}</p>
+      ${renderArchiveDetailLink(item, lang)}
     </article>`;
   }).join("");
 }
@@ -491,7 +516,7 @@ function renderMusic(items, lang) {
     const tag = item.tag[lang] ?? item.tag.en;
     const desc = item.desc[lang] ?? item.desc.en;
     const cat = item.categoryKey || "all";
-    const searchStr = escapeHtml(`${title} ${tag} ${desc}`);
+    const searchStr = multilingualSearchText(item.title, item.tag, item.desc);
     return `
     <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
       <div class="track-badge" aria-hidden="true">${escapeHtml(item.badge)}</div>
@@ -499,6 +524,7 @@ function renderMusic(items, lang) {
         <span class="track-tag">${escapeHtml(tag)}</span>
         <h3 class="track-title">${escapeHtml(title)}</h3>
         <p class="track-desc">${escapeHtml(desc)}</p>
+        ${renderArchiveDetailLink(item, lang)}
       </div>
     </article>`;
   }).join("");
@@ -511,7 +537,7 @@ function renderGallery(items, lang) {
     const cat = item.category[lang] ?? item.category.en;
     const caption = item.caption[lang] ?? item.caption.en;
     const catKey = item.categoryKey || "all";
-    const searchStr = escapeHtml(`${title} ${cat} ${caption}`);
+    const searchStr = multilingualSearchText(item.title, item.category, item.caption);
     
     let mediaHtml = "";
     const realImage = renderRecordImage(item, lang, title, "gallery-img");
@@ -523,15 +549,18 @@ function renderGallery(items, lang) {
     }
 
     return `
-      <article class="gallery-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(catKey)}" data-gallery-idx="${idx}" tabindex="0" role="button" aria-label="View ${escapeHtml(title)}">
-        <div class="gallery-media-wrap">
-          ${mediaHtml}
-          <span class="gallery-category">${escapeHtml(cat)}</span>
-          <div class="gallery-overlay-icon" aria-hidden="true">🔍</div>
-        </div>
+      <article class="gallery-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(catKey)}">
+        <button class="gallery-lightbox-trigger" type="button" data-gallery-idx="${idx}" aria-label="View ${escapeHtml(title)}">
+          <div class="gallery-media-wrap">
+            ${mediaHtml}
+            <span class="gallery-category">${escapeHtml(cat)}</span>
+            <div class="gallery-overlay-icon" aria-hidden="true">🔍</div>
+          </div>
+        </button>
         <div class="gallery-info">
           <h3 class="gallery-title">${escapeHtml(title)}</h3>
           <p class="gallery-caption">${escapeHtml(caption)}</p>
+          ${renderArchiveDetailLink(item, lang)}
         </div>
       </article>`;
   }).join("");
@@ -572,7 +601,63 @@ function renderArchiveSections(lang) {
   initMusicTrackButtons();
   initStoryButtons();
   initGalleryClickHandlers();
+  initArchiveImageFallbacks();
   applyCombinedFilters();
+}
+
+function initArchiveImageFallbacks(root = document) {
+  root.querySelectorAll("img[data-archive-image]").forEach((image) => {
+    if (image.dataset.fallbackReady === "true") return;
+    image.dataset.fallbackReady = "true";
+    const replaceBrokenImage = () => {
+      const figure = image.closest(".archive-media-figure");
+      if (!figure || figure.dataset.fallbackApplied === "true") return;
+      figure.dataset.fallbackApplied = "true";
+      figure.classList.add("archive-media-fallback");
+      figure.setAttribute("aria-hidden", "true");
+      figure.innerHTML = buildSvg(
+        figure.dataset.fallbackType || "circles",
+        figure.dataset.fallbackColor || "#903628",
+        figure.dataset.fallbackBg || "#ded4c0",
+      );
+    };
+    image.addEventListener("error", replaceBrokenImage, { once: true });
+    if (image.complete && image.naturalWidth === 0) replaceBrokenImage();
+  });
+}
+
+function readDetailPageData() {
+  if (detailPageData) return detailPageData;
+  const element = document.getElementById("archive-record-data");
+  if (!element) return null;
+  try {
+    detailPageData = JSON.parse(element.textContent);
+    return detailPageData;
+  } catch (error) {
+    console.error("[AntiochiaArchive] Detail page data is invalid:", error);
+    return null;
+  }
+}
+
+function renderDetailPage(lang) {
+  const data = readDetailPageData();
+  if (!data?.record) return;
+  const { category, record } = data;
+  const title = localizedMetadataValue(record.title, lang, record.id);
+  const description = localizedMetadataValue(record.body || record.desc || record.caption, lang);
+  const taxonomy = localizedMetadataValue(record.era || record.tag || record.category, lang, record.categoryKey || record.entityType);
+  document.querySelectorAll("[data-detail-title]").forEach((element) => { element.textContent = title; });
+  document.querySelectorAll("[data-detail-description]").forEach((element) => { element.textContent = description; });
+  document.querySelectorAll("[data-detail-taxonomy]").forEach((element) => { element.textContent = taxonomy; });
+  document.querySelectorAll("[data-detail-category]").forEach((element) => {
+    element.textContent = resolveKey(lang, `nav.${category}`) || category;
+  });
+  const image = document.querySelector(".record-detail-image");
+  if (image) image.alt = imageAltText(record, lang, title);
+  const caption = document.querySelector("[data-detail-image-caption]");
+  if (caption) caption.textContent = localizedMetadataValue(record.imageMetadata?.caption, lang);
+  document.title = `${title} — AntiochiaArchive`;
+  initArchiveImageFallbacks();
 }
 
 function localizedArchiveText(key, lang) {
@@ -798,7 +883,9 @@ function renderContributionsMap(items) {
    Gallery Lightbox Logic
    ========================================================================== */
 
-function openLightbox(itemIndex) {
+let lastLightboxTrigger = null;
+
+function openLightbox(itemIndex, trigger = null) {
   if (!archiveData || !archiveData.gallery || !archiveData.gallery[itemIndex]) return;
   const item = archiveData.gallery[itemIndex];
   const lang = currentLang;
@@ -825,7 +912,12 @@ function openLightbox(itemIndex) {
     image.src = mediaUrl;
     image.alt = imageAltText(item, lang, title);
     image.className = "lightbox-img";
+    image.dataset.archiveImage = "";
     figure.className = "lightbox-figure";
+    figure.classList.add("archive-media-figure");
+    figure.dataset.fallbackType = item.svgType || "circles";
+    figure.dataset.fallbackColor = item.svgColor || "#903628";
+    figure.dataset.fallbackBg = item.svgBg || "#ded4c0";
     figure.appendChild(image);
     if (imageCaption) {
       const figcaption = document.createElement("figcaption");
@@ -841,6 +933,7 @@ function openLightbox(itemIndex) {
       figure.appendChild(aiLabel);
     }
     mediaContainer.replaceChildren(figure);
+    initArchiveImageFallbacks(mediaContainer);
   } else {
     const svg = buildSvg(item.svgType || "house", item.svgColor || "#903628", item.svgBg || "#ded4c0");
     mediaContainer.innerHTML = `<svg class="lightbox-svg" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`;
@@ -857,6 +950,8 @@ function openLightbox(itemIndex) {
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
+  lastLightboxTrigger = trigger;
+  document.getElementById("lightbox-close")?.focus();
 }
 
 function closeLightbox() {
@@ -865,21 +960,15 @@ function closeLightbox() {
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
+  lastLightboxTrigger?.focus();
+  lastLightboxTrigger = null;
 }
 
 function initGalleryClickHandlers() {
-  document.querySelectorAll(".gallery-card").forEach((card) => {
-    const handler = () => {
-      const idx = parseInt(card.dataset.galleryIdx, 10);
-      if (!isNaN(idx)) openLightbox(idx);
-    };
-
-    card.onclick = handler;
-    card.onkeydown = (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        handler();
-      }
+  document.querySelectorAll(".gallery-lightbox-trigger").forEach((trigger) => {
+    trigger.onclick = () => {
+      const idx = parseInt(trigger.dataset.galleryIdx, 10);
+      if (!isNaN(idx)) openLightbox(idx, trigger);
     };
   });
 }
@@ -898,6 +987,9 @@ function initLightbox() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal && modal.classList.contains("open")) {
       closeLightbox();
+    } else if (e.key === "Tab" && modal && modal.classList.contains("open")) {
+      e.preventDefault();
+      closeBtn?.focus();
     }
   });
 }

@@ -36,8 +36,9 @@ test("record images use localized metadata while held records keep placeholders"
   assert.match(turkish, /Habib-i Neccar Camii'nin altındaki/);
   assert.match(english, /Tomb attributed to Habib-i Neccar/);
   assert.match(arabic, /القبر المنسوب إلى حبيب النجار/);
-  assert.equal((turkish.match(/class="belief-image"/g) || []).length, 2);
+  assert.equal((turkish.match(/class="belief-image"/g) || []).length, 3);
   assert.match(turkish, /🕍/);
+  assert.match(turkish, /Hz\. Hızır Ziyareti/);
   assert.doesNotMatch(turkish, /generated with artificial intelligence/);
 });
 

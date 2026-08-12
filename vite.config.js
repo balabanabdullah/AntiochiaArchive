@@ -104,6 +104,8 @@ export default defineConfig({
         gallery:       "pages/gallery.html",
         submissions:   "pages/submissions.html",
         contributions: "pages/contributions.html",
+        methodology:    "pages/methodology.html",
+        notFound:       "404.html",
       },
     },
   },

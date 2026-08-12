@@ -13,6 +13,8 @@ const HTML_ENTRIES = Object.freeze([
   "pages/contributions.html",
   "pages/submissions.html",
   "pages/admin.html",
+  "pages/methodology.html",
+  "404.html",
 ]);
 const STABLE_RUNTIME_REFERENCES = /(?:src|href)=["']\/(?:(?:script|lang|archive-api|admin-api|admin-archive)\.js|style\.css)["']/g;
 

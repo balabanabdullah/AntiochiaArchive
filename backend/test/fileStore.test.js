@@ -20,7 +20,7 @@ test("default file mode reads the private data/archive.json seed", async (contex
   assert.deepEqual(Object.keys(archive), ARCHIVE_CATEGORIES);
   assert.equal(
     ARCHIVE_CATEGORIES.reduce((total, category) => total + archive[category].length, 0),
-    22,
+    23,
   );
 });
 

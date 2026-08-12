@@ -34,6 +34,15 @@
     "accessedAt",
     "rightsNote",
   ]);
+  const ENTITY_TYPES = Object.freeze([
+    "historicalContext",
+    "story",
+    "structure",
+    "beliefSite",
+    "musicTradition",
+    "media",
+  ]);
+  const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
   function isHttpUrl(value) {
     try {
@@ -46,6 +55,10 @@
   function isAllowedMediaPath(value) {
     const candidate = String(value || "").trim();
     return !candidate || isHttpUrl(candidate) || (/^\/(?!\/)[^\s\\]*$/.test(candidate));
+  }
+
+  function isValidSlug(value) {
+    return SLUG_PATTERN.test(String(value || ""));
   }
 
   function createSourceId(cryptoApi = root.crypto) {
@@ -132,11 +145,13 @@
 
   root.AntiochiaAdminArchive = Object.freeze({
     SOURCE_TYPES,
+    ENTITY_TYPES,
     compactImageMetadata,
     compactSource,
     createSourceId,
     isAllowedMediaPath,
     isHttpUrl,
+    isValidSlug,
     mergeArchiveRecord,
   });
 })(typeof window !== "undefined" ? window : globalThis);

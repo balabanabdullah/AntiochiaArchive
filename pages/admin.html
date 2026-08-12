@@ -261,6 +261,14 @@
       gap: 10px;
     }
 
+    .form-help {
+      display: block;
+      margin-top: 6px;
+      color: var(--clr-ink-muted);
+      font-size: 0.74rem;
+      line-height: 1.5;
+    }
+
     .form-row-two {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -484,6 +492,25 @@
           <input class="form-input" type="text" id="field-category-key" placeholder="all">
         </div>
 
+        <div class="form-row-two">
+          <div class="form-group">
+            <label class="form-label" for="field-slug">Kalıcı URL Adı (slug)</label>
+            <input class="form-input" type="text" id="field-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required aria-describedby="slug-warning">
+            <small id="slug-warning" class="form-help">Yayımlandıktan sonra yalnızca açık bir yönlendirme planıyla değiştirin; başlık değişikliği slug değerini otomatik değiştirmez.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="field-entity-type">Kayıt Türü (entityType)</label>
+            <select class="form-input" id="field-entity-type" required>
+              <option value="historicalContext">historicalContext</option>
+              <option value="story">story</option>
+              <option value="structure">structure</option>
+              <option value="beliefSite">beliefSite</option>
+              <option value="musicTradition">musicTradition</option>
+              <option value="media">media</option>
+            </select>
+          </div>
+        </div>
+
         <div class="form-group">
           <label class="form-label">Etiket / Dönem (Tag / Era)</label>
           <div class="form-row">
@@ -631,6 +658,18 @@
     let currentCategory = "history";
     const API_BASE = "/api/archive";
     const ARCHIVE_CATEGORIES = ["history", "stories", "structures", "beliefs", "music", "gallery"];
+    const CATEGORY_ENTITY_TYPES = Object.freeze({
+      history: "historicalContext",
+      stories: "story",
+      structures: "structure",
+      beliefs: "beliefSite",
+      music: "musicTradition",
+      gallery: "media",
+    });
+
+    function categoryEntityType(category) {
+      return CATEGORY_ENTITY_TYPES[category] || "historicalContext";
+    }
 
     /* ── DOM Elements ────────────────────────────────────────────────────────── */
     const tableBody = document.getElementById("table-body");
@@ -844,6 +883,8 @@
       document.getElementById("edit-item-index").value = index;
       document.getElementById("field-id").value = item.id || "";
       document.getElementById("field-category-key").value = item.categoryKey || "all";
+      document.getElementById("field-slug").value = item.slug || "";
+      document.getElementById("field-entity-type").value = item.entityType || categoryEntityType(currentCategory);
 
       const tagObj = item.tag || item.era || {};
       document.getElementById("field-tag-tr").value = tagObj.tr || "";
@@ -882,6 +923,8 @@
       document.getElementById("editor-form").reset();
       document.getElementById("field-id").value = `${currentCategory.slice(0, 2)}${Date.now().toString().slice(-3)}`;
       document.getElementById("field-category-key").value = "all";
+      document.getElementById("field-slug").value = "";
+      document.getElementById("field-entity-type").value = categoryEntityType(currentCategory);
       loadImageMetadata({});
       renderSourceEditors([]);
       configureCategoryFields();
@@ -902,6 +945,24 @@
       const index = parseInt(document.getElementById("edit-item-index").value, 10);
       const id = document.getElementById("field-id").value.trim();
       const categoryKey = document.getElementById("field-category-key").value.trim() || "all";
+      const slug = document.getElementById("field-slug").value.trim();
+      const entityType = document.getElementById("field-entity-type").value;
+
+      if (!AntiochiaAdminArchive.isValidSlug(slug)) {
+        showToast("Slug yalnızca küçük harf, rakam ve tek tire grupları içermelidir.", "error");
+        return;
+      }
+      if (!AntiochiaAdminArchive.ENTITY_TYPES.includes(entityType)) {
+        showToast("Geçerli bir kayıt türü seçin.", "error");
+        return;
+      }
+      const duplicateSlug = ARCHIVE_CATEGORIES.some((category) => (
+        archiveState[category].some((item, itemIndex) => item.slug === slug && !(category === currentCategory && itemIndex === index))
+      ));
+      if (duplicateSlug) {
+        showToast("Bu slug başka bir kayıtta kullanılıyor.", "error");
+        return;
+      }
 
       const tagObj = {
         tr: document.getElementById("field-tag-tr").value.trim(),
@@ -922,7 +983,7 @@
       };
 
       const existingItem = index >= 0 ? archiveState[currentCategory][index] : {};
-      const newItem = { id, categoryKey };
+      const newItem = { id, slug, entityType, categoryKey };
 
       if (currentCategory === "history") {
         newItem.era = tagObj;

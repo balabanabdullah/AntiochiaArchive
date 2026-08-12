@@ -18,6 +18,17 @@ export const SOURCE_TYPES = Object.freeze([
   "other",
 ]);
 
+export const ENTITY_TYPES = Object.freeze([
+  "historicalContext",
+  "story",
+  "structure",
+  "beliefSite",
+  "musicTradition",
+  "media",
+]);
+
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const LANGUAGES = Object.freeze(["tr", "en", "ar"]);
 const SOURCE_TEXT_FIELDS = Object.freeze([
   "id",
@@ -121,6 +132,18 @@ function validateImageMetadata(metadata, fieldPath) {
 function validateArchiveItem(item, fieldPath) {
   if (!isObject(item)) return `${fieldPath} must be an object.`;
 
+  if (item.slug != null) {
+    if (typeof item.slug !== "string" || !SLUG_PATTERN.test(item.slug)) {
+      return `${fieldPath}.slug must be a lowercase, hyphenated stable identifier.`;
+    }
+  }
+
+  if (item.entityType != null) {
+    if (typeof item.entityType !== "string" || !ENTITY_TYPES.includes(item.entityType)) {
+      return `${fieldPath}.entityType must be one of: ${ENTITY_TYPES.join(", ")}.`;
+    }
+  }
+
   for (const mediaField of ["image", "src"]) {
     if (item[mediaField] != null && item[mediaField] !== "" && !isAllowedArchiveMediaPath(item[mediaField])) {
       return `${fieldPath}.${mediaField} must be an http(s) URL or a root-relative local path.`;
@@ -148,6 +171,17 @@ export function validateArchive(archive) {
     return { valid: false, error: "Invalid payload provided. Body must be a JSON object." };
   }
 
+  const unsupportedCategories = Object.keys(archive).filter((key) => !ARCHIVE_CATEGORIES.includes(key));
+  if (unsupportedCategories.length) {
+    return {
+      valid: false,
+      error: `Unsupported archive categories: ${unsupportedCategories.join(", ")}.`,
+    };
+  }
+
+  const seenIds = new Set();
+  const seenSlugs = new Set();
+
   for (const category of ARCHIVE_CATEGORIES) {
     if (!Array.isArray(archive[category])) {
       return {
@@ -159,6 +193,15 @@ export function validateArchive(archive) {
     for (const [index, item] of archive[category].entries()) {
       const error = validateArchiveItem(item, `${category}[${index}]`);
       if (error) return { valid: false, error };
+
+      if (item.id != null) {
+        if (seenIds.has(item.id)) return { valid: false, error: `Duplicate archive ID: ${item.id}.` };
+        seenIds.add(item.id);
+      }
+      if (item.slug != null) {
+        if (seenSlugs.has(item.slug)) return { valid: false, error: `Duplicate archive slug: ${item.slug}.` };
+        seenSlugs.add(item.slug);
+      }
     }
   }
 

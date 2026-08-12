@@ -26,6 +26,7 @@ services:
       - "5173:5173"
     volumes:
       - ./index.html:/app/index.html:ro
+      - ./404.html:/app/404.html:ro
       - ./style.css:/app/style.css:ro
       - ./vite.config.js:/app/vite.config.js:ro
       - ./package.json:/app/package.json:ro

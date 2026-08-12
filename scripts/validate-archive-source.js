@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateReleaseArchive } from "./archive-release.js";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const categories = ["history", "stories", "structures", "beliefs", "music", "gallery"];
@@ -31,6 +32,7 @@ try {
   check(fs.existsSync(privateArchivePath), "data/archive.json is missing");
 
   const archive = JSON.parse(read("data/archive.json"));
+  const release = validateReleaseArchive(archive);
   categories.forEach((category) => check(Array.isArray(archive[category]), `archive category '${category}' is missing`));
   const recordCount = categories.reduce((total, category) => total + archive[category].length, 0);
 
@@ -52,7 +54,8 @@ try {
   const builtArchivePath = path.join(repositoryRoot, "dist", "archive.json");
   check(!fs.existsSync(builtArchivePath), "dist/archive.json must not exist");
 
-  console.log(`Archive source validation passed: ${categories.length} categories, ${recordCount} records, API-only public runtime.`);
+  check(release.count === recordCount, "release identity validation count does not match archive count");
+  console.log(`Archive source validation passed: ${categories.length} categories, ${recordCount} records, stable slugs/entity types, API-only public runtime.`);
 } catch (error) {
   console.error(`Archive source validation failed: ${error.message}`);
   process.exitCode = 1;

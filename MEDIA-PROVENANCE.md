@@ -1,9 +1,9 @@
 # Media and Provenance Policy
 
 This document defines the metadata and review workflow that AntiochiaArchive
-uses when verified sources and real archival media are added. A first controlled
-local integration has populated image metadata for approved images on 15 of the
-22 existing archive records. An empty or missing field is not evidence of a
+uses when verified sources and real archival media are added. Controlled local
+integrations have populated image metadata for approved images on 16 of the 23
+v1.0 archive records. An empty or missing field is not evidence of a
 fact, and no image provenance has been converted into a historical record
 source automatically.
 
@@ -17,11 +17,11 @@ source automatically.
 - `b3` remains on its icon placeholder because the staged file is watermarked
   and its reviewed license does not permit the derivative workflow used here.
 - `s3`, `m1`, `m2`, `m3`, and `g1` have no approved image yet.
-- Research item `b4` remains a deferred new-record proposal and has not been
-  added to the 22-record archive or its public assets.
+- Approved record `b4` uses the reviewed Wikimedia Commons image and CC BY 4.0
+  attribution recorded in its `imageMetadata`; the staged source remains private.
 - The three stereoscopic hero derivatives are presentation assets only. They
-  are not archive records, not an API category, and are not currently wired
-  into the map-based homepage hero.
+  are not archive records and not an API category. The reviewed Silpius panorama
+  is the homepage hero; the other two derivatives are retained for future use.
 
 ## Record sources
 
@@ -188,9 +188,11 @@ define retention/lifecycle behavior deliberately. See the official
 and [object lifecycle documentation](https://cloud.google.com/storage/docs/lifecycle).
 No bucket or upload workflow is implemented by this change.
 
-## Editorial policy still required
+## Public methodology and remaining policy work
 
-A future public methodology page should describe the real, approved process for
-editorial review, source verification, oral-history consent, image rights, and
-corrections. It must be published only after those practices are defined; this
-schema alone must not be represented as an institutional review policy.
+The public `/pages/methodology.html` page now describes only practices already
+established here: source review, image-provenance separation, rights holds,
+qualified traditional claims, AI-image labeling, and editorial corrections. It
+does not claim institutional affiliation or academic peer review. A documented
+oral-history consent process is still required before visitor media or recorded
+testimony can be accepted; v1.0 intentionally provides no media-upload workflow.

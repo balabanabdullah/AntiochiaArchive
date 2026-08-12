@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ARCHIVE_CATEGORIES,
+  ENTITY_TYPES,
   SOURCE_TYPES,
   isAllowedArchiveMediaPath,
   normalizeArchiveDocuments,
@@ -18,11 +19,38 @@ test("archive validation accepts all six array categories", () => {
   assert.deepEqual(validateArchive(validArchive()), { valid: true });
 });
 
+test("archive validation accepts stable slugs and controlled entity types", () => {
+  const archive = validArchive();
+  archive.history.push({ id: "h1", slug: "antik-akdeniz-kavsagi", entityType: "historicalContext" });
+  assert.deepEqual(validateArchive(archive), { valid: true });
+  assert.ok(ENTITY_TYPES.includes("beliefSite"));
+
+  archive.history[0].slug = "Invalid Slug";
+  assert.match(validateArchive(archive).error, /slug/);
+  archive.history[0].slug = "valid-slug";
+  archive.history[0].entityType = "touristAttraction";
+  assert.match(validateArchive(archive).error, /entityType/);
+});
+
+test("archive validation rejects duplicate global slugs", () => {
+  const archive = validArchive();
+  archive.history.push({ id: "h1", slug: "shared-slug" });
+  archive.stories.push({ id: "s1", slug: "shared-slug" });
+  assert.match(validateArchive(archive).error, /Duplicate archive slug/);
+});
+
 test("archive validation identifies a missing category", () => {
   const archive = validArchive();
   delete archive.music;
   assert.equal(validateArchive(archive).valid, false);
   assert.match(validateArchive(archive).error, /music/);
+});
+
+test("archive validation rejects unsupported top-level categories", () => {
+  const archive = validArchive();
+  archive.hero = [];
+  assert.equal(validateArchive(archive).valid, false);
+  assert.match(validateArchive(archive).error, /Unsupported archive categories: hero/);
 });
 
 test("legacy archive records remain valid without provenance metadata", () => {

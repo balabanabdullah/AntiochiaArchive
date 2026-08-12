@@ -15,6 +15,8 @@ function sampleArchive() {
   const archive = Object.fromEntries(ARCHIVE_CATEGORIES.map((category) => [category, []]));
   archive.history.push({
     id: "history-1",
+    slug: "antioch-history-record",
+    entityType: "historicalContext",
     categoryKey: "history",
     title: { tr: "Antakya", en: "Antioch", ar: "أنطاكية" },
     sources: [{ id: "source-backup", type: "book", title: "Verified title" }],
@@ -118,6 +120,8 @@ test("authenticated archive export returns all categories and a safe filename", 
   assert.deepEqual(body.history[0].sources, archive.history[0].sources);
   assert.deepEqual(body.history[0].imageMetadata, archive.history[0].imageMetadata);
   assert.equal(body.history[0].image, "/images/archive/example.jpg");
+  assert.equal(body.history[0].slug, "antioch-history-record");
+  assert.equal(body.history[0].entityType, "historicalContext");
   assert.equal(
     response.headers["Content-Disposition"],
     'attachment; filename="antiochia-archive-backup-2026-08-11-123456.json"',

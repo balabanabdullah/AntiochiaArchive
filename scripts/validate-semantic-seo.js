@@ -1,6 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  flattenArchive,
+  generateDetailDocument,
+  recordDetailPath,
+  validateReleaseArchive,
+} from "./archive-release.js";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const productionOrigin = "https://antiochia-app-6939593871.europe-west1.run.app";
@@ -14,10 +20,14 @@ const publicPages = [
   { file: "pages/music.html", url: `${productionOrigin}/pages/music.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/gallery.html", url: `${productionOrigin}/pages/gallery.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/contributions.html", url: `${productionOrigin}/pages/contributions.html`, types: [] },
+  { file: "pages/methodology.html", url: `${productionOrigin}/pages/methodology.html`, types: ["WebPage"] },
 ];
 
 const privatePages = ["pages/admin.html", "pages/submissions.html"];
 const structuredUrls = new Set(publicPages.filter((page) => page.types.length).map((page) => page.url));
+const archive = JSON.parse(read("data/archive.json"));
+validateReleaseArchive(archive);
+flattenArchive(archive).forEach(({ record }) => structuredUrls.add(`${productionOrigin}${recordDetailPath(record)}`));
 
 function read(file) {
   return fs.readFileSync(path.join(repositoryRoot, file), "utf8");
@@ -146,10 +156,36 @@ function validatePrivatePages() {
   }
 }
 
+function validateGeneratedDetails() {
+  let count = 0;
+  for (const { category, record } of flattenArchive(archive)) {
+    const html = generateDetailDocument({
+      category,
+      record,
+      stylesheet: "/assets/style-test.css",
+      langScript: "/assets/lang-test.js",
+      appScript: "/assets/script-test.js",
+    });
+    const url = `${productionOrigin}${recordDetailPath(record)}`;
+    const title = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1].trim() || "";
+    check(title, `${record.id}: missing generated title`);
+    check(attributeContent(html, "name", "description"), `${record.id}: missing generated description`);
+    check(canonicalUrl(html) === url, `${record.id}: generated canonical is incorrect`);
+    check(attributeContent(html, "property", "og:url") === url, `${record.id}: generated og:url is incorrect`);
+    check((html.match(/<h1\b/gi) || []).length === 1, `${record.id}: generated page must have one H1`);
+    check(/<p class="record-detail-summary"[^>]*>[^<]+<\/p>/.test(html), `${record.id}: primary summary is not present in static HTML`);
+    const documents = jsonLdDocuments(html, record.id);
+    check(schemaTypes(documents).has("WebPage"), `${record.id}: missing WebPage JSON-LD`);
+    count += 1;
+  }
+  return count;
+}
+
 try {
   const documentCount = publicPages.reduce((count, page) => count + validatePublicPage(page), 0);
   validatePrivatePages();
-  console.log(`Semantic SEO validation passed: ${publicPages.length} public pages, ${privatePages.length} private pages, ${documentCount} JSON-LD documents.`);
+  const detailCount = validateGeneratedDetails();
+  console.log(`Semantic SEO validation passed: ${publicPages.length} public pages, ${detailCount} detail pages, ${privatePages.length} private pages, ${documentCount + detailCount} JSON-LD documents.`);
 } catch (error) {
   console.error(`Semantic SEO validation failed: ${error.message}`);
   process.exitCode = 1;

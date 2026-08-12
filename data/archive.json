@@ -2,6 +2,8 @@
   "history": [
     {
       "id": "h1",
+      "slug": "antik-akdeniz-kavsagi-antakya",
+      "entityType": "historicalContext",
       "categoryKey": "infrastructure",
       "era": {
         "en": "300 BCE — Roman Capital",
@@ -45,6 +47,8 @@
     },
     {
       "id": "h2",
+      "slug": "antakya-kultur-ve-ticaret-mozaigi",
+      "entityType": "historicalContext",
       "categoryKey": "courtyard",
       "era": {
         "en": "Medieval & Ottoman Eras",
@@ -68,6 +72,8 @@
     },
     {
       "id": "h3",
+      "slug": "antakya-kimligini-korumak",
+      "entityType": "historicalContext",
       "categoryKey": "all",
       "era": {
         "en": "Modern Memory",
@@ -113,6 +119,8 @@
   "stories": [
     {
       "id": "s1",
+      "slug": "kurtulus-caddesi-eski-tas-ev",
+      "entityType": "story",
       "categoryKey": "courtyard",
       "tag": {
         "en": "Kurtuluş Street",
@@ -156,6 +164,8 @@
     },
     {
       "id": "s2",
+      "slug": "asi-nehri-su-dolaplari",
+      "entityType": "story",
       "categoryKey": "infrastructure",
       "tag": {
         "en": "Orontes River",
@@ -199,6 +209,8 @@
     },
     {
       "id": "s3",
+      "slug": "ekmek-ve-tuz-ortak-bayram-sofralari",
+      "entityType": "story",
       "categoryKey": "all",
       "tag": {
         "en": "Old Quarter",
@@ -224,6 +236,8 @@
   "structures": [
     {
       "id": "st1",
+      "slug": "habib-i-neccar-camii",
+      "entityType": "structure",
       "categoryKey": "mosque",
       "tag": {
         "en": "Historic Mosque",
@@ -267,6 +281,8 @@
     },
     {
       "id": "st2",
+      "slug": "st-pierre-kilisesi",
+      "entityType": "structure",
       "categoryKey": "church",
       "tag": {
         "en": "Cave Sanctuary",
@@ -310,6 +326,8 @@
     },
     {
       "id": "st3",
+      "slug": "roma-mozaikleri-antakya",
+      "entityType": "structure",
       "categoryKey": "mosaic",
       "tag": {
         "en": "Roman Heritage",
@@ -353,6 +371,8 @@
     },
     {
       "id": "st4",
+      "slug": "antakya-evleri",
+      "entityType": "structure",
       "categoryKey": "courtyard",
       "tag": {
         "en": "Urban Fabric",
@@ -398,6 +418,8 @@
   "beliefs": [
     {
       "id": "b1",
+      "slug": "habib-i-neccar-turbesi",
+      "entityType": "beliefSite",
       "categoryKey": "mosque",
       "image": "/images/beliefs/habib-i-neccar-turbesi-antakya-2017.webp",
       "imageMetadata": {
@@ -434,6 +456,8 @@
     },
     {
       "id": "b2",
+      "slug": "st-pierre-magara-kilisesi",
+      "entityType": "beliefSite",
       "categoryKey": "church",
       "image": "/images/beliefs/st-pierre-magara-kilisesi-ic-mekan-antakya-2019.webp",
       "imageMetadata": {
@@ -470,6 +494,8 @@
     },
     {
       "id": "b3",
+      "slug": "antakya-sinagogu",
+      "entityType": "beliefSite",
       "categoryKey": "synagogue",
       "icon": "🕍",
       "title": {
@@ -482,11 +508,51 @@
         "tr": "Asırlık Tevrat tomarını ve Antakya Musevi cemaatinin kadim hafızasını yaşatan tarihi ibadethane.",
         "ar": "مكان عبادة تاريخي يحفظ لفيات التوراة القديمة والذاكرة الحية للجالية اليهودية في أنطاكية."
       }
+    },
+    {
+      "id": "b4",
+      "slug": "hz-hizir-ziyareti-samandag",
+      "entityType": "beliefSite",
+      "categoryKey": "shrine",
+      "icon": "🕯️",
+      "title": {
+        "en": "Shrine of Khidr — Samandağ",
+        "tr": "Hz. Hızır Ziyareti — Samandağ",
+        "ar": "مقام الخضر — صمنداغ"
+      },
+      "desc": {
+        "en": "A sacred coastal shrine traditionally associated with the meeting of Khidr and Moses, holding an important place in the religious heritage of Samandağ and Hatay.",
+        "tr": "Hızır ile Musa'nın buluştuğuna inanılan, Samandağ ve Hatay'ın inanç mirasında önemli yere sahip sahil makamı.",
+        "ar": "مقام مقدس على ساحل صمنداغ، يرتبط في الموروث المحلي بلقاء الخضر وموسى ويحتل مكانة مهمة في التراث الديني للمنطقة."
+      },
+      "image": "/images/beliefs/hz-hizir-ziyareti-samandag.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Samandağ'daki beyaz kubbeli Hz. Hızır Makamı",
+          "en": "White-domed Shrine of Khidr in Samandağ",
+          "ar": "مقام الخضر ذو القبة البيضاء في صمنداغ"
+        },
+        "caption": {
+          "tr": "Samandağ sahilindeki Hz. Hızır Ziyareti, Hızır ile Musa'nın buluştuğuna inanılan kutsal makam, 2024.",
+          "en": "Shrine of Khidr on the Samandağ coast, traditionally associated with the meeting of Khidr and Moses, 2024.",
+          "ar": "مقام الخضر على ساحل صمنداغ، المرتبط في الموروث المحلي بلقاء الخضر وموسى، 2024."
+        },
+        "source": "Wikimedia Commons",
+        "author": "TheJoyfulTentmaker",
+        "license": "CC BY 4.0",
+        "date": "2024-07-28",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Shrine_of_Khidr.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required.",
+        "aiGenerated": false
+      }
     }
   ],
   "music": [
     {
       "id": "m1",
+      "slug": "mezopotamya-ezgileri",
+      "entityType": "musicTradition",
       "categoryKey": "folk",
       "badge": "🎵",
       "tag": {
@@ -507,6 +573,8 @@
     },
     {
       "id": "m2",
+      "slug": "ziyaret-ve-kutsal-ilahiler",
+      "entityType": "musicTradition",
       "categoryKey": "hymn",
       "badge": "📜",
       "tag": {
@@ -527,6 +595,8 @@
     },
     {
       "id": "m3",
+      "slug": "antakya-turkuleri",
+      "entityType": "musicTradition",
       "categoryKey": "folk",
       "badge": "🪕",
       "tag": {
@@ -549,6 +619,8 @@
   "gallery": [
     {
       "id": "g1",
+      "slug": "kurtulus-caddesi-tas-avlusu",
+      "entityType": "media",
       "categoryKey": "courtyard",
       "src": null,
       "svgType": "house",
@@ -560,6 +632,8 @@
     },
     {
       "id": "g2",
+      "slug": "st-pierre-kilisesi-cephesi",
+      "entityType": "media",
       "categoryKey": "church",
       "src": "/images/gallery/st-pierre-kilisesi-cephe-antakya-2003.webp",
       "imageMetadata": {
@@ -591,6 +665,8 @@
     },
     {
       "id": "g3",
+      "slug": "okeanos-ve-tethys-roma-mozaigi",
+      "entityType": "media",
       "categoryKey": "mosaic",
       "src": "/images/gallery/oceanus-tethys-mozaigi-antakya.webp",
       "imageMetadata": {
@@ -622,6 +698,8 @@
     },
     {
       "id": "g4",
+      "slug": "habib-i-neccar-camii-minaresi",
+      "entityType": "media",
       "categoryKey": "mosque",
       "src": "/images/gallery/habib-i-neccar-camii-minaresi-antakya-2014.webp",
       "imageMetadata": {
@@ -653,6 +731,8 @@
     },
     {
       "id": "g5",
+      "slug": "asi-nehri-ahsap-su-dolaplari",
+      "entityType": "media",
       "categoryKey": "infrastructure",
       "src": "/images/gallery/asi-nehri-kopru-su-dolabi-antakya.webp",
       "imageMetadata": {
@@ -684,6 +764,8 @@
     },
     {
       "id": "g6",
+      "slug": "demirkapi-su-kemerleri-ve-gecidi",
+      "entityType": "media",
       "categoryKey": "infrastructure",
       "src": "/images/gallery/demirkapi-gecidi-antakya-1905.webp",
       "imageMetadata": {

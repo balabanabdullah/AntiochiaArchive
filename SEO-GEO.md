@@ -32,35 +32,38 @@ unique title, primary heading, concise hero summary, navigation, filters, call
 to action, and footer. These existing summaries are accurate and sufficient;
 duplicating them as extra SEO text would reduce clarity.
 
-The 22 current records are not present in the initial HTML. `public/script.js`
+The 23 current records are rendered into collection cards from the API. `public/script.js`
 loads the authoritative `GET /api/archive` response once, selects the active
 TR/EN/AR values, and renders:
 
 - 3 history records;
 - 3 stories;
 - 4 structures;
-- 3 belief/tradition records;
+- 4 belief/tradition records;
 - 3 music records; and
 - 6 gallery records.
 
 Search, filters, localized card text, gallery captions, and the lightbox depend
-on JavaScript. Capable crawlers can execute this, but extraction is less
-predictable than from stable record pages. `/api/archive` is the only public
-runtime data source: in production it reads Firestore, while local file mode
+on JavaScript. Every record also has a crawlable `/archive/{slug}/` page whose
+default content is present directly in HTML. `/api/archive` remains the only
+public runtime data source for collection cards: in production it reads
+Firestore, while local file mode
 reads `data/archive.json` behind the same API. There is no parallel public
-archive snapshot. Future entity-detail page generation should use an explicitly
-reviewed Firestore/API snapshot during the publishing process.
+archive snapshot. Detail pages are generated deterministically from the reviewed
+local release snapshot, which is synchronized with Firestore through a
+controlled backup-and-merge release procedure.
 
 ## Current archive entity model
 
 The archive API exposes a six-category object. The local seed/reference file is
 `data/archive.json`. The current dataset uses unique
-prefixed IDs (`h1`, `s1`, `st1`, `b1`, `m1`, `g1`, and related values), but those
-IDs are not yet public URLs and uniqueness is not enforced across releases.
+prefixed IDs (`h1`, `s1`, `st1`, `b1`, `m1`, `g1`, and related values). Every
+record also has a globally unique stable `slug` and controlled `entityType`,
+validated at build time and by the backend archive validator.
 
 | Meaning | Current fields |
 | --- | --- |
-| Identity | `id` |
+| Identity | immutable `id`, stable public `slug`, controlled `entityType` |
 | Top-level collection | enclosing `history`, `stories`, `structures`, `beliefs`, `music`, or `gallery` array |
 | Filter subtype | `categoryKey` |
 | Multilingual identity | `title.tr`, `title.en`, `title.ar` |
@@ -157,9 +160,9 @@ field, but typed relationships are the better long-term representation.
 
 ## Source and citation model
 
-The archive schema and admin editor now support optional record-level sources.
-The current 22 cultural records were intentionally not populated during that
-infrastructure change; add source values only after human verification.
+The archive schema and admin editor support optional record-level sources. The
+current 23 cultural records are not mass-populated with citations; add source
+values only after human verification.
 
 ```json
 {
@@ -194,31 +197,22 @@ reuse, provenance tracking, entity reconciliation, and the quality of evidence
 available to search or answer systems. It can support future citations, but it
 does not guarantee ranking or inclusion in AI answers.
 
-## Future entity detail pages
+## Static entity detail pages
 
-Do not create bulk detail pages until slugs, source rules, and public-record
-validation exist. A coherent future URL plan is:
+The v1.0 build emits one static page per record at `/archive/{slug}/`. The
+post-build generator consumes only `data/archive.json`, validates all IDs, slugs,
+entity types, media paths, sitemap entries, and internal links, and writes pages
+only inside `dist/`. It never reads private submissions or browser credentials.
+Each page has directly crawlable English default content, a self-canonical URL,
+Open Graph metadata, conservative `WebPage` JSON-LD, media provenance when
+available, and Home/collection links. The current client-side language switcher
+enhances the same URL for TR, EN, and AR, including RTL.
 
-- `/places/{slug}/`
-- `/structures/{slug}/`
-- `/stories/{slug}/`
-- `/traditions/{slug}/`
-- `/music/{slug}/`
-- `/history/{slug}/`
-- `/media/{slug}/`
-
-Use the entity type rather than the current filter category to choose a path.
-Keep redirects if a slug ever changes. Each page should contain a self-canonical
-URL, visible title and summary, entity type, verified context, optional
-location/period, related records, media with attribution, sources, and available
-language versions.
-
-For the current Vite MPA, a release-time generator can consume a reviewed public
-archive snapshot, validate it, and emit static `.../{slug}/index.html` files
-before Vite builds. Firestore can remain authoritative, but credentials must
-stay server-side: an explicit archive-only export or controlled publishing job
-should create the build snapshot. Never use the full private submissions backup
-as a public build input.
+Firestore remains the authoritative production store for collection-card
+runtime data. The controlled release process takes backups, merges approved
+fields by immutable record ID, writes once, and verifies that the API and static
+release snapshot agree. Never use the full private submissions backup as a
+public build input.
 
 Stable detail pages matter because they provide durable citation targets,
 shareable URLs, focused internal links, clearer entity boundaries, source
@@ -232,17 +226,16 @@ public collections. Visible breadcrumbs now use semantic `nav` elements and
 match the structured breadcrumb hierarchy. The homepage brand now links to the
 real home URL, and a contribution link uses a truthful label.
 
-Record-to-record contextual links are not appropriate yet because the dataset
-does not define verified relationships or detail URLs. Add those links only
-after relationship data and stable entity pages exist.
+Every collection card links to its stable detail page. Detail pages link back to
+Home and their parent collection. Record-to-record contextual links remain
+intentionally absent because no reviewed relationship data exists.
 
 ## Image semantics and future media model
 
-The current archive contains placeholder SVG metadata rather than curated
-archival images. Generated SVGs remain decorative and hidden from assistive
-technology. The implemented optional `imageMetadata` model prepares the legacy
-`image` and `src` asset fields for reviewed real images without changing current
-records:
+The current archive contains 16 reviewed real record images and 7 intentional
+archive placeholders. Generated SVGs remain decorative and hidden from assistive
+technology. The optional `imageMetadata` model stores reviewed provenance for
+the legacy `image` and `src` asset fields:
 
 ```json
 {
@@ -291,24 +284,25 @@ be supported with an explicit mapping and redirects.
 
 ## Crawling, answer systems, and trust
 
-`robots.txt` allows public HTML and the public archive asset while excluding API,
+`robots.txt` allows public HTML and reviewed image assets while excluding API,
 admin, and submission paths from general indexing. Authentication remains the
-security boundary; robots rules are not access control. The sitemap exposes the
-homepage and six completed collections. No crawler-only text, doorway pages,
-fake FAQs, `ai.txt`, or speculative `geo.txt` is needed.
+security boundary; robots rules are not access control. The v1.0 sitemap exposes
+the homepage, six completed collections, the methodology page, and all 23 record
+detail pages (31 URLs total). No crawler-only text, doorway pages, fake FAQs,
+`ai.txt`, or speculative `geo.txt` is needed.
 
 An optional `llms.txt` may later summarize public documentation, but it is not a
 standard requirement for visibility and must not replace crawlable pages,
 sources, or sitemaps.
 
 The homepage clearly states the archive's cultural-memory purpose and content
-organization. Trust is limited because the current records do not yet contain
-verified source or media provenance, and there is no public methodology,
-editorial review explanation, rights policy, or correction process. The new
-schema makes those records possible; it does not prove that review occurred. A
-concise About/Methodology/Sources page would materially improve human
-verification once the actual editorial process is documented. It must not claim
-institutional affiliation, credentials, or review practices that do not exist.
+organization. Reviewed real images expose their available provenance and rights
+metadata, and the public methodology page explains the project's conservative
+handling of sources, uncertain claims, image rights, AI imagery, and correction
+review. Record-level historical citation coverage is still incomplete, and image
+provenance is not treated as evidence for a record's cultural claims. The project
+does not claim institutional affiliation, credentials, or review practices that
+have not been established.
 
 ## Application-level knowledge graph
 
@@ -346,35 +340,32 @@ The strategy is entity-first and evidence-first:
 
 ## Current limitations
 
-- all record cards require JavaScript and `/api/archive`;
-- record content is not present in initial HTML for non-JavaScript crawlers;
-- records have no stable slugs or detail URLs;
-- optional source/citation and image-rights fields exist, but current records
-  have not yet been populated with verified metadata;
-- current media is placeholder SVG content;
+- collection cards require JavaScript and `/api/archive`, while every record has
+  a static default-language detail page;
+- record-level historical citation coverage remains incomplete and image
+  provenance is not a substitute for record-level evidence;
+- seven records intentionally retain reviewed placeholders;
 - multilingual content shares one canonical URL;
 - no record-level relationships or knowledge graph exist;
-- no public methodology/source policy exists; and
+- the public methodology describes established project practice but no formal
+  oral-history consent workflow exists yet; and
 - no search analytics or webmaster-tool verification is configured in code.
 
 ## Priority roadmap
 
-### P1 — establish trustworthy entities
+### P1 — deepen trustworthy records
 
-1. Define editorial/source and media-rights policies.
-2. Populate the implemented optional source/citation fields after verification.
-3. Add immutable public slugs and controlled entity types.
-4. Generate future entity pages from an explicitly reviewed Firestore/API snapshot.
-5. Curate real archival images with alt text, provenance, rights, and dates.
+1. Populate optional record-level citations only after human verification.
+2. Continue replacing held placeholders with rights-cleared source images.
+3. Define and publish an oral-history consent process before accepting media.
 
 ### P2 — publish discoverable entity pages
 
-1. Generate static entity detail pages and their sitemap entries.
-2. Add reviewed typed relationships and contextual internal links.
-3. Add record-level structured data only where the type and evidence support it.
-4. Attach a custom domain and update canonicals, Open Graph URLs, and sitemap.
-5. Add a dedicated Open Graph image with documented rights.
-6. Configure Google Search Console, Bing Webmaster Tools, and privacy-conscious
+1. Add reviewed typed relationships and contextual internal links.
+2. Add more specific record-level structured data only where evidence supports it.
+3. Attach a custom domain and update canonicals, Open Graph URLs, and sitemap.
+4. Add a dedicated Open Graph image with documented rights.
+5. Configure Google Search Console, Bing Webmaster Tools, and privacy-conscious
    search analytics.
 
 ### P3 — multilingual and graph expansion

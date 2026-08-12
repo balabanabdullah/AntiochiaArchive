@@ -1,0 +1,68 @@
+import { access, readFile, readdir } from "node:fs/promises";
+import { resolve } from "node:path";
+import {
+  PRODUCTION_ORIGIN,
+  flattenArchive,
+  recordDetailPath,
+  recordMedia,
+  sitemapUrls,
+  validateReleaseArchive,
+} from "./archive-release.js";
+
+const repositoryRoot = resolve(import.meta.dirname, "..");
+const distRoot = resolve(repositoryRoot, "dist");
+const archive = JSON.parse(await readFile(resolve(repositoryRoot, "data/archive.json"), "utf8"));
+const validation = validateReleaseArchive(archive);
+const sitemap = await readFile(resolve(distRoot, "sitemap.xml"), "utf8");
+
+function check(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+async function builtPathFor(href) {
+  const path = href.split("#", 1)[0].split("?", 1)[0];
+  if (!path || path === "/") return resolve(distRoot, "index.html");
+  if (path.endsWith("/")) return resolve(distRoot, path.slice(1), "index.html");
+  return resolve(distRoot, path.slice(1));
+}
+
+const sitemapEntries = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+check(sitemapEntries.length === new Set(sitemapEntries).size, "Sitemap contains duplicate URLs.");
+check(sitemapEntries.length === sitemapUrls(archive).length, `Expected ${sitemapUrls(archive).length} sitemap URLs, found ${sitemapEntries.length}.`);
+check(!sitemapEntries.some((url) => /admin|submissions|\/api\//.test(url)), "Sitemap contains a private route.");
+
+for (const { category, record } of flattenArchive(archive)) {
+  const route = recordDetailPath(record);
+  const file = resolve(distRoot, route.slice(1), "index.html");
+  const html = await readFile(file, "utf8");
+  const canonical = `${PRODUCTION_ORIGIN}${route}`;
+  check(html.includes(`<link rel="canonical" href="${canonical}">`), `${record.id} has an invalid canonical URL.`);
+  check((html.match(/<h1\b/g) || []).length === 1, `${record.id} must have exactly one H1.`);
+  check(/<meta name="description" content="[^"]+">/.test(html), `${record.id} is missing a description.`);
+  check(html.includes('"@type":"WebPage"'), `${record.id} is missing WebPage JSON-LD.`);
+  check(html.includes(`data-record-id="${record.id}"`), `${record.id} detail page identity is missing.`);
+  check(html.includes(`href="${recordDetailPath(record)}"`) === false, `${record.id} contains a self-referential card link.`);
+  check(html.includes(`href="/pages/${category}.html"`), `${record.id} is missing its parent collection link.`);
+
+  for (const href of [...html.matchAll(/href="([^"]+)"/g)].map((match) => match[1])) {
+    if (/^(?:https?:|mailto:|tel:)/.test(href) || href.startsWith("#")) continue;
+    await access(await builtPathFor(href));
+  }
+
+  const media = recordMedia(record);
+  if (media) await access(resolve(distRoot, media.slice(1)));
+  else check(html.includes("record-detail-placeholder"), `${record.id} is missing its intentional placeholder.`);
+}
+
+const detailRoot = resolve(distRoot, "archive");
+const generatedDirectories = (await readdir(detailRoot, { withFileTypes: true })).filter((entry) => entry.isDirectory());
+check(generatedDirectories.length === validation.count, `Expected ${validation.count} detail directories, found ${generatedDirectories.length}.`);
+
+for (const url of sitemapEntries) {
+  const route = new URL(url).pathname;
+  await access(await builtPathFor(route));
+}
+
+for (const file of ["404.html", "pages/methodology.html"]) await access(resolve(distRoot, file));
+
+console.log(`Validated ${validation.count} detail pages, ${sitemapEntries.length} sitemap URLs, internal links, canonicals, and media paths.`);

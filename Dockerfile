@@ -31,10 +31,12 @@ RUN npm ci
 
 # 2. Copy source files
 COPY index.html     ./index.html
+COPY 404.html       ./404.html
 COPY style.css      ./style.css
 COPY vite.config.js ./vite.config.js
 COPY pages/         ./pages/
 COPY scripts/       ./scripts/
+COPY data/archive.json ./data/archive.json
 # 3. Copy public/ assets (lang.js lives here)
 #    Vite will copy everything in public/ verbatim to dist/
 COPY public/        ./public/

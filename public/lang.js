@@ -320,6 +320,7 @@ const TRANSLATIONS = {
       openMenu:    "Open navigation menu",
       closeMenu:   "Close navigation menu",
       langChooser: "Choose language",
+      searchArchive: "Search archive",
     },
   },
 
@@ -640,6 +641,7 @@ const TRANSLATIONS = {
       openMenu:    "Gezinme menüsünü aç",
       closeMenu:   "Gezinme menüsünü kapat",
       langChooser: "Dil seç",
+      searchArchive: "Arşivde ara",
     },
   },
 
@@ -960,6 +962,7 @@ const TRANSLATIONS = {
       openMenu:    "افتح قائمة التنقل",
       closeMenu:   "أغلق قائمة التنقل",
       langChooser: "اختر اللغة",
+      searchArchive: "ابحث في الأرشيف",
     },
   },
 };

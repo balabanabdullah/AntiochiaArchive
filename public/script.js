@@ -108,6 +108,13 @@ function applyLanguage(lang) {
     if (value != null) el.setAttribute("aria-label", value);
   });
 
+  if (menuToggleBtn) {
+    menuToggleBtn.setAttribute(
+      "aria-label",
+      isMenuOpen ? t.a11y.closeMenu : t.a11y.openMenu
+    );
+  }
+
   // 6. Update language buttons' pressed state
   document.querySelectorAll(".lang-btn").forEach((btn) => {
     btn.setAttribute("aria-pressed", String(btn.dataset.lang === lang));
@@ -658,7 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* --- Reset menu state on resize to desktop --- */
-  const mq = window.matchMedia("(min-width: 768px)");
+  const mq = window.matchMedia("(min-width: 1101px)");
   mq.addEventListener("change", (e) => { if (e.matches) setMenuOpen(false); });
 
   /* --- Language buttons --- */
@@ -977,12 +984,15 @@ function initSearch() {
   const inputs = document.querySelectorAll("#search-input, .search-input-field");
   inputs.forEach((input) => {
     input.addEventListener("input", (e) => {
+      inputs.forEach((otherInput) => {
+        if (otherInput !== input) otherInput.value = e.target.value;
+      });
       handleSearch(e.target.value);
     });
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        input.value = "";
+        inputs.forEach((searchInput) => { searchInput.value = ""; });
         handleSearch("");
         input.blur();
       }

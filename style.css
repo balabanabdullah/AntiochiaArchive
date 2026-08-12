@@ -395,7 +395,10 @@ html[dir="rtl"] .nav-primary a::after { --origin: 100% 50%; }
   background: var(--clr-paper);
   border-bottom: 1px solid var(--clr-line);
   box-shadow: 0 20px 40px rgba(28, 24, 20, 0.1);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   max-height: 0;
   opacity: 0;
   visibility: hidden;
@@ -405,25 +408,38 @@ html[dir="rtl"] .nav-primary a::after { --origin: 100% 50%; }
     visibility var(--dur-mid);
 }
 .mobile-nav.is-open {
-  max-height: 500px;
+  max-height: calc(100dvh - var(--header-height));
   opacity: 1;
   visibility: visible;
 }
 
 .mobile-nav-inner {
-  padding: var(--sp-3) var(--page-pad) var(--sp-4);
+  padding: var(--sp-2) var(--page-pad) calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  gap: 4px;
+}
+
+.mobile-nav-search {
+  padding: 4px 0 var(--sp-2);
+}
+
+.mobile-nav-search .search-input-field,
+.mobile-nav-search .search-input-field:focus {
+  width: 100%;
+  height: 44px;
+  padding-inline: 14px;
 }
 
 .mobile-nav a {
-  display: block;
-  padding: 14px 4px;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 4px;
   border-bottom: 1px solid var(--clr-line);
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   letter-spacing: -0.02em;
+  text-align: start;
   transition: color var(--dur-fast) var(--ease), padding-inline-start var(--dur-fast) var(--ease);
 }
 .mobile-nav a:last-child { border-bottom: none; }
@@ -439,12 +455,17 @@ body.nav-open { overflow: hidden; }
    6. Hero Section
    -------------------------------------------------------------------------- */
 .hero {
+  --hero-wash-direction: 90deg;
   position: relative;
   min-height: calc(100svh - var(--header-height));
   display: flex;
   align-items: stretch;
   background: var(--clr-paper-deep);
   overflow: hidden;
+}
+
+html[dir="rtl"] .hero {
+  --hero-wash-direction: 270deg;
 }
 
 .hero-archive-photo {
@@ -463,15 +484,15 @@ body.nav-open { overflow: hidden; }
   inset: 0;
   background:
     linear-gradient(
-      90deg,
-      rgba(230, 219, 196, 0.94) 0%,
-      rgba(230, 219, 196, 0.82) 52%,
-      rgba(230, 219, 196, 0.62) 100%
+      var(--hero-wash-direction),
+      rgba(230, 219, 196, 0.9) 0%,
+      rgba(230, 219, 196, 0.72) 52%,
+      rgba(230, 219, 196, 0.48) 100%
     ),
     linear-gradient(
       to bottom,
-      rgba(242, 234, 216, 0.1) 0%,
-      rgba(230, 219, 196, 0.35) 100%
+      rgba(242, 234, 216, 0.06) 0%,
+      rgba(230, 219, 196, 0.28) 100%
     );
 }
 
@@ -479,7 +500,7 @@ body.nav-open { overflow: hidden; }
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.48;
+  opacity: 0.3;
   mix-blend-mode: multiply;
   pointer-events: none;
 }
@@ -497,9 +518,9 @@ body.nav-open { overflow: hidden; }
   background:
     linear-gradient(
       to bottom,
-      rgba(242, 234, 216, 0.04) 0%,
-      rgba(242, 234, 216, 0.14) 60%,
-      rgba(230, 219, 196, 0.42) 100%
+      rgba(242, 234, 216, 0.02) 0%,
+      rgba(242, 234, 216, 0.08) 60%,
+      rgba(230, 219, 196, 0.3) 100%
     );
 }
 
@@ -515,7 +536,7 @@ body.nav-open { overflow: hidden; }
 
 .hero-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(280px, 28vw, 400px);
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 26vw, 370px);
   gap: var(--sp-6);
   align-items: center;
 }
@@ -574,10 +595,10 @@ html[dir="rtl"] .btn-explore:hover .btn-explore-arrow { transform: translateX(-4
 .hero-card {
   background: var(--clr-red-dark);
   color: var(--clr-paper);
-  padding: clamp(32px, 5vh, 52px) clamp(24px, 3vw, 40px);
+  padding: clamp(28px, 4vh, 44px) clamp(24px, 3vw, 38px);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: clamp(16px, 2.4vh, 28px);
 }
 
 .hero-card-count {
@@ -598,7 +619,7 @@ html[dir="rtl"] .btn-explore:hover .btn-explore-arrow { transform: translateX(-4
 
 .hero-card p {
   font-size: 0.93rem;
-  line-height: 1.85;
+  line-height: 1.72;
   color: rgba(249, 240, 222, 0.78);
 }
 
@@ -1609,15 +1630,6 @@ html[dir="rtl"] .back-to-top {
    15. Responsive — Tablet (≤ 1024px)
    -------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
-  .hero-inner {
-    grid-template-columns: 1fr;
-    gap: var(--sp-5);
-  }
-
-  .hero-card {
-    max-width: 560px;
-  }
-
   .history-timeline,
   .stories-grid,
   .structures-grid,
@@ -1640,7 +1652,7 @@ html[dir="rtl"] .back-to-top {
   .footer-bottom { flex-direction: column; align-items: flex-start; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .nav-primary,
   .btn-contribute {
     display: none;
@@ -1648,6 +1660,21 @@ html[dir="rtl"] .back-to-top {
 
   .menu-toggle {
     display: flex;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: auto;
+  }
+
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+
+  .hero-card {
+    width: min(100%, 520px);
   }
 }
 
@@ -1664,7 +1691,7 @@ html[dir="rtl"] .back-to-top {
   }
 
   .hero {
-    min-height: calc(100svh - var(--header-height));
+    min-height: auto;
   }
 
   .hero-archive-photo {
@@ -1673,12 +1700,12 @@ html[dir="rtl"] .back-to-top {
 
   .hero-archive-photo::after {
     background:
-      linear-gradient(rgba(230, 219, 196, 0.88), rgba(230, 219, 196, 0.78)),
-      linear-gradient(to bottom, rgba(242, 234, 216, 0.1), rgba(230, 219, 196, 0.42));
+      linear-gradient(rgba(230, 219, 196, 0.82), rgba(230, 219, 196, 0.68)),
+      linear-gradient(to bottom, rgba(242, 234, 216, 0.08), rgba(230, 219, 196, 0.34));
   }
 
   .hero-content {
-    padding-block: var(--sp-6) var(--sp-4);
+    padding-block: var(--sp-5) var(--sp-3);
   }
 
   .hero-text .eyebrow {
@@ -1686,7 +1713,7 @@ html[dir="rtl"] .back-to-top {
   }
 
   .hero-title {
-    font-size: clamp(3.2rem, 16vw, 5rem);
+    font-size: clamp(3rem, 14vw, 4.75rem);
   }
 
   .hero-subtitle {
@@ -1704,6 +1731,15 @@ html[dir="rtl"] .back-to-top {
 
   .hero-attribution-separator {
     display: none;
+  }
+
+  .hero-card {
+    padding: 26px 22px;
+    gap: 14px;
+  }
+
+  .hero-card-link {
+    padding-top: var(--sp-2);
   }
 
   .history-timeline,
@@ -1739,7 +1775,7 @@ html[dir="rtl"] .back-to-top {
     gap: var(--sp-2);
   }
 
-  .search-box {
+  .header-actions > .search-box {
     display: none;
   }
 

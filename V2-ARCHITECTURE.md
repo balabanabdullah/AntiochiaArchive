@@ -1,13 +1,23 @@
 # AntiochiaArchive v2 foundation
 
-This document describes the first v2 implementation step: a domain schema,
-validation layer, read-only API skeleton, and store abstraction added
-locally alongside the stable v1.0 production system. It does not change,
-migrate, or depend on any v1 production data.
+This document describes the v2 foundation built in two steps, both layered
+locally alongside the stable v1.0 production system without changing,
+migrating, or depending on any v1 production data:
 
-**This change does not migrate production data.** No Firestore document was
-read or written, no Cloud Storage resource was created, and `data/archive.json`
-is untouched. Everything described below lives under `backend/v2/` and is
+1. **Domain schema, validation layer, read-only API skeleton, store
+   abstraction** — the v2 domain types, relationship model, public/private
+   serialization boundary, and an `/api/v2` read-only API backed by
+   `EmptyV2Store`.
+2. **FirestoreV2Store, local test support, and a v1 -> v2 migration dry
+   run** — a real (but read-only, unselected-by-default) Firestore store
+   implementation, a deterministic in-memory store for tests, and a CLI that
+   maps the current 23-record v1 archive into a proposed v2 shape for
+   review — entirely in memory, with zero writes anywhere.
+
+**Neither step migrates production data.** No Firestore document has ever
+been read or written by this work, no Cloud Storage resource was created,
+and `data/archive.json` is untouched. Everything described below lives
+under `backend/v2/` and `backend/scripts/migrate-v1-to-v2.js`, and is
 additive.
 
 ## Why a separate v2 tree
@@ -151,13 +161,121 @@ listRelationships({ limit, cursor, filters })
 getRelatedEntities(id, { limit, cursor, filters })
 ```
 
-The only implementation today is `EmptyV2Store`
-(`backend/v2/stores/emptyV2Store.js`), which holds no data and never
-contacts Firestore or Cloud Storage. It returns valid, correctly-shaped
-empty results (`{ items: [], nextCursor: null, count: 0 }` /
-`null` for a single lookup) so the full API contract — success envelope,
-pagination metadata, 404 handling — can be exercised end-to-end before any
-real v2 persistence exists.
+Three implementations exist:
+
+- **`EmptyV2Store`** (`backend/v2/stores/emptyV2Store.js`) — holds no data and
+  never contacts Firestore or Cloud Storage. Returns valid, correctly-shaped
+  empty results (`{ items: [], nextCursor: null, count: 0 }` / `null` for a
+  single lookup). This is the default.
+- **`MemoryV2Store`** (`backend/v2/stores/memoryV2Store.js`) — a deterministic
+  in-process store used by tests (and safe for local demos): pass fixture
+  `entities`/`relationships` to `createMemoryV2Store({ entities, relationships })`.
+  It mirrors `FirestoreV2Store`'s filter/pagination contract exactly,
+  including rejecting the same deferred filters (see "Filter implementation"
+  below), so tests written against it exercise real store-selection
+  semantics rather than a permissive stand-in. It never touches Firestore.
+- **`FirestoreV2Store`** (`backend/v2/stores/firestoreV2Store.js`) — the
+  real, read-only Firestore-backed implementation, described below. It is
+  never constructed or contacted unless explicitly selected.
+
+### Firestore v2 collections
+
+`FirestoreV2Store` reads from exactly two collections, both new and separate
+from v1's `archive/{category}` documents:
+
+- **`v2Entities/{entityId}`** — one document per mapped v2 entity, keyed by
+  the entity's own `id` (so v1 IDs like `h1`, `st1`, `b1` remain stable
+  document keys if/when a real migration ever runs). Per the v2 blueprint's
+  "do not denormalize full related records" rule, each document carries only
+  the entity's own fields plus a handful of **indexable top-level fields**
+  used for filtering: `id`, `slug`, `entityType`, `status`, `languages`,
+  `tags`, `storyCategory`, `genre`, `originalLanguage`, `dialect`,
+  `createdAt`, `updatedAt`. It never embeds a related community/belief/place
+  as a nested object.
+- **`v2Relationships/{relationshipId}`** — one document per relationship edge,
+  keyed by the relationship's own `id`, with `sourceId`/`targetId` used for
+  lookups in both directions (see "Relationship reads" below).
+
+Two private collections are **documented but not used yet** — no code reads
+or writes them, and they exist only as a named placeholder for a future,
+separately reviewed task:
+
+- **`v2Consents/`** — would hold real consent records validated by
+  `backend/v2/schemas/consent.js`. Never joined into a public response.
+- **`v2Editorial/`** — would hold moderation/editorial-workflow state (e.g.
+  review assignments, internal notes) that must never reach a public
+  serializer.
+
+No Cloud Storage bucket or object was created by this or any prior v2 step.
+
+### Store selection (`V2_DATA_STORE`)
+
+`V2_DATA_STORE` selects the implementation and **defaults to `empty`**
+unless explicitly overridden:
+
+```
+V2_DATA_STORE=empty      # default — no data, no external contact
+V2_DATA_STORE=memory     # deterministic in-process store, no external contact
+V2_DATA_STORE=firestore  # real Firestore reads against v2Entities/v2Relationships
+```
+
+This is deliberately **not** coupled to v1's `DATA_STORE` — a production
+deployment can run `DATA_STORE=firestore` for v1 while v2 stays on
+`V2_DATA_STORE=empty` (the actual production default today), and switching
+v2 to Firestore is a separate, explicit decision. `initializeV2Store()`
+only ever calls `initializeFirestore()` (which requires
+`GOOGLE_CLOUD_PROJECT` and constructs, but does not yet query, a Firestore
+client) when `firestore` was explicitly selected — proven by
+`backend/test/v2/stores/v2StoreSelection.test.js`, which asserts that
+selecting `firestore` without `GOOGLE_CLOUD_PROJECT` fails exactly the way
+v1's Firestore initialization already does, and that the default path never
+attempts it.
+
+### Firestore query construction, cursor pagination, and index safety
+
+`FirestoreV2Store` always orders by `FieldPath.documentId()` and paginates
+with `.startAfter(cursorDocSnapshot)` — never offset/page-number pagination.
+The `cursor` returned to an API client is an opaque base64url token wrapping
+the last document's ID; a client can only replay it, never construct one
+itself. An invalid or stale cursor (e.g. referencing a deleted document) is
+rejected with a safe `V2QueryError`, not silently ignored.
+
+Each page fetch requests `limit + 1` documents to detect whether a next page
+exists, without ever scanning the full collection. If Firestore reports a
+missing composite index (`FAILED_PRECONDITION`, gRPC code 9), the store
+wraps it into the same safe `V2QueryError` rather than falling back to an
+unindexed scan — the caller gets a clear "an index is required" message
+instead of either a raw Firestore error or a silent full scan.
+
+### Filter implementation
+
+Filters are split into two groups, per the instruction to prefer correctness
+over premature optimization:
+
+- **Directly translatable today** (equality/array-contains clauses against
+  the indexable fields above): `entityType`, `status`, `storyCategory`,
+  `originalLanguage`, `dialect`, `musicGenre` (mapped to the `genre` field),
+  `tag` (an `array-contains` clause against `tags`).
+- **Deliberately deferred**: `communityId`, `beliefId`, `placeId`. These are
+  *not* denormalized onto the entity document — doing so would violate the
+  "do not denormalize full related records" rule and would silently go stale
+  the moment a relationship changes. Rather than pretend to filter and
+  quietly return unfiltered (or wrong) results, both `FirestoreV2Store` and
+  `MemoryV2Store` reject a request containing any of these three filters
+  with a `V2QueryError` explaining that they require a relationship-driven
+  query not implemented yet, surfaced by the route as `400`.
+
+### Relationship reads
+
+`listRelationships()` supports filtering by a controlled `type`.
+`getRelatedEntities(id)` issues **two** equality queries — one on `sourceId`,
+one on `targetId` — because Firestore cannot `OR` across two different
+fields in a single query. The two result sets are merged and de-duplicated
+client-side, then the related entity documents are fetched with a single
+batched `getAll(...)` call (not one read per relationship, avoiding N+1).
+The documented tradeoff: this always issues both direction queries even when
+only one has matches, trading a small constant amount of extra read volume
+for correctness and simplicity over a more complex single-query scheme.
 
 ## API v2 contract
 
@@ -201,25 +319,176 @@ no data to page through, so it always returns `nextCursor: null`.
 
 ### Filter contract
 
-`backend/v2/validators/filters.js` validates (but, with no store data, does
-not yet apply) query fields: `entityType`, `communityId`, `beliefId`,
+`backend/v2/validators/filters.js` validates query fields at the route layer
+before any store is touched: `entityType`, `communityId`, `beliefId`,
 `placeId`, `language`, `dialect`, `storyCategory`, `musicGenre`, `tag`,
 `status`. An unsupported field or an invalid controlled value (e.g. an
 `entityType` outside `ENTITY_TYPES`) is rejected with `400` before it ever
-reaches the store.
+reaches the store. With the default `EmptyV2Store`, a validated filter is
+accepted but has no data to apply to. With `FirestoreV2Store`/`MemoryV2Store`,
+see "Filter implementation" above for exactly which validated filters are
+applied vs. deliberately rejected as not-yet-supported.
+
+## V1 -> V2 migration: dry-run mapper
+
+`backend/v2/migration/` is a **pure, in-memory** mapping layer with no
+filesystem, Firestore, or Cloud Storage access of its own:
+
+- **`v1ToV2Mapping.js`** — maps a single v1 record (given its source
+  category) into a proposed v2 entity object, and `mapV1ArchiveToV2Entities(archive)`
+  maps an entire v1 archive object. Pure function of its input; never
+  mutates the archive it's given (enforced by
+  `backend/test/v2/migration/v1ToV2Mapping.test.js`).
+- **`detectRelatedRecords.js`** — the "potential duplicate" heuristic (see
+  below).
+- **`buildMigrationReport.js`** — runs the mapper, validates every mapped
+  entity against the real v2 schemas (`backend/v2/schemas/index.js`), and
+  assembles the full report (counts, validation results, ID/slug integrity,
+  media/source preservation stats, duplicate warnings).
+
+**`backend/scripts/migrate-v1-to-v2.js`** is the CLI entry point:
+
+```
+node backend/scripts/migrate-v1-to-v2.js
+```
+
+reads the local `data/archive.json`, maps and validates it in memory, and
+prints the report. It performs **zero writes** of any kind. `--apply` is not
+implemented — passing it prints a clear rejection message and exits non-zero
+without reading anything. `--output <path>` optionally writes the report as
+JSON to a path outside `data/archive.json` (refused if it would point at
+`data/archive.json`, and refused if the target already exists unless
+`--force` is also passed).
+
+### V1 category mapping
+
+| v1 category | v2 `entityType` | Notes |
+| --- | --- | --- |
+| `history` | `historicalContext` | `body` -> `summary`, `era` -> `period.label` |
+| `stories` | `story` | `body` -> `summary`; `storyCategory` deliberately left unset (see below) |
+| `structures` | `structure` | `desc` -> `summary`, `categoryKey` -> `structureType`/`tags` |
+| `beliefs` | **`structure`** | See "Belief-site handling" below — never `belief` |
+| `music` | `music` | `categoryKey` -> free-form `genre` (no hardcoded taxonomy) |
+| `gallery` | `media` | See "Gallery/media mapping" below |
+
+Every mapper also attaches migration-only preview fields — `sourceVersion:
+"v1.0"`, `sourceCategory`, `sourceRecordId`, a preserved `media` preview
+(image/src + imageMetadata, with an explicit `isPlaceholder` flag), and the
+record's existing `sources` array verbatim. These are not part of any core
+entity schema's required fields (schema validation is allowlist-based on
+known fields, so extra fields never fail validation), and — being unlisted —
+they are automatically excluded if such an entity were ever run through
+`publicSerializer.js`. `storyCategory` is deliberately left unset for every
+migrated story: v1 has no equivalent classification field, and guessing one
+would be inventing editorial data rather than migrating it.
+
+### Belief-site handling
+
+**v1's `beliefs` category holds individual sites** — Habib-i Neccar Shrine,
+St. Pierre Cave Church, Antioch Synagogue, the Shrine of Khidr — not broad
+belief traditions. Mapping every one of these to `entityType: "structure"`
+(never `"belief"`) is a deliberate correctness rule enforced by
+`mapBeliefSiteRecord()`, not an oversight. Each mapped record also carries:
+
+- `tags` including `"beliefSite"` and `"migratedFromV1Beliefs"`, so these
+  records remain easy to find for a future editorial pass.
+- A `migrationNote` explaining that a broader belief-tradition entity (e.g. a
+  specific faith or living tradition, if authored later after review) should
+  relate to this structure via a `hasSite` relationship record — never by
+  re-typing the record itself as `"belief"`.
+
+This dry run creates **zero** `belief` entities, and zero `community`,
+`place`, or `proverb` entities — see "No production migration yet" below.
+
+### Gallery/media mapping
+
+v1's `gallery` category holds presentation/media records, not a separate
+cultural subject. Each gallery record maps to `entityType: "media"` with
+`derivativeStoragePaths` from `src`, `mediaRole` set to
+`aiGeneratedIllustration` when `imageMetadata.aiGenerated` is true and
+`realArchiveMedia` otherwise, and `rightsStatus: "cleared"` when the record
+already carries reviewed license metadata (reflecting v1's existing
+editorial review, not a new determination made by this tool) or `"unknown"`
+otherwise.
+
+The mapped record does **not** synthesize a new structure/story from what
+the photo depicts — that would be inventing an entity from an image, which
+this task explicitly forbids. If a gallery image appears to depict an
+existing record (e.g. `g4`, a photo of the Habib-i Neccar minaret), that is
+only ever surfaced as a `POTENTIAL_DUPLICATE_OR_RELATED_ENTITY` warning with
+a suggested `depicts` relationship type — never as actual migration data.
+Gallery `title`/`caption` text is preserved on the mapped entity as
+migration-preview fields; they are not yet part of the core `media` schema's
+validated fields or its public serializer allowlist, which is a follow-up
+decision, not something this dry run resolves.
+
+### No automatic deduplication
+
+The v1 archive represents some physical sites under more than one category
+— e.g. Habib-i Neccar appears in `structures` (`st1`), `beliefs` (`b1`), and
+`gallery` (`g4`); St. Pierre appears in `structures` (`st2`), `beliefs`
+(`b2`), and `gallery` (`g2`). `detectRelatedRecords.js` flags these as
+`POTENTIAL_DUPLICATE_OR_RELATED_ENTITY` using a **slug-token overlap
+heuristic**: it lowercases and splits each record's slug on `-`, drops short
+tokens (length < 3) and a small stopword list (`ve`, `antakya`, `antik`,
+`tarihi`, `eski`, `kadim`, ...), and flags any pair of records from
+**different** source categories that still share a token (e.g. `habib`,
+`neccar`, `pierre`, `asi`, `nehri`, `kurtulus`, `roma`).
+
+This is a heuristic, not an exhaustive semantic match — documented tradeoff:
+it will miss thematically related records that don't share a distinctive
+slug token (e.g. `st4` "Traditional Antioch Houses" vs. `s1`/`g1`'s specific
+Kurtuluş Street courtyard house, which share no slug token), and it may
+occasionally over-flag a loose thematic overlap (e.g. `h2`'s general
+"Mosaic of Cultures" history entry against `g3`'s specific Oceanus/Tethys
+mosaic photo, both containing "mozaigi"). Either way, **no record is ever
+merged, dropped, or silently combined** — every flagged pair is reported for
+a human to review and, if appropriate, express later as an explicit
+relationship record. All 23 input IDs remain 23 distinct mapped entities
+regardless of how many duplicate warnings are raised.
+
+### No production migration yet
+
+This step produces **zero** actual v2 Firestore documents, **zero** Cloud
+Storage objects, and **zero** new cultural entity types (no `community`,
+`belief`, `place`, or `proverb` records — those require separately reviewed
+content work, per the task that requested this step). `--apply` remains
+unimplemented by design. The dry-run report and optional `--output` file are
+the only artifacts this tool produces, and both live outside
+`data/archive.json` and outside any datastore.
+
+### Migration safety rules (summary)
+
+1. Read `data/archive.json` only; never write it.
+2. Map every record in memory only; never call Firestore or Cloud Storage.
+3. Preserve all 23 v1 IDs and slugs — never merge, drop, or invent a record.
+4. Preserve existing TR/EN/AR title/content, image/src, imageMetadata, and
+   `sources[]` without rewriting the cultural prose itself.
+5. Map `beliefs`-category records to `structure`, never to `belief`.
+6. Never fabricate a `community`, `belief`, `place`, or `proverb` entity.
+7. Flag same-site/cross-category overlaps for editorial review; never
+   auto-deduplicate.
+8. Validate every mapped entity against the real v2 schemas; report — never
+   suppress — a validation failure.
+9. `--apply` is explicitly rejected; there is no write path in this tool.
 
 ## What is deliberately NOT implemented
 
-- No Firestore v2 collection, document, or read/write path.
+- No real v2 Firestore document has been written (`FirestoreV2Store` is
+  read-only and is not the selected store by default).
 - No Cloud Storage bucket, upload, or media-serving path.
 - No write/create/update/delete endpoints under `/api/v2`.
 - No actual community, belief, place, structure, story, music, proverb,
-  historicalContext, media, or source records — the schemas validate a
-  shape; no cultural content was authored or migrated.
-- No actual relationships between entities.
-- No real consent records — `consent.js` is validation only.
+  historicalContext, media, or source records in any datastore — the
+  schemas validate a shape, and the migration dry run only maps records in
+  memory for a report; nothing is written or migrated.
+- No actual relationships between entities (`v2Relationships` is an empty,
+  documented collection shape).
+- No real consent records — `consent.js` is validation only; `v2Consents`
+  and `v2Editorial` are documented, unused collection names.
 - No admin/editorial UI for v2.
 - No language-specific (`/tr/`, `/en/`, `/ar/`) routing for v2 entities.
+- No `--apply` mode for the migration CLI.
 
 ## Migration boundary
 
@@ -235,15 +504,23 @@ automatic or implicit one.
 
 ## Future Firestore v2 strategy
 
-The store abstraction exists specifically so a `firestoreV2Store`
-implementation can be added later — most likely a `v2Entities` collection
-keyed by immutable `id` (or one collection per `entityType`, still to be
-decided against real query patterns) and a `v2Relationships` collection
-keyed by relationship `id`, indexed by `sourceId`/`targetId`. `V2_DATA_STORE`
-is already read by `backend/v2/stores/v2Store.js` as the selection variable,
-mirroring v1's `DATA_STORE`, so switching stores will not require route or
-controller changes. No such collection exists yet, and none should be
-created without a separate, explicit decision.
+`FirestoreV2Store` (see "Store abstraction" above) is now implemented
+against `v2Entities`/`v2Relationships`, but it is read-only and holds no
+data — no write path exists, and switching production to
+`V2_DATA_STORE=firestore` remains a separate, explicit decision this step
+does not make. Follow-on work this store deliberately leaves open:
+
+- A write path (create/update), still gated by `requireAdmin` the same way
+  v1's `PUT /api/archive` is, and still writing only to `v2Entities`/
+  `v2Relationships`.
+- Resolving the deferred `communityId`/`beliefId`/`placeId` filters via an
+  actual relationship-driven query (e.g. fetch relationships first, then
+  batch-`getAll` the matching entities), once real relationship data exists
+  to query.
+- Deciding whether `v2Entities` should stay one collection (current design)
+  or split per `entityType` once real query/index patterns are known.
+- A real `v2Consents`/`v2Editorial` implementation, kept out of any public
+  read path.
 
 ## Future Cloud Storage strategy
 
@@ -265,9 +542,17 @@ implemented by this change.
   so the two vocabularies can evolve separately without risk of collision.
 - `backend/server.js` gained exactly two additive lines of substance: an
   `app.use("/api/v2", v2Router)` mount and an `initializeV2Store()` call
-  alongside the existing `initializeDataStore()` call at startup.
+  alongside the existing `initializeDataStore()` call at startup — unchanged
+  by this step.
 - All existing v1 backend tests continue to pass unmodified; a new
   `backend/test/v2/v1Compatibility.test.js` explicitly asserts the
   `GET /api/archive` response shape and content are unaffected.
 - `data/archive.json`, `data/submissions.json`, and all frontend/build
-  scripts are untouched.
+  scripts are untouched. `backend/scripts/migrate-v1-to-v2.js` only ever
+  *reads* `data/archive.json`, and only when `--apply` is not passed.
+- The v1 Firestore migration script
+  (`backend/scripts/migrate-json-to-firestore.js`) and the new
+  `backend/scripts/migrate-v1-to-v2.js` are entirely separate tools: the
+  former migrates v1 JSON into v1's own `archive`/`submissions` collections
+  and can write with `--apply`; the latter maps v1 into a *proposed* v2
+  shape for review and never writes anywhere.

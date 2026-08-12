@@ -4,6 +4,7 @@ import { validatePagination } from "../validators/pagination.js";
 import { validateFilters } from "../validators/filters.js";
 import { serializePublicEntities, serializePublicEntity } from "../serializers/publicSerializer.js";
 import { getV2Store } from "../stores/v2Store.js";
+import { V2QueryError } from "../stores/errors.js";
 
 const V2_VERSION = "v2";
 
@@ -44,6 +45,12 @@ function sendListError(res, error) {
 }
 
 function sendReadFailure(res, label, error) {
+  // A store can decide a request cannot be honored yet (e.g. an unsupported
+  // filter, or a Firestore composite index that doesn't exist) — that is a
+  // client-correctable 400, not a 500 server failure.
+  if (error instanceof V2QueryError) {
+    return res.status(400).json({ success: false, error: error.message });
+  }
   console.error(`[V2Routes] ${label}:`, error.message);
   return res.status(500).json({ success: false, error: "Could not read v2 archive data." });
 }

@@ -1357,7 +1357,7 @@
           "Preferred self-designations vary by speaker, generation and context."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0002",
@@ -1424,7 +1424,7 @@
           "Village-by-village community distribution requires further structured research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0003",
@@ -1496,7 +1496,7 @@
           "Denomination-by-locality mapping remains incomplete."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0004",
@@ -1568,7 +1568,7 @@
           "Local dialect and settlement continuity should be documented place by place."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0005",
@@ -1644,7 +1644,7 @@
           "Several historic-to-modern village equivalences remain unresolved."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0006",
@@ -1701,7 +1701,7 @@
           "Post-2023 community continuity and local musical traditions require updated research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0007",
@@ -1760,7 +1760,7 @@
           "Subcommunity and settlement-level differentiation requires further research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0008",
@@ -1905,7 +1905,7 @@
           "Historical membership and language profile require deeper research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0011",
@@ -1997,7 +1997,7 @@
           "Broader community history beyond the musician sample requires further research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0013",
@@ -2051,7 +2051,7 @@
           "Specific Circassian subgroup/language mapping remains incomplete."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0014",
@@ -2109,7 +2109,7 @@
           "Historical migration routes require further place-level mapping."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0015",
@@ -2168,7 +2168,7 @@
           "Belief affiliations and wider community history were not part of the music-focused source."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0016",
@@ -2368,7 +2368,7 @@
           "Full locally named ritual and sacred-music taxonomy needs community-based field research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0002",
@@ -2432,7 +2432,7 @@
           "Community affiliation must not be inferred solely from mosque proximity."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0003",
@@ -2508,7 +2508,7 @@
           "Structure-by-structure current liturgical use after 2023 requires ongoing updates."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0004",
@@ -2574,7 +2574,7 @@
           "Do not use a source's incorrect ecclesiastical classification if it conflicts with institutional church identity."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0005",
@@ -2632,7 +2632,7 @@
           "Other Catholic communities/rites in Hatay need denomination-level research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0006",
@@ -2730,7 +2730,7 @@
           "Antakya-specific liturgical music and post-2023 community continuity require research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0008",
@@ -2790,7 +2790,7 @@
           "Do not map this entity directly onto modern Greek Orthodox or Catholic belief entities."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0009",
@@ -2857,7 +2857,7 @@
           "Exact identification of individual cult sites requires archaeological data."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "belief-0010",
@@ -3135,7 +3135,7 @@
           "Exact polygon relationship between the ancient metropolis and modern urban boundaries remains GIS work."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0002",
@@ -3199,7 +3199,7 @@
           "Authoritative archaeological polygon is not normalized."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0003",
@@ -3265,7 +3265,7 @@
           "Earlier street-name sequence needs archival confirmation."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0004",
@@ -3303,7 +3303,7 @@
           "Historical boundary changes and local Arabic name require verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0005",
@@ -3338,7 +3338,7 @@
           "Historical neighborhood-name continuity and local Arabic usage need verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0006",
@@ -3387,7 +3387,7 @@
           "Shop-level craft and community histories remain oral-history work."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0007",
@@ -3439,7 +3439,7 @@
           "Historic river-course changes and GIS polyline should be normalized later."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0008",
@@ -3490,7 +3490,7 @@
           "Exact correspondence of historical mountain-name subareas needs cartographic review."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0009",
@@ -3541,7 +3541,7 @@
           "Village/neighborhood-level cultural mapping remains incomplete."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0010",
@@ -3606,7 +3606,7 @@
           "Precise ancient Daphne archaeological boundary needs GIS normalization."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0011",
@@ -3674,7 +3674,7 @@
           "Local Arabic micro-toponyms need speaker-level verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0012",
@@ -3719,7 +3719,7 @@
           "Local Arabic name requires verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0013",
@@ -3780,7 +3780,7 @@
           "Exact archaeological extent needs GIS source."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0014",
@@ -3834,7 +3834,7 @@
           "Historic village-to-modern settlement mappings remain partly unresolved."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0015",
@@ -3886,7 +3886,7 @@
           "Local Arabic name and pronunciation require field verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0016",
@@ -3972,7 +3972,7 @@
           "Current cultural continuity needs updated field documentation."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0018",
@@ -4020,7 +4020,7 @@
           "Local Arabic and Armenian forms need source-normalized scripts."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0019",
@@ -4186,7 +4186,7 @@
           "Village-level local Arabic names need a dedicated field-verified gazetteer."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0023",
@@ -4219,7 +4219,7 @@
           "Community, village and local Arabic-name mapping remains incomplete."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0024",
@@ -4267,7 +4267,7 @@
           "Historic settlement-area boundaries require map normalization."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0025",
@@ -4325,7 +4325,7 @@
           "Ancient settlement-name relationships should be researched separately from the modern city."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0026",
@@ -4377,7 +4377,7 @@
           "Arsuz ↔ ancient Rhosus correspondence requires exact archaeological verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0027",
@@ -4422,7 +4422,7 @@
           "Community composition and local Arabic script form require verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "place-0028",
@@ -4470,7 +4470,7 @@
           "Local Arabic name, historical names and post-2023 community continuity require verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0001",

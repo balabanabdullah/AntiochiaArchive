@@ -129,6 +129,84 @@ function pickAllowlisted(entity, allowlist) {
   return output;
 }
 
+// Research placeholder markers (e.g. "NEEDS LOCAL VERIFICATION" literally
+// embedded in a title.ar or historicalNames[].name value) must never reach
+// a public response as if they were real content — they are internal
+// editorial flags meaning "not yet confirmed," not facts. Stripping happens
+// here, at serialization, rather than by ever editing the source record:
+// the raw research value (sentinel included) stays intact in
+// data/v2/entities.json for editorial tracking, and only the public
+// projection omits it. An entity is never held back from publication
+// solely because one optional name/etymology field carries a sentinel —
+// that field is just omitted from the public response instead.
+// Anchored to the END of the string (trailing whitespace/punctuation
+// allowed): every real sentinel in this dataset is a trailing marker on an
+// otherwise-short name/label value ("Bitias? — UNRESOLVED", "Historical
+// street names: NEEDS VERIFICATION", or the bare marker alone) — never a
+// marker word used mid-sentence inside genuine hedged prose ("...remains a
+// subject some historians consider unresolved, though..."). Anchoring to
+// the end (rather than a bare \b...\b word match anywhere) is what tells
+// these apart; a whole-string match here previously stripped legitimate
+// summary sentences that merely used a sentinel word in passing.
+const SENTINEL_PATTERN = /(UNKNOWN|NEEDS(?: LOCAL)? VERIFICATION|NEEDS PRECISE[A-Z \-]*|NEEDS SOURCE-EXACT[A-Z \-]*|NO RELIABLE SOURCE FOUND|NOT YET RESEARCHED|UNRESOLVED)[\s.?!—-]*$/i;
+
+function isSentinelString(value) {
+  return typeof value === "string" && SENTINEL_PATTERN.test(value);
+}
+
+/** Multilingual text ({ tr, en, ar, ... }): drops any language whose value is a sentinel. */
+function stripSentinelText(value) {
+  if (!value || typeof value !== "object") return value;
+  const cleaned = {};
+  for (const [lang, text] of Object.entries(value)) {
+    if (!isSentinelString(text)) cleaned[lang] = text;
+  }
+  return Object.keys(cleaned).length ? cleaned : undefined;
+}
+
+/** Multilingual string arrays ({ tr: [...], en: [...] }): drops sentinel entries per language. */
+function stripSentinelTextArrayMap(value) {
+  if (!value || typeof value !== "object") return value;
+  const cleaned = {};
+  for (const [lang, list] of Object.entries(value)) {
+    if (!Array.isArray(list)) continue;
+    const filtered = list.filter((item) => !isSentinelString(item));
+    if (filtered.length) cleaned[lang] = filtered;
+  }
+  return Object.keys(cleaned).length ? cleaned : undefined;
+}
+
+/** Name-object arrays (place.localNames/historicalNames: [{ name, ... }]): drops sentinel-named entries. */
+function stripSentinelNameArray(value) {
+  if (!Array.isArray(value)) return value;
+  const filtered = value.filter((item) => !isSentinelString(item?.name));
+  return filtered.length ? filtered : undefined;
+}
+
+// Declares, per public field, how to strip sentinel placeholder values.
+// Fields not listed here pass through unchanged (they are either never
+// sentinel-prone — ids, enums, booleans — or already excluded from the
+// allowlist entirely).
+const SENTINEL_STRIPPERS = Object.freeze({
+  title: stripSentinelText,
+  summary: stripSentinelText,
+  officialName: stripSentinelText,
+  etymology: stripSentinelText,
+  alternateNames: stripSentinelTextArrayMap,
+  localNames: stripSentinelNameArray,
+  historicalNames: stripSentinelNameArray,
+});
+
+function stripSentinels(output) {
+  for (const [field, strip] of Object.entries(SENTINEL_STRIPPERS)) {
+    if (!Object.hasOwn(output, field)) continue;
+    const cleaned = strip(output[field]);
+    if (cleaned === undefined) delete output[field];
+    else output[field] = cleaned;
+  }
+  return output;
+}
+
 // Entity types that may carry a single associated image via the migration
 // mapper's internal `media` preview array (see
 // ../migration/v1ToV2Mapping.js#migrationProvenance). That raw preview array
@@ -156,7 +234,7 @@ function publicMediaSummary(entity) {
 export function serializePublicEntity(entity) {
   if (!entity || typeof entity !== "object") return null;
   const allowlist = PUBLIC_FIELDS_BY_TYPE[entity.entityType] || BASE_PUBLIC_FIELDS;
-  const output = pickAllowlisted(entity, allowlist);
+  const output = stripSentinels(pickAllowlisted(entity, allowlist));
 
   if (entity.entityType === "media") {
     // A media entity already carries its own top-level public fields

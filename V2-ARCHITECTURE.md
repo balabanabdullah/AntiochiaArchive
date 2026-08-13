@@ -1293,56 +1293,115 @@ committed) classified all 168 promoted entities into
 `publishNow` / `keepInReview` / `keepDraft` / `keepArchived`, changing only
 each entity's `status` field — never titles, descriptions, ids, slugs, or
 sourceIds, and never touching `data/v2/relationships.json` or
-`data/v2/legacyReplacements.json`. The result: **61 of 168 are public**,
-not all of them. Key rules applied:
+`data/v2/legacyReplacements.json`. Key rules applied:
 
 - **`oralHistoryLead` stories (39 of 47) always stay `draft`.** They are
   future interview topics recorded as leads, not actual testimony — treating
   one as a public "story" would misrepresent an unrecorded interview as
   published oral history. Hard rule, no exceptions regardless of confidence.
-- **`community`, `belief`, and `place` entities are held to `inReview` in
-  this first pass, regardless of individual confidence.** `community`/
-  `belief` describe ethnic or religious identity, where PART 5's
-  `unresolved-group-0008` (`communityTerminology`, severity: high) flags
-  dataset-wide terminology risk (Arab Alawite/Nusayri/Alawite conflation,
-  Rum ≠ modern Greek nationality, Turkish/Turkmen/Yörük distinctness,
-  incomplete Kurdish/Syriac detail). `place` entities fall under
-  `unresolved-group-0009` (`localArabicToponyms`, severity: high): unverified
-  local Arabic names must stay `NEEDS VERIFICATION`, never silently become
-  presented public fact. None of these 57 records were public before this
-  review either — this pass preserves that conservative default rather than
-  introducing new promotions into these categories.
 - **A small set of entities have an explicit, PART-5-documented identity,
   chronology, or terminology problem** and are held to `inReview`/`archived`
-  even where confidence is otherwise high: `place-0016` (Hıdırbey ↔ Kheder
-  Beg unresolved), `place-0019` (Batıayaz ↔ Bitias unresolved), `belief-0010`
-  (a cross-tradition visitation practice modeled as a belief, not a
-  standalone organized religion), `comm-0016`/`comm-0017` (historical
-  population contexts, not modern living communities), `music-0004` (its own
-  title is literally "'Finn' Term — Needs Verification"), `music-0011`
-  (rests partly on "Necef İlahileri", a v1 category PART 3 explicitly found
-  unverified), and `structure-0001`/`0002`/`0003`/`0004` (PART 5
-  `unresolved-group-0011`, severity: high: Habib-i Neccar complex phase
-  chronology, St. Pierre facade chronology source conflict, and the
-  synagogue's exact construction/restoration status are all open — even
-  though *site identity* for all four is settled and preserved via
+  even where confidence is otherwise high: `belief-0010` (a cross-tradition
+  visitation practice modeled as a belief, not a standalone organized
+  religion — the belief schema has no `beliefType` field the public
+  serializer exposes to make this distinction visible), `comm-0016`/
+  `comm-0017` (historical population contexts, not modern living
+  communities — same reasoning), `place-0016`/`place-0019` (Hıdırbey ↔
+  Kheder Beg and Batıayaz ↔ Bitias — each place's own identity, not merely a
+  peripheral fact, is explicitly `UNRESOLVED` in PART 2, and both are
+  already `draft` in the research itself), `music-0004` (its own title is
+  literally "'Finn' Term — Needs Verification"), `music-0011` (rests partly
+  on "Necef İlahileri", a v1 category PART 3 explicitly found unverified —
+  already `draft`/`low` confidence in the research itself, unchanged), and
+  `structure-0001`/`0002`/`0003`/`0004` (PART 5 `unresolved-group-0011`,
+  severity: high: Habib-i Neccar complex phase chronology, St. Pierre
+  facade chronology source conflict, and the synagogue's exact
+  construction/restoration status are all open — even though *site
+  identity* for all four is settled and preserved via
   `legacyReplacements.json`). `structure-0005` (Samandağ Khidr Shrine) and
   `structure-0020` are **not** on this list and are published — their
   identity and core claim have no open PART-5 conflict.
-- **Everything else** (the remaining `historicalContext`, `structure`,
-  `story`, and `music` records) is published only when
-  `researchExtensions.confidence === "high"`; `medium`/`low`/unspecified
-  confidence stays `inReview`. An entity already `draft` or `archived` in
-  the research itself is preserved as-is — this review never upgrades a
-  research-assigned `draft`/`archived` without new research, and never
-  fabricates bibliography to justify a promotion. An incomplete source
-  citation alone never blocks publication of an otherwise well-supported
-  claim — the two are genuinely different questions (see "Cultural dataset
-  import preview" above, "Source reference count audit").
+- **Everything else** is published only when
+  `researchExtensions.confidence === "high"` (community/belief) or meets the
+  refined place standard below; `medium`/`low`/unspecified confidence stays
+  `inReview` for `historicalContext`/`structure`/`story`/`music`. An entity
+  already `draft` or `archived` in the research itself is preserved as-is —
+  this review never upgrades a research-assigned `draft`/`archived` without
+  new research, and never fabricates bibliography to justify a promotion. An
+  incomplete source citation alone never blocks publication of an otherwise
+  well-supported claim — the two are genuinely different questions (see
+  "Cultural dataset import preview" above, "Source reference count audit").
 
-This is a **first pass**, not a final word: `community`, `belief`, and
-`place` in particular need their own dedicated review before anything in
-those categories can go public.
+**Result: 105 of 168 are public.**
+
+#### Community/belief/place individual review
+
+A first pass held all 57 `community`/`belief`/`place` entities to
+`inReview` as a **blanket category-wide policy** — an explicitly
+conservative editorial choice, not a technical requirement (PART 5's
+`unresolved-group-0008`/`0009` dataset-wide terminology/toponym cautions
+applied to the categories generally, not to every individual record). A
+follow-up pass reviewed all 57 **individually** instead:
+
+- **`community` (12 of 17 published) and `belief` (8 of 12 published)**:
+  published unless the research itself marked the record `draft`
+  (`comm-0008`/`0009`/`0011`, `belief-0006`/`0011`/`0012` — all genuinely
+  incomplete profiles, preserved as-is) or it is `comm-0016`/`comm-0017`/
+  `belief-0010` above. A community's core claim — that it exists and has
+  documented historical presence — does not depend on every alternate name
+  or its exact relationship to a belief tradition being fully resolved;
+  each record's own `editorialNotes` (e.g. "Do not use Nusayri, Arab Alawite
+  and Alawite as timeless exact synonyms") are terminology guardrails for
+  accurate framing, not evidence the community itself is misidentified.
+  `community` and `belief` are never conflated with each other — each
+  record's `entityType` is exactly one or the other, never both.
+- **`place` (24 of 28 published)**: a place is held back only when its **own
+  identity** depends on an explicitly `UNRESOLVED` toponym equation
+  (`place-0016`, `place-0019` — both already `draft`). Missing coordinates,
+  an unverified local Arabic name, or an uncertain optional historical-name
+  field never blocks publication on their own — those are exactly what the
+  serializer's sentinel-stripping (below) now omits from the public
+  response instead. `place-0017` (Yoğunoluk ↔ Yoghunoluk) and `place-0018`
+  (Kapısuyu ↔ Kabusiye) are explicit `likelySameEntity` resolutions from
+  DR-10, not unresolved, and are published. The canonical PART 2
+  distinctions are preserved as separate published records, never merged:
+  `place-0001` (modern Antakya) vs. `place-0002` (ancient archaeological
+  footprint), `place-0009` (modern Defne) vs. `place-0010` (Harbiye/ancient
+  Daphne), `place-0011` (Samandağ) vs. `place-0013` (Seleucia Pieria), and
+  `place-0012` (Çevlik) as its own distinct record.
+
+This is still not a final word for every record — `comm-0016`/`comm-0017`/
+`belief-0010`/`place-0016`/`place-0019` remain held for the reasons above —
+but the blanket category-wide hold is gone.
+
+#### No sentinel values in public output
+
+Research placeholder markers (`NEEDS VERIFICATION`, `UNKNOWN`,
+`UNRESOLVED`, ...) sometimes sit directly in an otherwise-public field —
+found during this review in `place-0015`/`place-0022`'s `title.ar` and in
+several places' `historicalNames` entries. These must never reach the
+public API as if they were real content, but the record as a whole should
+still publish when everything else about it is sound — withholding an
+entire well-supported place because one optional Arabic name variant says
+"NEEDS VERIFICATION" would be its own kind of over-caution.
+
+`backend/v2/serializers/publicSerializer.js`'s `stripSentinels()` handles
+this at serialization time, never by editing the source record: the raw
+value (sentinel included) stays intact in `data/v2/entities.json` for
+editorial tracking, and only the public projection omits it.
+`title`/`summary`/`officialName`/`etymology` drop just the affected
+language key; `historicalNames`/`localNames` drop just the affected array
+entry (the field is omitted entirely only if every entry was a sentinel).
+The match is anchored to the **end** of the string (trailing
+whitespace/punctuation allowed) — every real sentinel in this dataset is a
+trailing marker on an otherwise-short value ("Bitias? — UNRESOLVED",
+"Historical street names: NEEDS VERIFICATION"), never a marker word used
+mid-sentence inside genuine hedged prose ("...remains a subject some
+historians consider unresolved, though...") — a bare `\bUNRESOLVED\b`
+word-match without that anchor was tried first and incorrectly stripped
+legitimate summary sentences; the regression test for that is
+`backend/test/v2/serializer.test.js`'s "legitimate sentence ... word-boundary
+match only" case.
 
 ### Public relationship gating
 

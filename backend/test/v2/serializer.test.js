@@ -145,6 +145,82 @@ test("an entity with no migration-preview media at all yields no public 'media' 
   assert.equal(Object.hasOwn(output, "media"), false);
 });
 
+// --- Sentinel placeholder stripping -----------------------------------
+//
+// Research records use sentinel strings (NEEDS VERIFICATION, UNRESOLVED,
+// UNKNOWN, ...) as internal editorial flags meaning "not yet confirmed" —
+// see the FINAL CANONICAL PUBLICATION REVIEW's community/belief/place
+// individual pass, which found several of these embedded directly in
+// otherwise-publishable place records (e.g. place-0015/place-0022's
+// title.ar). They must never reach a public response as if they were real
+// content.
+
+test("a sentinel value in one language of a multilingual title is dropped, leaving other languages intact", () => {
+  const place = {
+    id: "place-test-1", slug: "test-place", entityType: "place", status: "published",
+    title: { tr: "Vakıflı", en: "Vakıflı Village", ar: "فاكيفلي — NEEDS LOCAL VERIFICATION" },
+  };
+  const output = serializePublicEntity(place);
+  assert.deepEqual(output.title, { tr: "Vakıflı", en: "Vakıflı Village" });
+});
+
+test("a sentinel-named entry in historicalNames/localNames is dropped from the array, not the whole field", () => {
+  const place = {
+    id: "place-test-2", slug: "test-place-2", entityType: "place", status: "published",
+    title: { en: "Test" },
+    historicalNames: [{ name: "Real Historical Name" }, { name: "Historical street names: NEEDS VERIFICATION" }],
+  };
+  const output = serializePublicEntity(place);
+  assert.deepEqual(output.historicalNames, [{ name: "Real Historical Name" }]);
+});
+
+test("historicalNames is omitted entirely when every entry is a sentinel", () => {
+  const place = {
+    id: "place-test-3", slug: "test-place-3", entityType: "place", status: "published",
+    title: { en: "Test" },
+    historicalNames: [{ name: "NEEDS VERIFICATION" }],
+  };
+  const output = serializePublicEntity(place);
+  assert.equal(Object.hasOwn(output, "historicalNames"), false);
+});
+
+test("a sentinel value in officialName/etymology is dropped the same way as title", () => {
+  const place = {
+    id: "place-test-4", slug: "test-place-4", entityType: "place", status: "published",
+    title: { en: "Test" },
+    officialName: { en: "UNKNOWN" },
+    etymology: { en: "Real etymology note.", tr: "NO RELIABLE SOURCE FOUND" },
+  };
+  const output = serializePublicEntity(place);
+  assert.equal(Object.hasOwn(output, "officialName"), false);
+  assert.deepEqual(output.etymology, { en: "Real etymology note." });
+});
+
+test("a legitimate sentence merely containing the word 'unresolved' is NOT treated as a sentinel (word-boundary match only)", () => {
+  const place = {
+    id: "place-test-5", slug: "test-place-5", entityType: "place", status: "published",
+    title: { en: "Test" },
+    summary: { en: "The exact founding date remains a subject some historians consider unresolved, though the broader chronology is well established." },
+  };
+  const output = serializePublicEntity(place);
+  // A prose sentence that happens to use the word is legitimate hedged
+  // content, distinct from a raw sentinel placeholder occupying an entire
+  // field — this stripper only targets the latter pattern in practice
+  // (whole-field placeholder values), verified here to confirm it doesn't
+  // over-match ordinary cautious academic language.
+  assert.ok(output.summary.en.includes("unresolved"));
+});
+
+test("community/belief entities get the same sentinel stripping as place", () => {
+  const community = {
+    id: "comm-test-1", slug: "test-comm", entityType: "community", status: "published",
+    title: { en: "Test Community", ar: "UNKNOWN" },
+  };
+  const output = serializePublicEntity(community);
+  assert.equal(Object.hasOwn(output.title, "ar"), false);
+  assert.equal(output.title.en, "Test Community");
+});
+
 test("a media entity gains public alt/caption from its own migration preview, without duplicating other fields", () => {
   const media = {
     id: "g3",

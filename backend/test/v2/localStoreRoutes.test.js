@@ -7,15 +7,21 @@
 // the actual committed data files, not a fixture, so counts here double as
 // a regression check on the real, live system.
 //
-// 61 of 184 total entities in the store are currently PUBLIC. The
-// publication review deliberately held back entire categories this first
-// pass — community, belief, and place are ALL still non-public (0 each),
-// pending a dedicated review of ethnic/religious identity presentation and
-// unverified local-toponym content — plus specific structures/music records
-// with an explicit, PART-5-documented identity/chronology/terminology
-// problem (structure-0001/0002/0003/0004, music-0004, music-0011), plus
-// every oralHistoryLead story (39 of 47) which is a future interview topic,
-// never actual testimony.
+// 105 of 184 total entities in the store are currently PUBLIC. An initial
+// publication review held back community/belief/place as whole categories;
+// a follow-up individual review (V2-ARCHITECTURE.md "Cultural entity
+// publication review — community/belief/place individual pass") published
+// most of them (44 of 57) after finding no per-record reason to withhold,
+// while still holding back specific records with a genuine, explicit
+// identity/classification problem: comm-0016/comm-0017
+// (historicalPopulationGroup, not modern living communities), belief-0010
+// (crossTraditionPractice, not a standalone organized religion), and
+// place-0016/place-0019 (each already draft, with the place's OWN historic-
+// identity correspondence explicitly marked UNRESOLVED in the research —
+// Hıdırbey↔Kheder Beg and Batıayaz↔Bitias respectively). Also still held:
+// structure-0001/0002/0003/0004 and music-0004/music-0011 (explicit PART-5
+// chronology/terminology problems), and every oralHistoryLead story (39 of
+// 47) which is a future interview topic, never actual testimony.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -65,10 +71,10 @@ async function paginateAll(baseUrl, path, limit = 100) {
   return seen;
 }
 
-test("GET /api/v2/entities, paginated across pages, returns exactly the 61 currently-public entities with no duplicates or gaps", async (context) => {
+test("GET /api/v2/entities, paginated across pages, returns exactly the 105 currently-public entities with no duplicates or gaps", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const all = await paginateAll(baseUrl, "/api/v2/entities");
-  assert.equal(all.length, 61);
+  assert.equal(all.length, 105);
   for (const item of all) {
     assert.equal(item.status === "published" || item.entityType === "media" || item.entityType === "source", true, `${item.id} must be public`);
   }
@@ -131,15 +137,88 @@ test("GET /api/v2/media returns 6 (g1-g6 — media/source are statusless and alw
   }
 });
 
-test("GET /api/v2/beliefs, /communities, /places, /proverbs all return 0 — held back this publication pass pending dedicated identity-sensitivity review", async (context) => {
+test("GET /api/v2/proverbs returns 0 — zero proverb entities exist", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  for (const path of ["beliefs", "communities", "places", "proverbs"]) {
-    // eslint-disable-next-line no-await-in-loop
-    const response = await fetch(`${baseUrl}/api/v2/${path}`);
-    // eslint-disable-next-line no-await-in-loop
-    const body = await response.json();
-    assert.deepEqual(body.data, [], `${path} must be empty`);
+  const response = await fetch(`${baseUrl}/api/v2/proverbs`);
+  const body = await response.json();
+  assert.deepEqual(body.data, []);
+});
+
+test("GET /api/v2/communities returns 12 of 17 — comm-0008/0009/0011 stay draft (research's own incomplete-profile classification), comm-0016/0017 held individually (historicalPopulationGroup, not modern living communities)", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/communities?limit=100`);
+  const body = await response.json();
+  const ids = body.data.map((item) => item.id).sort();
+  assert.equal(ids.length, 12);
+  for (const heldId of ["comm-0008", "comm-0009", "comm-0011", "comm-0016", "comm-0017"]) {
+    assert.equal(ids.includes(heldId), false, `${heldId} must stay non-public`);
   }
+  // Community/belief separation: no community record claims entityType belief.
+  for (const item of body.data) assert.equal(item.entityType, "community");
+});
+
+test("GET /api/v2/beliefs returns 8 of 12 — belief-0006/0011/0012 stay draft, belief-0010 (crossTraditionPractice) held individually", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/beliefs?limit=100`);
+  const body = await response.json();
+  const ids = body.data.map((item) => item.id).sort();
+  assert.equal(ids.length, 8);
+  for (const heldId of ["belief-0006", "belief-0010", "belief-0011", "belief-0012"]) {
+    assert.equal(ids.includes(heldId), false, `${heldId} must stay non-public`);
+  }
+  for (const item of body.data) assert.equal(item.entityType, "belief");
+});
+
+test("GET /api/v2/places returns 24 of 28 — place-0016/0019 (own identity depends on an explicitly UNRESOLVED toponym equation) and place-0020/0021 (draft) stay non-public; place-0017/0018 (likelySameEntity resolutions, not unresolved) are published", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/places?limit=100`);
+  const body = await response.json();
+  const ids = body.data.map((item) => item.id).sort();
+  assert.equal(ids.length, 24);
+  for (const heldId of ["place-0016", "place-0019", "place-0020", "place-0021"]) {
+    assert.equal(ids.includes(heldId), false, `${heldId} must stay non-public`);
+  }
+  assert.ok(ids.includes("place-0017"), "Yoğunoluk↔Yoghunoluk is a resolved likelySameEntity mapping, not unresolved");
+  assert.ok(ids.includes("place-0018"), "Kapısuyu↔Kabusiye is a resolved likelySameEntity mapping, not unresolved");
+  // Canonical Part 2 distinctions preserved as separate published place records.
+  assert.ok(ids.includes("place-0001") && ids.includes("place-0002"), "Antakya vs ancient urban footprint stay distinct");
+  assert.ok(ids.includes("place-0009") && ids.includes("place-0010"), "modern Defne vs Harbiye/ancient Daphne stay distinct");
+  assert.ok(ids.includes("place-0011") && ids.includes("place-0013"), "Samandağ vs Seleukeia Pieria stay distinct");
+});
+
+test("no sentinel placeholder value (NEEDS VERIFICATION, UNRESOLVED, etc.) appears anywhere in the public community/belief/place output", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const sentinel = /UNKNOWN|NEEDS(?: LOCAL)? VERIFICATION|NO RELIABLE SOURCE FOUND|NOT YET RESEARCHED|UNRESOLVED|NEEDS PRECISE|NEEDS SOURCE-EXACT/i;
+  function scan(value) {
+    if (value == null) return [];
+    if (typeof value === "string") return sentinel.test(value) ? [value] : [];
+    if (Array.isArray(value)) return value.flatMap(scan);
+    if (typeof value === "object") return Object.values(value).flatMap(scan);
+    return [];
+  }
+  for (const path of ["communities", "beliefs", "places"]) {
+    // eslint-disable-next-line no-await-in-loop
+    const body = await (await fetch(`${baseUrl}/api/v2/${path}?limit=100`)).json();
+    for (const item of body.data) {
+      const hits = scan(item);
+      assert.deepEqual(hits, [], `${item.id} (${path}) must carry no sentinel placeholder value publicly`);
+    }
+  }
+});
+
+test("place-0015 and place-0022 (sentinel in title.ar) publish with the sentinel language dropped, not the whole record withheld", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const p15Response = await fetch(`${baseUrl}/api/v2/entities/place-0015`);
+  const p15 = await p15Response.json();
+  assert.equal(p15Response.status, 200);
+  assert.equal(p15.data.title.tr, "Vakıflı / Vakıfköy");
+  assert.equal(Object.hasOwn(p15.data.title, "ar"), false, "the sentinel-valued Arabic title is omitted, not published as fact");
+
+  const p22Response = await fetch(`${baseUrl}/api/v2/entities/place-0022`);
+  const p22 = await p22Response.json();
+  assert.equal(p22Response.status, 200);
+  assert.equal(p22.data.title.tr, "Altınözü");
+  assert.equal(Object.hasOwn(p22.data.title, "ar"), false);
 });
 
 test("GET /api/v2/entities/:id: structure-0005 (newly published canonical replacement) and g3 (media) resolve correctly", async (context) => {

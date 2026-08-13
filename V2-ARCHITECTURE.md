@@ -1,6 +1,6 @@
 # AntiochiaArchive v2 foundation
 
-This document describes the v2 foundation built in three steps, all layered
+This document describes the v2 foundation built in five steps, all layered
 locally alongside the stable v1.0 production system without changing,
 migrating, or depending on any v1 production data:
 
@@ -28,6 +28,15 @@ migrating, or depending on any v1 production data:
    in-memory. This step is infrastructure only: it authors zero real
    community/belief/place/proverb records. See "Local editorial entity +
    relationship data infrastructure" below.
+5. **A cultural-dataset import PREVIEW pipeline** — a normalization tool
+   (`backend/v2/importPreview/`) that reads externally-supplied canonical
+   research text (never committed — see "Cultural dataset import preview"
+   below), transforms it into the v2 entity/relationship/source/media
+   shape under a strict no-invention policy, validates every record with
+   the real v2 schemas, and writes the result to an ignored `tmp/`
+   directory for human review. It never writes `data/v2/entities.json` or
+   `data/v2/relationships.json` — going from preview to those committed
+   files remains a separate, explicit, human-reviewed step every time.
 
 **No step migrates production data.** No Firestore document has ever been
 read or written by this work, no Cloud Storage resource was created, and
@@ -980,6 +989,265 @@ and destroyed by a single test run, and is never written to the committed
 Arab Christian, Turkish, Kurdish, or any other real community/belief/place
 record is introduced anywhere by this step.
 
+## Cultural dataset import preview
+
+`backend/v2/importPreview/` turns externally-supplied canonical cultural
+research (a "master dataset" — historical contexts, communities, beliefs,
+places, structures, stories, music, media, sources, and relationships,
+authored and reviewed outside this repository) into a validated, normalized
+**preview** of what a real v2 import would look like — without actually
+importing anything. This is infrastructure and validation tooling, not a
+one-off script: it is meant to be re-run every time a new or revised
+research batch is supplied.
+
+**This is not a production import path.** It never writes
+`data/v2/entities.json` or `data/v2/relationships.json` (the committed,
+currently-empty native data files described above), never contacts
+Firestore or Cloud Storage, and never pushes or deploys anything. Promoting
+reviewed preview output into the committed native data files remains a
+separate, explicit, human decision every time — this tool only makes that
+decision safer to make by front-loading validation.
+
+### Where the research input lives
+
+Canonical research text is supplied as six files under a repository-root
+`research-input/` directory, which is **git-ignored** (see `.gitignore`) and
+therefore never committed:
+
+```
+research-input/antiochiaarchive_master_dataset_part1.txt              (metadata, historicalContext, community, belief)
+research-input/antiochiaarchive_master_dataset_part2.txt              (place, structure)
+research-input/antiochiaarchive_master_dataset_part3.txt              (story, music — authoritative for these two types)
+research-input/antiochiaarchive_master_dataset_part4_regenerated.txt  (media, sources, relationships — supersedes any older part4/5)
+research-input/antiochiaarchive_master_dataset_part5_regenerated.txt  (duplicate/entity resolution log, rights issues, unresolved questions, quality report)
+research-input/registry_recovery.txt                                  (source/media registry recovery, relationship evidence corrections)
+```
+
+The tooling (`backend/v2/importPreview/`) IS committed; the research text it
+reads is not. Running the CLI without `research-input/` present fails
+loudly (see "Missing input" below) rather than silently treating the
+dataset as empty.
+
+### Pipeline
+
+`backend/v2/importPreview/researchParser.js` — a pure text -> structured-
+data parser, no policy applied:
+
+- PART 1-3 use fenced ` ```yaml id="..." ` code blocks, one per record.
+- PART 4/5 and the registry-recovery file use a
+  `====...====\nSECTION TITLE\n====...====` header followed by a stream of
+  YAML documents separated by `---` lines. The last document in several
+  real sections is followed by loose prose with no `---` before the next
+  boundary (e.g. a trailing normalization-rules note after the last source
+  record) — `parseYamlStream()` recovers from this generically by retrying
+  with progressively fewer trailing lines rather than dropping the record.
+  The source files also mix LF and CRLF line endings within the same file;
+  every entry point normalizes this first.
+- `registry_recovery.txt` mixes narrative prose with YAML-shaped blocks in
+  a way that isn't a uniform stream, so `parseRegistryRecovery()` is a
+  targeted (not generic) parser for its specific known sub-sections.
+
+`backend/v2/importPreview/normalizeResearch.js` — transforms a parsed
+record into the v2 shape under the no-invention policy described below.
+Never validates against the real schemas itself (that's the next step) and
+never writes anything.
+
+`backend/v2/importPreview/buildImportPreview.js` — the orchestrator:
+
+1. Maps the real `data/archive.json` (23 v1 records) via the existing
+   `mapAndValidateArchive()` — the collision baseline. Never writes it.
+2. Reads and parses the six research files.
+3. Merges K. SOURCES / J. MEDIA ASSETS with `registry_recovery.txt`'s
+   identity-restored and context-only supplements (keyed by id), and
+   applies its relationship evidence corrections (e.g. `relationship-0049`
+   -> `evidenceSourceIds: [source-0030]`).
+4. Normalizes every record, applies the publication-status policy, checks
+   id/slug collisions against the mapped v1 set (and within the batch),
+   and validates every entity/relationship with the **real** v2 schema
+   validators (`validateEntity()`, `validateRelationship()` —
+   the same ones `LocalMappedV2Store` uses).
+5. Anything that fails validation, collides, or references something that
+   was itself excluded is **excluded with a recorded reason** — never
+   silently dropped, never force-included as invalid data. The included
+   sets therefore have zero invalid records by construction.
+
+`backend/scripts/build-v2-import-preview.js` is the CLI entry point:
+
+```
+node backend/scripts/build-v2-import-preview.js [--research-dir <path>] [--out <dir>]
+```
+
+Defaults: `research-input/` for input, `tmp/v2-import-preview/` (also
+git-ignored) for output — `entities.json`, `relationships.json`,
+`sources.json`, `media.json`, `report.json`. Exits non-zero only if a
+record failed schema validation or normalization outright (collisions and
+orphan-relationship exclusions are expected, reported outcomes, not
+failures).
+
+### Missing input
+
+Both the six research files (input) and the `tmp/` output directory are
+git-ignored, so a fresh checkout has neither. `buildImportPreview()` reads
+all six files eagerly and throws a clear "Missing research input file(s)"
+error naming exactly which ones are absent if any are missing — it never
+substitutes an empty dataset for a missing file, mirroring the same
+fail-loudly rule already used for `data/v2/entities.json`/
+`relationships.json` (see "Missing file behavior" above).
+
+### No-invention policy
+
+Every uncertainty marker the research vocabulary defines (`UNKNOWN`,
+`NEEDS VERIFICATION` and other `NEEDS ...` variants, `NO RELIABLE SOURCE
+FOUND`, `NOT YET RESEARCHED`, `UNRESOLVED`) is recognized by
+`isSentinel()` and is **never** passed through as if it were real content:
+
+- A sentinel value inside a multilingual field (`title`, `summary`,
+  `officialName`, `etymology`, ...) drops just that language key — e.g. a
+  `title.ar` of `"NEEDS VERIFICATION"` is omitted, not published as literal
+  placeholder text; the field survives with whatever real languages remain.
+- A sentinel element inside a string array (`tags`, `historicalNames`, ...)
+  is filtered out; a sentinel scalar field (`music.subgenre`, which is
+  literally `"UNKNOWN"` on every research record) is omitted entirely.
+- `place.coordinates` is a sentinel string on every one of the 28 research
+  place records (`NEEDS VERIFICATION` / `NOT APPLICABLE AS SINGLE POINT`)
+  — no record has real numeric coordinates, so the field is always omitted
+  (the schema requires `{latitude, longitude}` if present at all; passing
+  the sentinel through would fail validation even if this rule didn't
+  exist).
+- Research fields with no current v2 schema equivalent — `confidence`,
+  embedded association arrays like `associatedCommunities`/
+  `beliefConnections`/`locatedIn` (the architecture requires these to be
+  relationship records, not embedded fields; see "Relationship model"
+  above), `dates`, and similar — are preserved losslessly on a
+  `researchExtensions` object rather than dropped or force-fit into a
+  schema field that doesn't match. `researchExtensions` is never on any
+  type's public serializer allowlist, so it can never leak publicly
+  regardless of an entity's status; unlike the sentinel-stripping above
+  (which protects schema-validated, potentially-public fields),
+  `researchExtensions` preserves raw research values verbatim, including
+  uncertainty markers, since it is purely an internal editorial reference.
+- Type mismatches are transformed, never guessed past ambiguity: research
+  `period` (a free string or `{start, end}`) becomes the schema's
+  `period.label.en`; research `officialName`/`etymology` (plain strings)
+  become `{tr: ...}`/`{en: ...}`; research `historicalNames` (plain
+  strings) become `[{name: ...}]`; a numeric `source.year` becomes a
+  string. Where the research value doesn't map unambiguously to a
+  controlled vocabulary (e.g. `source.type: "digitalMemoryProject"` has no
+  clean `SOURCE_TYPES` equivalent), the field is **omitted**, not guessed.
+
+### Research status vs. publication status
+
+Research `status: "published"` is **never copied blindly** into the
+preview. `applyPublicationStatusPolicy()`:
+
+- Never upgrades `draft`/`inReview`/`archived` — only ever downgrades.
+- Keeps `status: "published"` only when *every* sourceId the entity cites
+  is one of the small set of sources restored to identity level by
+  `registry_recovery.txt` (`source-0030`, `source-0046`, `source-0056` in
+  the batch this pipeline has processed so far — see "Unresolved source
+  policy" below). Otherwise it downgrades to `"inReview"`.
+- Otherwise leaves the research status as-is.
+
+In practice, because almost every source citation in this research batch
+is bibliographically unresolved, this downgrades the great majority of
+research-labeled `"published"` records to `"inReview"` — nothing in the
+preview is publicly visible (per the existing publication-visibility rule:
+only `status === "published"` is public) unless its full citation trail is
+already resolved.
+
+### Oral history lead policy
+
+The research's `story` records carry a `storyRecordType` field —
+`publishedOralHistorySource` (a citation to an already-published memory
+project, not a reproduced individual testimony) or `ORAL_HISTORY_LEAD` (a
+**future interview topic — no interview has been recorded yet**). No
+schema change was made to represent this distinction; it didn't block safe
+exclusion from the public API:
+
+- `storyRecordType` is normalized (camelCase: `oralHistoryLead` /
+  `publishedOralHistorySource`) and carried as an extra field on the
+  `story` entity. It is not on `story`'s public serializer allowlist, so it
+  can never leak even if some future code path forgot the status check.
+- Independently, `applyPublicationStatusPolicy()` **forces** `status:
+  "draft"` for any record with `storyRecordType: "ORAL_HISTORY_LEAD"`,
+  regardless of whatever status the research itself assigned. This is a
+  second, independent guarantee — not just the allowlist.
+- Net effect: none of the 39 oral-history-lead records in this batch can
+  ever reach the public story API. This was achievable with the *existing*
+  schema and the existing publication-visibility route filter; introducing
+  a first-class `recordType` schema field remains a documented option for
+  a future task if the editorial workflow needs to query on it directly,
+  but was not necessary for safe import and was not implemented here.
+
+### Unresolved source policy
+
+`source.type`/`title`/`author`/etc. sentinel values are omitted exactly
+like any other field (see "No-invention policy" above) — no bibliography is
+ever fabricated for an unresolved source. Three tiers exist in the research
+batch processed so far:
+
+1. **Identity-level restored** (`source-0030`, `source-0046`,
+   `source-0056`): real `title`/`type`/`year`/etc. recovered. These are the
+   only sources that can keep an entity's `status: "published"`.
+2. **Context-only** (recovered via `registry_recovery.txt`'s
+   "PART 3'TEN GERİ KAZANILAN..." section — 19 in this batch): a short
+   `recoveredContext` note and `supportsEntityIds` survive as
+   `researchExtensions`, but no bibliographic identity — still treated as
+   unresolved for the publication-status policy.
+3. **Bibliographically unresolved but referenced** (49 in this batch, from
+   `registry_recovery.txt`'s `unresolvedSourceIds` list) and **not
+   recoverable even at the ID level** (72 in this batch, per
+   `registry_recovery.txt`'s final counts) — neither is fabricated. The
+   pipeline never invents a `source-NNNN` id to fill a registry gap.
+
+Every `source` entity the pipeline produces still passes the real
+`validateSourceEntity()` schema — omission, not invalid data, is how
+unresolved fields are represented.
+
+### Recovered vs. missing media policy
+
+Every media record recovered in this batch (20, against a research-declared
+39) currently has `safeToPublish: false` and `rightsStatus:
+"NEEDS_VERIFICATION"` or a restricted license — **zero** have cleared
+rights. The pipeline reflects this directly, never invents a clearance:
+
+- `rightsStatus` maps `NEEDS_VERIFICATION` -> `"pendingReview"` and
+  `RESTRICTED_NONCOMMERCIAL_NO_DERIVATIVES` -> `"restricted"` — **never**
+  `"cleared"` for any record in this batch, by construction (there is no
+  mapping target that produces `"cleared"`).
+- `mediaType` (research: `historicalPhoto`/`photo`) maps to the schema's
+  `"image"`; `mediaRole` is always `"realArchiveMedia"` (none are
+  AI-generated in this batch).
+  `originalStoragePath`/`derivativeStoragePaths` are never set — no
+  record has a real file yet (only a `proposedFilename`, kept in
+  `researchExtensions`); inventing a storage path would misrepresent
+  content that doesn't exist on disk.
+- The 19 media records the research declares but could not recover (even
+  at the ID level) are never fabricated — the preview's media count is
+  exactly what was recovered, not the originally-declared 39.
+- Existing v1 media provenance (`public/images/`, `MEDIA-PROVENANCE.md`,
+  the already-reviewed `imageMetadata` on `data/archive.json` records) is
+  **never** touched, overwritten, or downgraded by this pipeline — it only
+  ever reads `data/archive.json` for id/slug collision detection, exactly
+  like `LocalMappedV2Store`.
+
+### What this preview validates and reports
+
+`report.json` (see `backend/v2/importPreview/buildImportPreview.js`
+`buildReport()`) records, for the batch processed: input counts per type;
+normalized (included) counts per type; excluded counts and, per excluded
+record, an explicit reason (`idCollision`, `slugCollision`, `schemaInvalid`,
+`orphanSource`/`orphanTarget`, `sourceTypeMismatch`/`targetTypeMismatch`,
+or `normalizationError`); the publication-status downgrade list;
+oral-history-lead vs. public-story-candidate classification; and a
+`specialCases` section covering the entity-type edge cases the research
+surfaced (a `crossTraditionPractice`-labeled belief, historical-population
+"communities", `heritageEnsemble` structures, and the research's own
+observation that individual mosaic artifacts may eventually need a
+dedicated entity type) — each with an explicit recommendation and whether a
+schema change was actually made (no broad schema change was made by this
+step; every case above validates against the existing schemas as-is).
+
 ## What is deliberately NOT implemented
 
 - No real v2 Firestore document has been written (`FirestoreV2Store` is
@@ -1008,6 +1276,16 @@ record is introduced anywhere by this step.
 - No admin/editorial UI for v2.
 - No language-specific (`/tr/`, `/en/`, `/ar/`) routing for v2 entities.
 - No `--apply` mode for the migration CLI.
+- No production import path for the cultural-dataset preview pipeline
+  (`backend/v2/importPreview/`) — it never writes `data/v2/entities.json`
+  or `data/v2/relationships.json`; it only writes preview JSON under the
+  git-ignored `tmp/v2-import-preview/`. Promoting reviewed preview output
+  into the committed native data files is a separate, explicit, manual step
+  this tooling does not perform.
+- No real community/belief/place record from the cultural-dataset preview
+  has been promoted into `data/v2/entities.json` — those files remain
+  exactly `{ "entities": [] }` / `{ "relationships": [] }` after this step,
+  same as after the previous one.
 
 ## Migration boundary
 

@@ -1,0 +1,469 @@
+// Orchestrates the full v2 cultural-dataset import preview:
+//   1. Maps the real data/archive.json (23 v1 records) — the collision
+//      baseline. Never writes it.
+//   2. Reads and parses the six research-input/*.txt files. Never writes
+//      them; never invented if missing (see main() in the CLI script).
+//   3. Normalizes every research record via normalizeResearch.js.
+//   4. Validates every normalized entity/relationship with the REAL v2
+//      schema validators (backend/v2/schemas) — the same ones the live
+//      LocalMappedV2Store uses — and checks id/slug collisions against the
+//      mapped v1 set and referential integrity for relationships.
+//   5. Anything that fails validation, collides, or can't be safely
+//      represented is EXCLUDED with a reported reason — never silently
+//      dropped, never force-included as invalid data. The resulting
+//      preview therefore always has zero invalid entities/relationships in
+//      the "included" sets by construction.
+//
+// Pure and read-only: this module never writes data/v2/*.json,
+// data/archive.json, Firestore, or Cloud Storage. The CLI wrapper
+// (backend/scripts/build-v2-import-preview.js) is the only thing that
+// writes files, and only under tmp/v2-import-preview/.
+
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import { assertValidArchive } from "../../dataModel.js";
+import { mapAndValidateArchive } from "../stores/localMappedV2Store.js";
+import { validateEntity } from "../schemas/index.js";
+import { validateRelationship } from "../schemas/relationship.js";
+import {
+  parsePart1, parsePart2, parsePart3, parsePart4, parsePart5, parseRegistryRecovery,
+} from "./researchParser.js";
+import {
+  normalizeEntity, normalizeSource, normalizeMedia, normalizeRelationship,
+  applyPublicationStatusPolicy, IDENTITY_RESOLVED_SOURCE_IDS,
+} from "./normalizeResearch.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const RESEARCH_FILES = Object.freeze({
+  part1: "antiochiaarchive_master_dataset_part1.txt",
+  part2: "antiochiaarchive_master_dataset_part2.txt",
+  part3: "antiochiaarchive_master_dataset_part3.txt",
+  part4: "antiochiaarchive_master_dataset_part4_regenerated.txt",
+  part5: "antiochiaarchive_master_dataset_part5_regenerated.txt",
+  registryRecovery: "registry_recovery.txt",
+});
+
+async function readV1Archive() {
+  const archivePath = path.resolve(__dirname, "../../../data/archive.json");
+  const raw = await fs.readFile(archivePath, "utf-8");
+  return assertValidArchive(JSON.parse(raw));
+}
+
+async function readResearchFiles(researchDir) {
+  const entries = Object.entries(RESEARCH_FILES);
+  const missing = [];
+  const contents = {};
+  for (const [key, filename] of entries) {
+    const filePath = path.join(researchDir, filename);
+    // eslint-disable-next-line no-await-in-loop
+    contents[key] = await fs.readFile(filePath, "utf-8").catch((error) => {
+      if (error.code === "ENOENT") { missing.push(filename); return null; }
+      throw error;
+    });
+  }
+  if (missing.length) {
+    throw new Error(
+      `Missing research input file(s) in '${researchDir}': ${missing.join(", ")}. `
+      + "This preview requires all six canonical research files; refusing to fabricate missing input.",
+    );
+  }
+  return contents;
+}
+
+/** Merges K. SOURCES with registry_recovery's identity-restored and context-only supplements, keyed by sourceId. */
+function mergeSourceRecords(part4Sources, registryRecovery) {
+  const byId = new Map();
+  for (const source of part4Sources) byId.set(source.sourceId, { ...source });
+  for (const restored of registryRecovery.restoredSources) {
+    byId.set(restored.sourceId, { ...byId.get(restored.sourceId), ...restored });
+  }
+  for (const [sourceId, context] of Object.entries(registryRecovery.recoveredContextSources)) {
+    if (!context || typeof context !== "object") continue;
+    const existing = byId.get(sourceId) || { sourceId };
+    byId.set(sourceId, {
+      ...existing,
+      recoveredContext: context.recoveredContext,
+      supportsEntityIds: context.supportsEntityIds,
+    });
+  }
+  return [...byId.values()];
+}
+
+/** Merges J. MEDIA ASSETS with registry_recovery's extra provenance for the subset it covers, keyed by mediaId. */
+function mergeMediaRecords(part4Media, registryRecovery) {
+  const byId = new Map();
+  for (const media of part4Media) byId.set(media.mediaId, { ...media });
+  for (const extra of registryRecovery.restoredMediaExtra) {
+    byId.set(extra.mediaId, { ...byId.get(extra.mediaId), ...extra });
+  }
+  return [...byId.values()];
+}
+
+/** Applies the registry_recovery relationship-0049 evidenceSourceIds correction. */
+function applyRelationshipCorrections(relationships, corrections) {
+  if (!corrections.length) return relationships;
+  const byId = new Map(corrections.map((correction) => [correction.relationshipId, correction]));
+  return relationships.map((relationship) => {
+    const correction = byId.get(relationship.relationshipId);
+    return correction ? { ...relationship, evidenceSourceIds: correction.evidenceSourceIds } : relationship;
+  });
+}
+
+function collisionDetail(kind, value, mappedSet, batchSet) {
+  if (mappedSet.has(value)) return `${kind} '${value}' collides with an existing mapped v1 entity.`;
+  if (batchSet.has(value)) return `${kind} '${value}' collides with another record already included from this research batch.`;
+  return null;
+}
+
+export async function buildImportPreview({ researchDir }) {
+  const archive = await readV1Archive();
+  const mappedEntities = mapAndValidateArchive(archive);
+  const mappedIds = new Set(mappedEntities.map((entity) => entity.id));
+  const mappedSlugs = new Set(mappedEntities.filter((entity) => entity.slug).map((entity) => entity.slug));
+
+  const files = await readResearchFiles(researchDir);
+  const p1 = parsePart1(files.part1);
+  const p2 = parsePart2(files.part2);
+  const p3 = parsePart3(files.part3);
+  const p4 = parsePart4(files.part4);
+  const p5 = parsePart5(files.part5);
+  const registryRecovery = parseRegistryRecovery(files.registryRecovery);
+
+  const inputEntityRecords = [
+    ...p1.historicalContext, ...p1.community, ...p1.belief,
+    ...p2.place, ...p2.structure,
+    ...p3.story, ...p3.music,
+  ];
+  const sourceRecords = mergeSourceRecords(p4.sources, registryRecovery);
+  const mediaRecords = mergeMediaRecords(p4.media, registryRecovery);
+  const relationshipRecords = applyRelationshipCorrections(p4.relationships, registryRecovery.relationshipCorrections);
+
+  // --- Entities: normalize, apply publication-status policy, check
+  // collisions, validate with the real schemas. Anything that fails any
+  // step is excluded (never force-included, never silently dropped without
+  // a reason recorded).
+  const includedEntities = [];
+  const excludedEntities = [];
+  const schemaChangeRequired = [];
+  const seenIds = new Set();
+  const seenSlugs = new Set();
+  const resolvedSourceIdSet = new Set(IDENTITY_RESOLVED_SOURCE_IDS);
+
+  for (const record of inputEntityRecords) {
+    let normalized;
+    try {
+      normalized = normalizeEntity(record);
+    } catch (error) {
+      excludedEntities.push({
+        id: record.id, entityType: record.entityType, reason: "normalizationError", detail: error.message,
+      });
+      continue;
+    }
+
+    const statusPolicy = applyPublicationStatusPolicy(record, resolvedSourceIdSet);
+    normalized.status = statusPolicy.status;
+
+    const idCollision = collisionDetail("id", normalized.id, mappedIds, seenIds);
+    if (idCollision) {
+      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "idCollision", detail: idCollision });
+      continue;
+    }
+    const slugCollision = normalized.slug ? collisionDetail("slug", normalized.slug, mappedSlugs, seenSlugs) : null;
+    if (slugCollision) {
+      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "slugCollision", detail: slugCollision });
+      continue;
+    }
+
+    const validation = validateEntity(normalized);
+    if (!validation.valid) {
+      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "schemaInvalid", detail: validation.error });
+      continue;
+    }
+
+    seenIds.add(normalized.id);
+    if (normalized.slug) seenSlugs.add(normalized.slug);
+    includedEntities.push({
+      entity: normalized,
+      sourceRecordId: record.id,
+      statusDowngraded: statusPolicy.downgraded,
+      downgradeReason: statusPolicy.reason,
+    });
+  }
+
+  // --- Sources -------------------------------------------------------------
+  const includedSources = [];
+  const excludedSources = [];
+  const seenSourceIds = new Set();
+  for (const record of sourceRecords) {
+    let normalized;
+    try {
+      normalized = normalizeSource(record);
+    } catch (error) {
+      excludedSources.push({ id: record.sourceId, reason: "normalizationError", detail: error.message });
+      continue;
+    }
+    if (seenSourceIds.has(normalized.id) || mappedIds.has(normalized.id)) {
+      excludedSources.push({ id: normalized.id, reason: "idCollision", detail: `source id '${normalized.id}' is duplicated.` });
+      continue;
+    }
+    const validation = validateEntity(normalized);
+    if (!validation.valid) {
+      excludedSources.push({ id: normalized.id, reason: "schemaInvalid", detail: validation.error });
+      continue;
+    }
+    seenSourceIds.add(normalized.id);
+    includedSources.push(normalized);
+  }
+
+  // --- Media -----------------------------------------------------------------
+  const includedMedia = [];
+  const excludedMedia = [];
+  const seenMediaIds = new Set();
+  for (const record of mediaRecords) {
+    let normalized;
+    try {
+      normalized = normalizeMedia(record);
+    } catch (error) {
+      excludedMedia.push({ id: record.mediaId, reason: "normalizationError", detail: error.message });
+      continue;
+    }
+    if (seenMediaIds.has(normalized.id) || mappedIds.has(normalized.id)) {
+      excludedMedia.push({ id: normalized.id, reason: "idCollision", detail: `media id '${normalized.id}' is duplicated.` });
+      continue;
+    }
+    const validation = validateEntity(normalized);
+    if (!validation.valid) {
+      excludedMedia.push({ id: normalized.id, reason: "schemaInvalid", detail: validation.error });
+      continue;
+    }
+    seenMediaIds.add(normalized.id);
+    includedMedia.push(normalized);
+  }
+
+  // --- Relationships: shape validation + referential integrity against the
+  // full resolvable pool (mapped v1 entities + every included native
+  // entity/media/source from this batch). A relationship whose source or
+  // target was itself excluded is excluded too, with that cascade recorded.
+  const resolvablePool = new Map();
+  for (const entity of mappedEntities) resolvablePool.set(entity.id, entity.entityType);
+  for (const { entity } of includedEntities) resolvablePool.set(entity.id, entity.entityType);
+  for (const media of includedMedia) resolvablePool.set(media.id, media.entityType);
+  for (const source of includedSources) resolvablePool.set(source.id, source.entityType);
+
+  const includedRelationships = [];
+  const excludedRelationships = [];
+  const seenRelationshipIds = new Set();
+
+  for (const record of relationshipRecords) {
+    let normalized;
+    try {
+      normalized = normalizeRelationship(record);
+    } catch (error) {
+      excludedRelationships.push({ id: record.relationshipId, reason: "normalizationError", detail: error.message });
+      continue;
+    }
+
+    if (seenRelationshipIds.has(normalized.id)) {
+      excludedRelationships.push({ id: normalized.id, reason: "idCollision", detail: `relationship id '${normalized.id}' is duplicated.` });
+      continue;
+    }
+
+    const shapeResult = validateRelationship(normalized);
+    if (!shapeResult.valid) {
+      excludedRelationships.push({ id: normalized.id, reason: "schemaInvalid", detail: shapeResult.error });
+      continue;
+    }
+
+    const sourceActualType = resolvablePool.get(normalized.sourceId);
+    if (!sourceActualType) {
+      excludedRelationships.push({
+        id: normalized.id,
+        reason: "orphanSource",
+        detail: `sourceId '${normalized.sourceId}' does not resolve to any mapped or included research entity (likely excluded upstream — e.g. a collision).`,
+      });
+      continue;
+    }
+    if (sourceActualType !== normalized.sourceType) {
+      excludedRelationships.push({
+        id: normalized.id,
+        reason: "sourceTypeMismatch",
+        detail: `declared sourceType '${normalized.sourceType}' does not match actual entityType '${sourceActualType}' of '${normalized.sourceId}'.`,
+      });
+      continue;
+    }
+
+    const targetActualType = resolvablePool.get(normalized.targetId);
+    if (!targetActualType) {
+      excludedRelationships.push({
+        id: normalized.id,
+        reason: "orphanTarget",
+        detail: `targetId '${normalized.targetId}' does not resolve to any mapped or included research entity (likely excluded upstream — e.g. a collision).`,
+      });
+      continue;
+    }
+    if (targetActualType !== normalized.targetType) {
+      excludedRelationships.push({
+        id: normalized.id,
+        reason: "targetTypeMismatch",
+        detail: `declared targetType '${normalized.targetType}' does not match actual entityType '${targetActualType}' of '${normalized.targetId}'.`,
+      });
+      continue;
+    }
+
+    seenRelationshipIds.add(normalized.id);
+    includedRelationships.push(normalized);
+  }
+
+  const report = buildReport({
+    inputEntityRecords, sourceRecords, mediaRecords, relationshipRecords,
+    includedEntities, excludedEntities, schemaChangeRequired,
+    includedSources, excludedSources,
+    includedMedia, excludedMedia,
+    includedRelationships, excludedRelationships,
+    p1, p2, p3,
+  });
+
+  return {
+    entities: includedEntities.map((item) => item.entity),
+    relationships: includedRelationships,
+    sources: includedSources,
+    media: includedMedia,
+    report,
+  };
+}
+
+function countByEntityType(entities) {
+  const counts = {};
+  for (const entity of entities) counts[entity.entityType] = (counts[entity.entityType] || 0) + 1;
+  return counts;
+}
+
+function buildReport(ctx) {
+  const {
+    inputEntityRecords, sourceRecords, mediaRecords, relationshipRecords,
+    includedEntities, excludedEntities, schemaChangeRequired,
+    includedSources, excludedSources,
+    includedMedia, excludedMedia,
+    includedRelationships, excludedRelationships,
+    p1, p2, p3,
+  } = ctx;
+
+  const includedByType = countByEntityType(includedEntities.map((item) => item.entity));
+  const storyEntities = includedEntities.filter((item) => item.entity.entityType === "story");
+  const publicStoryCandidates = storyEntities.filter((item) => item.entity.status === "published" || item.entity.status === "inReview")
+    .filter((item) => item.entity.storyRecordType !== "oralHistoryLead");
+  const oralHistoryLeads = storyEntities.filter((item) => item.entity.storyRecordType === "oralHistoryLead");
+
+  const statusDowngrades = includedEntities.filter((item) => item.statusDowngraded);
+
+  const byId = new Map(includedEntities.map((item) => [item.entity.id, item.entity]));
+  const heritageEnsembles = includedEntities
+    .filter((item) => item.entity.entityType === "structure" && item.entity.structureType === "heritageEnsemble")
+    .map((item) => item.entity.id);
+  const historicalPopulationGroups = includedEntities
+    .filter((item) => item.entity.entityType === "community" && (item.entity.tags || []).includes("historicalPopulationGroup"))
+    .map((item) => item.entity.id);
+
+  const specialCases = {
+    note: "Recommendations only — no broad schema change was made in this pass; see V2-ARCHITECTURE.md "
+      + "'Import preview workflow' for the full rationale of each.",
+    crossTraditionPractice: {
+      ids: ["belief-0010"],
+      included: byId.has("belief-0010"),
+      observation: "belief-0010 (Local Sacred Visitation Traditions of Hatay) is modeled as entityType "
+        + "'belief' but its own editorialNotes self-label it 'beliefType: crossTraditionPractice' — a "
+        + "shared visitation practice across multiple communities, not a single organized religion. It "
+        + "validates and is included as-is (status inReview, non-public); the distinction doesn't block "
+        + "safe import today because no schema field claims otherwise.",
+      recommendation: "Consider an optional `beliefType` classifier (e.g. 'organizedReligion' vs "
+        + "'crossTraditionPractice') on the belief schema in a future task, if this distinction becomes "
+        + "editorially load-bearing. Not implemented here.",
+    },
+    historicalPopulationGroups: {
+      ids: ["comm-0016", "comm-0017"],
+      includedIds: historicalPopulationGroups,
+      observation: "comm-0016/comm-0017 represent Hellenistic and Roman/Byzantine-era population contexts, "
+        + "not modern communities. The research itself already expresses this via the existing free-form "
+        + "`tags` field ('historicalPopulationGroup') rather than a new field — no schema change needed; "
+        + "tags already pass through as a supported base-entity field.",
+      recommendation: "No schema change recommended. If a first-class distinction is wanted later, "
+        + "consider a controlled `communityKind` enum (e.g. 'livingCommunity' vs 'historicalPopulationGroup') "
+        + "rather than relying on a free-form tag.",
+    },
+    heritageEnsembles: {
+      ids: heritageEnsembles,
+      observation: `${heritageEnsembles.length} structure(s) already use structureType 'heritageEnsemble' `
+        + "(a free-form string the schema already accepts without change).",
+      recommendation: "No schema change needed — structureType is intentionally free-form.",
+    },
+    romanMosaicsArtifactType: {
+      observation: "The research's own O. UNRESOLVED QUESTIONS (unresolved-group-0013) flags that "
+        + "individual portable/mosaic-level cultural objects fit an artifact/culturalObject entity type "
+        + "better than 'structure'. No dedicated mosaic artifact record exists in this research batch — "
+        + "structure-0027 (Daphne/Harbiye archaeological ensemble) is the closest related record and is "
+        + "included as a normal structure.",
+      recommendation: "Introduce an `artifact`/`culturalObject` entity type in a future schema task if "
+        + "individual portable cultural objects (e.g. specific mosaic panels) need their own entity "
+        + "representation. Not implemented here — no broad schema change was made.",
+    },
+  };
+
+  return {
+    generatedAt: new Date().toISOString(),
+    inputCounts: {
+      historicalContext: p1.historicalContext.length,
+      community: p1.community.length,
+      belief: p1.belief.length,
+      place: p2.place.length,
+      structure: p2.structure.length,
+      story: p3.story.length,
+      music: p3.music.length,
+      proverb: 0,
+      totalCulturalEntities: inputEntityRecords.length,
+      sources: sourceRecords.length,
+      media: mediaRecords.length,
+      relationships: relationshipRecords.length,
+    },
+    normalizedCounts: {
+      byEntityType: includedByType,
+      totalEntities: includedEntities.length,
+      sources: includedSources.length,
+      media: includedMedia.length,
+      relationships: includedRelationships.length,
+    },
+    excludedCounts: {
+      entities: excludedEntities.length,
+      sources: excludedSources.length,
+      media: excludedMedia.length,
+      relationships: excludedRelationships.length,
+    },
+    excludedEntities,
+    excludedSources,
+    excludedMedia,
+    excludedRelationships,
+    schemaChangeRequired,
+    publicationStatus: {
+      policy: "Research status:published is never copied blindly. It is kept only when every "
+        + "sourceId cited by the entity is one of the identity-level-restored sources "
+        + `(${IDENTITY_RESOLVED_SOURCE_IDS.join(", ")}); otherwise it is downgraded to inReview. `
+        + "draft/inReview/archived from the research are never upgraded. storyRecordType "
+        + "'ORAL_HISTORY_LEAD' always forces status 'draft', independent of the research's own status.",
+      downgradedCount: statusDowngrades.length,
+      downgraded: statusDowngrades.map((item) => ({
+        id: item.entity.id, entityType: item.entity.entityType, reason: item.downgradeReason,
+      })),
+    },
+    storyClassification: {
+      publicStoryCandidateCount: publicStoryCandidates.length,
+      publicStoryCandidateIds: publicStoryCandidates.map((item) => item.entity.id),
+      oralHistoryLeadCount: oralHistoryLeads.length,
+      oralHistoryLeadIds: oralHistoryLeads.map((item) => item.entity.id),
+      note: "publicStoryCandidate means status is not 'draft' and storyRecordType is not "
+        + "'oralHistoryLead' — it does not mean already public: nothing in this preview has "
+        + "status 'published' unless its full source citation was identity-resolved.",
+    },
+    specialCases,
+  };
+}

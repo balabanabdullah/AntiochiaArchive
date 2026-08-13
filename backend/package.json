@@ -19,5 +19,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "js-yaml": "^5.2.3"
   }
 }

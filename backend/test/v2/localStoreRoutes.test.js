@@ -1,22 +1,21 @@
 // Route-level tests for /api/v2 backed by V2_DATA_STORE=local — the local,
 // real-mapped-data runtime built on top of the validated v1 -> v2 mapper,
-// now merged with the promoted canonical research batch (data/v2/entities.json,
+// merged with the promoted canonical research batch (data/v2/entities.json,
 // 168 entities) and the active legacy replacement layer (7 mapped v1
-// records superseded — see V2-ARCHITECTURE.md "Legacy replacement layer").
-// These exercise the actual committed data files, not a fixture, so counts
-// here double as a regression check on the real, live system.
+// records superseded), after the final canonical publication review (see
+// V2-ARCHITECTURE.md "Cultural entity publication review"). These exercise
+// the actual committed data files, not a fixture, so counts here double as
+// a regression check on the real, live system.
 //
-// Only 17 of 184 total entities in the store are currently PUBLIC (status
-// 'published', or media/source which carry no status concept at all) — the
-// vast majority of the newly promoted batch is correctly still 'inReview'
-// or 'draft' per the publication-status policy (see buildImportPreview.js),
-// so it stays invisible to every public route exactly as designed. The 6
-// mapped v1 records superseded by a confirmed, now-active legacy
-// replacement (st1, b1, st2, b2, b3, b4 — st4 too, 7 total) are gone
-// entirely, not just non-public; their canonical replacements
-// (structure-0001..0005, structure-0020) exist in the store but are
-// themselves not yet 'published', so they are correctly invisible to every
-// public route too, for now.
+// 61 of 184 total entities in the store are currently PUBLIC. The
+// publication review deliberately held back entire categories this first
+// pass — community, belief, and place are ALL still non-public (0 each),
+// pending a dedicated review of ethnic/religious identity presentation and
+// unverified local-toponym content — plus specific structures/music records
+// with an explicit, PART-5-documented identity/chronology/terminology
+// problem (structure-0001/0002/0003/0004, music-0004, music-0011), plus
+// every oralHistoryLead story (39 of 47) which is a future interview topic,
+// never actual testimony.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -45,62 +44,81 @@ async function startLocalTestServer(context) {
   return `http://127.0.0.1:${port}`;
 }
 
-test("GET /api/v2/entities, paginated across pages, returns exactly the 17 currently-public entities with no duplicates or gaps", async (context) => {
-  const baseUrl = await startLocalTestServer(context);
+async function paginateAll(baseUrl, path, limit = 100) {
   const seen = [];
   let cursor = null;
   let guard = 0;
-
   do {
-    const url = new URL(`${baseUrl}/api/v2/entities`);
-    url.searchParams.set("limit", "100");
+    const url = new URL(`${baseUrl}${path}`);
+    url.searchParams.set("limit", String(limit));
     if (cursor) url.searchParams.set("cursor", cursor);
     // eslint-disable-next-line no-await-in-loop
     const body = await (await fetch(url)).json();
     for (const item of body.data) {
-      assert.ok(!seen.includes(item.id), `duplicate id ${item.id} across pages`);
-      assert.equal(item.status === "published" || item.entityType === "media" || item.entityType === "source", true, `${item.id} must be public`);
-      seen.push(item.id);
+      assert.ok(!seen.some((s) => s.id === item.id), `duplicate id ${item.id} across pages`);
+      seen.push(item);
     }
     cursor = body.meta.nextCursor;
     guard += 1;
-    // The store has 184 raw entities behind a server-enforced limit<=100,
-    // so reaching all public ones legitimately takes more than one page —
-    // this guard just bounds runaway pagination, not "should be 1 page".
     assert.ok(guard <= 10, "pagination loop guard tripped");
   } while (cursor);
+  return seen;
+}
 
-  assert.equal(seen.length, 17);
-  assert.deepEqual(seen, [...seen].sort());
+test("GET /api/v2/entities, paginated across pages, returns exactly the 61 currently-public entities with no duplicates or gaps", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const all = await paginateAll(baseUrl, "/api/v2/entities");
+  assert.equal(all.length, 61);
+  for (const item of all) {
+    assert.equal(item.status === "published" || item.entityType === "media" || item.entityType === "source", true, `${item.id} must be public`);
+  }
+  assert.deepEqual(all.map((e) => e.id), [...all.map((e) => e.id)].sort());
 });
 
-test("GET /api/v2/structures returns 1 (only st3 — the sole mapped v1 structure with no active replacement, still published)", async (context) => {
+test("GET /api/v2/structures returns the 15 published structures, including canonical replacements with strong uncontested evidence", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/structures?limit=100`);
   const body = await response.json();
-  assert.deepEqual(body.data.map((item) => item.id), ["st3"]);
+  const ids = body.data.map((item) => item.id).sort();
+  assert.equal(ids.length, 15);
+  assert.ok(ids.includes("st3"), "the sole unaffected mapped v1 structure");
+  assert.ok(ids.includes("structure-0005"), "Samandağ Khidr Shrine — confirmed identity, no PART-5 chronology flag");
+  assert.ok(ids.includes("structure-0020"), "Traditional Antakya Houses ensemble");
+  // The 4 structures with an explicit, PART-5-documented chronology
+  // conflict (unresolved-group-0011) must NOT be public yet, even though
+  // their site identity is settled.
+  for (const heldId of ["structure-0001", "structure-0002", "structure-0003", "structure-0004"]) {
+    assert.equal(ids.includes(heldId), false, `${heldId} has an open PART-5 chronology conflict and must stay non-public`);
+  }
 });
 
-test("GET /api/v2/stories returns 3 (s1, s2, s3 — no active replacement targets any v1 story)", async (context) => {
+test("GET /api/v2/stories returns 11 (s1-s3 unaffected, story-0001..0008 published-source records) — zero oralHistoryLead records", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/stories?limit=100`);
   const body = await response.json();
-  assert.deepEqual(body.data.map((item) => item.id).sort(), ["s1", "s2", "s3"]);
+  const ids = body.data.map((item) => item.id).sort();
+  assert.deepEqual(ids, ["s1", "s2", "s3", "story-0001", "story-0002", "story-0003", "story-0004", "story-0005", "story-0006", "story-0007", "story-0008"]);
+  for (const item of body.data) {
+    assert.notEqual(item.storyRecordType, "oralHistoryLead", `${item.id} is an interview lead and must never be public`);
+  }
 });
 
-test("GET /api/v2/music returns 4 (m1, m2, m3 unaffected, plus one published native record)", async (context) => {
+test("GET /api/v2/music returns 7 (m1-m3 unaffected, 4 native records) — music-0004 (Finn/unverified) and music-0011 (Necef İlahileri) excluded", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/music?limit=100`);
   const body = await response.json();
-  assert.equal(body.data.length, 4);
-  assert.ok(["m1", "m2", "m3"].every((id) => body.data.some((item) => item.id === id)));
+  const ids = body.data.map((item) => item.id).sort();
+  assert.equal(ids.length, 7);
+  assert.ok(["m1", "m2", "m3"].every((id) => ids.includes(id)));
+  assert.equal(ids.includes("music-0004"), false, "Finn terminology explicitly unverified (unresolved-group-0006)");
+  assert.equal(ids.includes("music-0011"), false, "Necef İlahileri not a verified local category (unresolved-group-0006)");
 });
 
-test("GET /api/v2/historical-contexts returns 3 (h1, h2, h3 — unaffected, no replacement targets historicalContext)", async (context) => {
+test("GET /api/v2/historical-contexts returns 22 (h1-h3 unaffected, 19 high-confidence native records)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/historical-contexts?limit=100`);
   const body = await response.json();
-  assert.deepEqual(body.data.map((item) => item.id).sort(), ["h1", "h2", "h3"]);
+  assert.equal(body.data.length, 22);
 });
 
 test("GET /api/v2/media returns 6 (g1-g6 — media/source are statusless and always public)", async (context) => {
@@ -108,9 +126,12 @@ test("GET /api/v2/media returns 6 (g1-g6 — media/source are statusless and alw
   const response = await fetch(`${baseUrl}/api/v2/media?limit=100`);
   const body = await response.json();
   assert.equal(body.data.length, 6);
+  for (const item of body.data) {
+    assert.notEqual(item.entityType, "source", "no source entity was promoted, none should ever appear");
+  }
 });
 
-test("GET /api/v2/beliefs, /communities, /places, /proverbs return 0 — promoted content in those categories is not yet 'published'", async (context) => {
+test("GET /api/v2/beliefs, /communities, /places, /proverbs all return 0 — held back this publication pass pending dedicated identity-sensitivity review", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   for (const path of ["beliefs", "communities", "places", "proverbs"]) {
     // eslint-disable-next-line no-await-in-loop
@@ -121,59 +142,42 @@ test("GET /api/v2/beliefs, /communities, /places, /proverbs return 0 — promote
   }
 });
 
-test("GET /api/v2/entities/:id: st3 (public structure) and g3 (media) resolve correctly", async (context) => {
+test("GET /api/v2/entities/:id: structure-0005 (newly published canonical replacement) and g3 (media) resolve correctly", async (context) => {
   const baseUrl = await startLocalTestServer(context);
 
-  const st3 = await (await fetch(`${baseUrl}/api/v2/entities/st3`)).json();
-  assert.equal(st3.data.id, "st3");
-  assert.equal(st3.data.entityType, "structure");
+  const structure0005 = await (await fetch(`${baseUrl}/api/v2/entities/structure-0005`)).json();
+  assert.equal(structure0005.data.id, "structure-0005");
+  assert.equal(structure0005.data.entityType, "structure");
+  assert.equal(structure0005.data.status, "published");
 
   const g3 = await (await fetch(`${baseUrl}/api/v2/entities/g3`)).json();
   assert.equal(g3.data.id, "g3");
   assert.equal(g3.data.entityType, "media");
 });
 
-test("GET /api/v2/entities/:id: st1 is gone (suppressed by an active legacy replacement), not just non-public", async (context) => {
+test("GET /api/v2/entities/:id: b4 is gone (suppressed by the now-active replacement to structure-0005), not just non-public", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/entities/st1`);
+  const response = await fetch(`${baseUrl}/api/v2/entities/b4`);
   assert.equal(response.status, 404);
 });
 
-test("GET /api/v2/entities/:id: structure-0001 exists (it superseded st1) but is not yet published, so the public route 404s exactly like a missing id", async (context) => {
+test("GET /api/v2/entities/:id: structure-0001 exists (superseded st1) but stays 404 — explicit PART-5 chronology conflict, held inReview", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/entities/structure-0001`);
   const body = await response.json();
   assert.equal(response.status, 404);
   assert.equal(body.success, false);
-  // Same response shape as a truly nonexistent id — a client must not be
-  // able to distinguish "exists but unpublished" from "doesn't exist".
 });
 
-test("pagination over the live store: no duplicates, no gaps across a full sweep of raw entities (public route)", async (context) => {
+test("GET /api/v2/entities/:id: an oralHistoryLead story 404s exactly like a missing id", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const seen = [];
-  let cursor = null;
-  let guard = 0;
-
-  do {
-    const url = new URL(`${baseUrl}/api/v2/entities`);
-    url.searchParams.set("limit", "50");
-    if (cursor) url.searchParams.set("cursor", cursor);
-    // eslint-disable-next-line no-await-in-loop
-    const body = await (await fetch(url)).json();
-    for (const item of body.data) {
-      assert.ok(!seen.includes(item.id), `duplicate id ${item.id} across pages`);
-      seen.push(item.id);
-    }
-    cursor = body.meta.nextCursor;
-    guard += 1;
-    assert.ok(guard <= 10, "pagination loop guard tripped");
-  } while (cursor);
-
-  assert.equal(seen.length, 17);
+  const response = await fetch(`${baseUrl}/api/v2/entities/story-0009`);
+  const body = await response.json();
+  assert.equal(response.status, 404);
+  assert.equal(body.success, false);
 });
 
-test("filters: tag=beliefSite now returns 0 — the 4 mapped belief-site structures were suppressed by active replacements, and their canonical successors aren't published yet", async (context) => {
+test("filters: tag=beliefSite returns 0 — the 4 mapped belief-site structures were suppressed, and structure-0002/0003/0004 aren't published yet", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/structures?tag=beliefSite`);
   const body = await response.json();
@@ -187,13 +191,6 @@ test("filters: musicGenre reflects preserved v1 categoryKey values as-is, not a 
   assert.deepEqual(body.data.map((item) => item.id).sort(), ["m1", "m3"]);
 });
 
-test("filters: storyCategory yields no results — migrated v1 stories intentionally leave it unset", async (context) => {
-  const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/stories?storyCategory=familyMemory`);
-  const body = await response.json();
-  assert.deepEqual(body.data, []);
-});
-
 test("public responses never leak migration-internal fields", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/entities/h1`);
@@ -203,6 +200,17 @@ test("public responses never leak migration-internal fields", async (context) =>
     "sourceVersion", "sourceCategory", "sourceRecordId", "migrationNote", "sources", "consentRef",
   ]) {
     assert.equal(Object.hasOwn(body.data, forbidden), false, `${forbidden} must not be public`);
+  }
+});
+
+test("a real, published native structure exposes only its allowlisted public fields", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/entities/structure-0005`);
+  const body = await response.json();
+
+  assert.equal(body.data.status, "published");
+  for (const forbidden of ["researchExtensions", "confidence", "unresolvedQuestions", "editorialNotes"]) {
+    assert.equal(Object.hasOwn(body.data, forbidden), false, `${forbidden} is internal research metadata and must not be public`);
   }
 });
 
@@ -235,6 +243,53 @@ test("gallery/media entities expose a usable public image path and provenance", 
   assert.ok(body.data.caption);
   assert.equal(Object.hasOwn(body.data, "originalStoragePath"), false);
   assert.equal(Object.hasOwn(body.data, "checksum"), false);
+});
+
+// --- Relationship public safety ---------------------------------------
+
+test("GET /api/v2/relationships currently returns 0 — every promoted relationship is still status:inReview (relationship status was explicitly out of scope for this publication review)", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/relationships?limit=100`);
+  const body = await response.json();
+  assert.deepEqual(body.data, []);
+});
+
+test("a relationship published on its own status but pointing at a non-public entity does NOT leak that entity's existence", async (context) => {
+  // Regression test for the exact gap Section 10 warns about: filtering
+  // relationships by their own status alone is not enough. This drives the
+  // real store/route stack directly (bypassing the fixture-free live data,
+  // since none of the committed relationships are published) by
+  // temporarily monkey-patching listRelationships on the live store to
+  // inject one synthetic published relationship pointing at a real
+  // non-public entity (story-0009, an oralHistoryLead).
+  const baseUrl = await startLocalTestServer(context);
+  const { getV2Store } = await import("../../v2/stores/v2Store.js");
+  const store = getV2Store();
+  const originalListRelationships = store.listRelationships;
+
+  const leakProbeRelationship = {
+    id: "leak-probe-1",
+    type: "associatedWith",
+    sourceId: "st3",
+    sourceType: "structure",
+    targetId: "story-0009",
+    targetType: "story",
+    status: "published",
+  };
+
+  store.listRelationships = async (options) => {
+    const real = await originalListRelationships.call(store, options);
+    return { ...real, items: [...real.items, leakProbeRelationship], count: real.count + 1 };
+  };
+  context.after(() => { store.listRelationships = originalListRelationships; });
+
+  const response = await fetch(`${baseUrl}/api/v2/relationships?limit=100`);
+  const body = await response.json();
+  assert.equal(
+    body.data.some((r) => r.id === "leak-probe-1"),
+    false,
+    "a relationship pointing at a non-public entity (story-0009, an oralHistoryLead) must never appear publicly, even if its own status is published",
+  );
 });
 
 test("v1 GET /api/archive is unaffected while V2_DATA_STORE=local is active (side-by-side)", async (context) => {

@@ -1272,6 +1272,101 @@ counterparts). `data/archive.json` and `GET /api/archive` (v1) are
 completely unaffected: v1 continues to serve all 23 original records,
 unchanged, always.
 
+### Cultural entity publication review
+
+Promoting an entity into `data/v2/entities.json` and it becoming publicly
+visible are two separate decisions. Every promoted entity already carries a
+`status` computed by `applyPublicationStatusPolicy` at promotion time
+(`published` only when every cited sourceId was identity-resolved,
+`inReview` otherwise, `draft` forced for every `oralHistoryLead` story) —
+but a dedicated **publication review** pass is still required before
+treating any of that as a final public/non-public decision, because
+"research status" and "safe to present to the public" are different
+questions. Research status reflects how confidently the *bibliography* was
+restored; public safety additionally has to weigh identity-resolution
+problems, ethnic/religious presentation sensitivity, and terminology
+disputes that a citation-completeness check alone can't see.
+
+This review (methodology and full per-entity decisions in
+`tmp/v2-publication-review/publication-decisions.json`, gitignored — not
+committed) classified all 168 promoted entities into
+`publishNow` / `keepInReview` / `keepDraft` / `keepArchived`, changing only
+each entity's `status` field — never titles, descriptions, ids, slugs, or
+sourceIds, and never touching `data/v2/relationships.json` or
+`data/v2/legacyReplacements.json`. The result: **61 of 168 are public**,
+not all of them. Key rules applied:
+
+- **`oralHistoryLead` stories (39 of 47) always stay `draft`.** They are
+  future interview topics recorded as leads, not actual testimony — treating
+  one as a public "story" would misrepresent an unrecorded interview as
+  published oral history. Hard rule, no exceptions regardless of confidence.
+- **`community`, `belief`, and `place` entities are held to `inReview` in
+  this first pass, regardless of individual confidence.** `community`/
+  `belief` describe ethnic or religious identity, where PART 5's
+  `unresolved-group-0008` (`communityTerminology`, severity: high) flags
+  dataset-wide terminology risk (Arab Alawite/Nusayri/Alawite conflation,
+  Rum ≠ modern Greek nationality, Turkish/Turkmen/Yörük distinctness,
+  incomplete Kurdish/Syriac detail). `place` entities fall under
+  `unresolved-group-0009` (`localArabicToponyms`, severity: high): unverified
+  local Arabic names must stay `NEEDS VERIFICATION`, never silently become
+  presented public fact. None of these 57 records were public before this
+  review either — this pass preserves that conservative default rather than
+  introducing new promotions into these categories.
+- **A small set of entities have an explicit, PART-5-documented identity,
+  chronology, or terminology problem** and are held to `inReview`/`archived`
+  even where confidence is otherwise high: `place-0016` (Hıdırbey ↔ Kheder
+  Beg unresolved), `place-0019` (Batıayaz ↔ Bitias unresolved), `belief-0010`
+  (a cross-tradition visitation practice modeled as a belief, not a
+  standalone organized religion), `comm-0016`/`comm-0017` (historical
+  population contexts, not modern living communities), `music-0004` (its own
+  title is literally "'Finn' Term — Needs Verification"), `music-0011`
+  (rests partly on "Necef İlahileri", a v1 category PART 3 explicitly found
+  unverified), and `structure-0001`/`0002`/`0003`/`0004` (PART 5
+  `unresolved-group-0011`, severity: high: Habib-i Neccar complex phase
+  chronology, St. Pierre facade chronology source conflict, and the
+  synagogue's exact construction/restoration status are all open — even
+  though *site identity* for all four is settled and preserved via
+  `legacyReplacements.json`). `structure-0005` (Samandağ Khidr Shrine) and
+  `structure-0020` are **not** on this list and are published — their
+  identity and core claim have no open PART-5 conflict.
+- **Everything else** (the remaining `historicalContext`, `structure`,
+  `story`, and `music` records) is published only when
+  `researchExtensions.confidence === "high"`; `medium`/`low`/unspecified
+  confidence stays `inReview`. An entity already `draft` or `archived` in
+  the research itself is preserved as-is — this review never upgrades a
+  research-assigned `draft`/`archived` without new research, and never
+  fabricates bibliography to justify a promotion. An incomplete source
+  citation alone never blocks publication of an otherwise well-supported
+  claim — the two are genuinely different questions (see "Cultural dataset
+  import preview" above, "Source reference count audit").
+
+This is a **first pass**, not a final word: `community`, `belief`, and
+`place` in particular need their own dedicated review before anything in
+those categories can go public.
+
+### Public relationship gating
+
+`GET /api/v2/relationships` and `GET /api/v2/entities/:id/related`
+(`backend/v2/routes/v2Routes.js`) must never reveal the existence, id, or
+type of a non-public entity — even indirectly, through relationship
+metadata. Filtering a relationship by its own `status` field alone is
+**not sufficient**: a relationship's `sourceId`/`sourceType`/`targetId`/
+`targetType` name the entities it connects regardless of the relationship's
+own status, so a relationship marked `published` while pointing at a
+`draft`/`inReview` entity would leak that entity's id and type even though
+the entity itself correctly 404s at `GET /api/v2/entities/:id`.
+
+`isPublicRelationship(relationship, store)` fixes this: a relationship is
+public only when its own status is `published` **and** both the source and
+target entities it names are independently public. Both relationship-facing
+routes use it. This wasn't exploitable with the data committed as of this
+review (every promoted relationship is still `status: inReview`, so
+`GET /api/v2/relationships` currently returns `[]`), but the gap was
+structural, not incidental — proven by a regression test
+(`backend/test/v2/localStoreRoutes.test.js`) that injects a synthetic
+published relationship pointing at a real non-public entity
+(`story-0009`, an `oralHistoryLead`) and asserts it never appears.
+
 ### Where the research input lives
 
 Canonical research text is supplied as six files under a repository-root

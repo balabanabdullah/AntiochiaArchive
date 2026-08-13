@@ -35,6 +35,32 @@ function isPublic(record) {
   return record.status === PUBLIC_STATUS;
 }
 
+/**
+ * A relationship is public only when its OWN status is published AND both
+ * the entities it connects are independently public. Checking the
+ * relationship's own status alone is not enough: a relationship's sourceId/
+ * targetId/sourceType/targetType reveal the existence and type of the
+ * entity on the other end, even with no other field exposed. Without this
+ * check, a relationship marked "published" while pointing at a draft/
+ * inReview entity (an oralHistoryLead story, for instance) would leak that
+ * entity's existence through GET /api/v2/relationships even though the
+ * entity itself correctly 404s at GET /api/v2/entities/:id. See
+ * V2-ARCHITECTURE.md "Public relationship gating".
+ */
+async function isPublicRelationship(relationship, store) {
+  if (!isPublic(relationship)) return false;
+  const [source, target] = await Promise.all([
+    store.getEntityById(relationship.sourceId),
+    store.getEntityById(relationship.targetId),
+  ]);
+  return isPublic(source) && isPublic(target);
+}
+
+async function filterPublicRelationships(relationships, store) {
+  const flags = await Promise.all(relationships.map((relationship) => isPublicRelationship(relationship, store)));
+  return relationships.filter((_relationship, index) => flags[index]);
+}
+
 // Path segment -> domain entityType, for the per-category list endpoints.
 const TYPE_ROUTES = Object.freeze({
   communities: "community",
@@ -191,7 +217,7 @@ router.get("/relationships", async (req, res) => {
       cursor: parsed.pagination.cursor,
       filters: parsed.filters,
     });
-    const publicItems = page.items.filter(isPublic);
+    const publicItems = await filterPublicRelationships(page.items, store);
     return res.status(200).json({
       success: true,
       data: publicItems.map(serializePublicRelationship),
@@ -239,7 +265,7 @@ router.get("/entities/:id/related", async (req, res) => {
     const publicRelated = relatedPage.items.filter(isPublic);
 
     const relationshipsPage = await store.listRelationships({ limit: MAX_PAGE_LIMIT });
-    const publicRelationships = relationshipsPage.items.filter(isPublic);
+    const publicRelationships = await filterPublicRelationships(relationshipsPage.items, store);
     const findEdge = (otherId) => publicRelationships.find((relationship) => (
       (relationship.sourceId === req.params.id && relationship.targetId === otherId)
       || (relationship.targetId === req.params.id && relationship.sourceId === otherId)

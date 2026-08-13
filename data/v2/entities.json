@@ -120,7 +120,7 @@
           "Foundation-date variants such as 301/300 BCE should be retained in specialist notes if later verified."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0003",
@@ -182,7 +182,7 @@
           "Precise demographic figures from ancient literary traditions should not be treated as modern census data."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0004",
@@ -249,7 +249,7 @@
           "Ancient population estimates remain methodologically disputed."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0005",
@@ -316,7 +316,7 @@
           "Exact chronology of individual early worship places remains complex."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0006",
@@ -377,7 +377,7 @@
           "source-0003"
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0007",
@@ -425,7 +425,7 @@
           "Ancient casualty figures may be rhetorical and should not be treated as modern statistical counts."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0008",
@@ -477,7 +477,7 @@
           "Individual surviving structures should not automatically be assigned wholly to 540s reconstruction without architectural evidence."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0009",
@@ -540,7 +540,7 @@
           "Exact conquest-year variants should remain open where sources differ."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0010",
@@ -584,7 +584,7 @@
           "source-0001"
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0011",
@@ -692,7 +692,7 @@
           "Detailed control chronology between 1080s and 1098 remains intentionally simplified."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0013",
@@ -754,7 +754,7 @@
           "Do not treat all medieval Christian remains as Crusader constructions without structural evidence."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0014",
@@ -803,7 +803,7 @@
           "source-0001"
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0015",
@@ -869,7 +869,7 @@
           "Historical neighborhood names must not automatically be equated with modern administrative boundaries."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0016",
@@ -939,7 +939,7 @@
           "Fine-grained demographic statistics require source-by-source normalization."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0017",
@@ -990,7 +990,7 @@
           "Antakya city, Musa Dagh and the wider sanjak must remain geographically distinct."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0018",
@@ -1060,7 +1060,7 @@
           "Oral memory of the Mandate must not be converted automatically into verified historical fact."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0019",
@@ -1125,7 +1125,7 @@
           "Community-specific migration figures require dedicated demographic normalization."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0020",
@@ -1201,7 +1201,7 @@
           "Fine-grained demographic changes by community remain incompletely normalized."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "hist-0021",
@@ -1278,7 +1278,7 @@
           "Many building-specific reconstruction statuses continue to change."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "comm-0001",
@@ -4735,7 +4735,7 @@
           "Building-specific 2023 damage assessment not normalized."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0006",
@@ -4776,7 +4776,7 @@
           "Current reconstruction/restoration phase needs update."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0007",
@@ -4817,7 +4817,7 @@
           "Exact current post-earthquake condition and reconstruction status require verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0008",
@@ -4862,7 +4862,7 @@
           "Current post-2023 technical condition should be updated before publication."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0009",
@@ -5109,7 +5109,7 @@
           "Exact place entity for monastery location should be added in a later geographic expansion."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0015",
@@ -5150,7 +5150,7 @@
           "Detailed construction-stage chronology should be retained from archaeological source in source registry."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0016",
@@ -5191,7 +5191,7 @@
           "Exact period subdivision and individual tomb chronology require archaeological source detail."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0017",
@@ -5235,7 +5235,7 @@
           "Exact dating of all visible masonry phases remains archaeological work."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0018",
@@ -5371,7 +5371,7 @@
           "Building-level inventory and pre/post-2023 survival status remain incomplete."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0021",
@@ -5426,7 +5426,7 @@
           "Building-by-building conservation status requires continued survey."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0022",
@@ -5467,7 +5467,7 @@
           "Exact post-2023 reconstruction state and phase chronology require building-level update."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0023",
@@ -5515,7 +5515,7 @@
           "Shop-level occupation history and current restoration phases are not normalized."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0024",
@@ -5610,7 +5610,7 @@
           "Exact post-2023 structural/restoration status needs updated institutional source."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0027",
@@ -5662,7 +5662,7 @@
           "Exact surviving archaeological components need item-level inventory."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "structure-0028",
@@ -5740,7 +5740,7 @@
           "Narrator-level consent, audio, transcript and image permissions must be checked item by item."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0002",
@@ -5774,7 +5774,7 @@
           "Raw interview recordings and republication permissions were not established in the completed research."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0003",
@@ -5811,7 +5811,7 @@
           "Exact audio-rights status and narrator-level permissions remain unresolved."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0004",
@@ -5852,7 +5852,7 @@
           "Narrator-level permissions and source-media availability require verification."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0005",
@@ -5887,7 +5887,7 @@
           "Exact interview media and participant permissions were not normalized."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0006",
@@ -5922,7 +5922,7 @@
           "Do not transform contextual project text into an invented first-person story."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0007",
@@ -5957,7 +5957,7 @@
           "Named narrators and media permissions require source-item review."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0008",
@@ -5996,7 +5996,7 @@
           "Trauma-sensitive interview protocols and publication permissions must be applied."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "story-0009",
@@ -7382,7 +7382,7 @@
           "Community-crossing local repertoire needs further comparative documentation."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "music-0006",
@@ -7467,7 +7467,7 @@
           "Do not turn Dom identity into a music genre."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "music-0008",
@@ -7727,7 +7727,7 @@
           "Raw audio and republication rights require permission."
         ]
       },
-      "status": "inReview"
+      "status": "published"
     },
     {
       "id": "music-0015",

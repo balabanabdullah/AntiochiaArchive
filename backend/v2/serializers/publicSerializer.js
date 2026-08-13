@@ -129,11 +129,49 @@ function pickAllowlisted(entity, allowlist) {
   return output;
 }
 
+// Entity types that may carry a single associated image via the migration
+// mapper's internal `media` preview array (see
+// ../migration/v1ToV2Mapping.js#migrationProvenance). That raw preview array
+// itself is migration-internal (it also carries an `isPlaceholder` flag and
+// v1 field names) and is never on any type's public allowlist above — this
+// derives a safe, public-shaped summary from it instead of exposing it
+// as-is. A placeholder (no real image) yields no `media` field at all,
+// rather than a fabricated one.
+const MEDIA_PREVIEW_HOST_TYPES = Object.freeze(["historicalContext", "story", "structure", "music"]);
+
+function publicMediaSummary(entity) {
+  const preview = Array.isArray(entity.media) ? entity.media[0] : null;
+  if (!preview || preview.isPlaceholder || !preview.path) return null;
+  const summary = {
+    path: preview.path,
+    aiGenerated: preview.aiGenerated ?? false,
+  };
+  for (const field of ["alt", "caption", "source", "author", "license", "rightsNote"]) {
+    if (preview[field] !== undefined) summary[field] = preview[field];
+  }
+  return summary;
+}
+
 /** Strips any field not on the public allowlist for entity.entityType. */
 export function serializePublicEntity(entity) {
   if (!entity || typeof entity !== "object") return null;
   const allowlist = PUBLIC_FIELDS_BY_TYPE[entity.entityType] || BASE_PUBLIC_FIELDS;
-  return pickAllowlisted(entity, allowlist);
+  const output = pickAllowlisted(entity, allowlist);
+
+  if (entity.entityType === "media") {
+    // A media entity already carries its own top-level public fields
+    // (derivativeStoragePaths, source, author, license, ...) — only alt/
+    // caption text is missing from that allowlist, sourced the same way as
+    // the other host types below.
+    const preview = Array.isArray(entity.media) ? entity.media[0] : null;
+    if (preview?.alt !== undefined) output.alt = preview.alt;
+    if (preview?.caption !== undefined) output.caption = preview.caption;
+  } else if (MEDIA_PREVIEW_HOST_TYPES.includes(entity.entityType)) {
+    const media = publicMediaSummary(entity);
+    if (media) output.media = media;
+  }
+
+  return output;
 }
 
 export function serializePublicEntities(entities) {

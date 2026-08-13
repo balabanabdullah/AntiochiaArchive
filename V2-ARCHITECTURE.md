@@ -1,6 +1,6 @@
 # AntiochiaArchive v2 foundation
 
-This document describes the v2 foundation built in two steps, both layered
+This document describes the v2 foundation built in three steps, all layered
 locally alongside the stable v1.0 production system without changing,
 migrating, or depending on any v1 production data:
 
@@ -13,12 +13,17 @@ migrating, or depending on any v1 production data:
    implementation, a deterministic in-memory store for tests, and a CLI that
    maps the current 23-record v1 archive into a proposed v2 shape for
    review — entirely in memory, with zero writes anywhere.
+3. **A local real-data v2 runtime** — `LocalMappedV2Store`, selected with
+   `V2_DATA_STORE=local`, which runs the same validated v1 -> v2 mapper from
+   step 2 at startup and serves the resulting 23 entities through the real
+   `/api/v2` HTTP endpoints, entirely in memory, for local development only.
+   See "Local real-data v2 runtime" below.
 
-**Neither step migrates production data.** No Firestore document has ever
-been read or written by this work, no Cloud Storage resource was created,
-and `data/archive.json` is untouched. Everything described below lives
-under `backend/v2/` and `backend/scripts/migrate-v1-to-v2.js`, and is
-additive.
+**No step migrates production data.** No Firestore document has ever been
+read or written by this work, no Cloud Storage resource was created, and
+`data/archive.json` is only ever read, never written, by any part of v2.
+Everything described below lives under `backend/v2/` and
+`backend/scripts/migrate-v1-to-v2.js`, and is additive.
 
 ## Why a separate v2 tree
 
@@ -161,7 +166,7 @@ listRelationships({ limit, cursor, filters })
 getRelatedEntities(id, { limit, cursor, filters })
 ```
 
-Three implementations exist:
+Four implementations exist:
 
 - **`EmptyV2Store`** (`backend/v2/stores/emptyV2Store.js`) — holds no data and
   never contacts Firestore or Cloud Storage. Returns valid, correctly-shaped
@@ -177,6 +182,11 @@ Three implementations exist:
 - **`FirestoreV2Store`** (`backend/v2/stores/firestoreV2Store.js`) — the
   real, read-only Firestore-backed implementation, described below. It is
   never constructed or contacted unless explicitly selected.
+- **`LocalMappedV2Store`** (`backend/v2/stores/localMappedV2Store.js`) — maps
+  the real `data/archive.json` through the same validated mapper as the
+  dry-run CLI, into a `MemoryV2Store` instance, at startup. Local-only, never
+  contacts Firestore or Cloud Storage. See "Local real-data v2 runtime"
+  below.
 
 ### Firestore v2 collections
 
@@ -216,20 +226,23 @@ unless explicitly overridden:
 ```
 V2_DATA_STORE=empty      # default — no data, no external contact
 V2_DATA_STORE=memory     # deterministic in-process store, no external contact
+V2_DATA_STORE=local      # maps data/archive.json into memory at startup — local dev only, no external contact
 V2_DATA_STORE=firestore  # real Firestore reads against v2Entities/v2Relationships
 ```
 
 This is deliberately **not** coupled to v1's `DATA_STORE` — a production
 deployment can run `DATA_STORE=firestore` for v1 while v2 stays on
 `V2_DATA_STORE=empty` (the actual production default today), and switching
-v2 to Firestore is a separate, explicit decision. `initializeV2Store()`
-only ever calls `initializeFirestore()` (which requires
-`GOOGLE_CLOUD_PROJECT` and constructs, but does not yet query, a Firestore
-client) when `firestore` was explicitly selected — proven by
+v2 to Firestore, or a developer opting into `local`, is a separate, explicit
+decision each time. `initializeV2Store()` only ever calls
+`initializeFirestore()` (which requires `GOOGLE_CLOUD_PROJECT` and
+constructs, but does not yet query, a Firestore client) when `firestore` was
+explicitly selected — proven by
 `backend/test/v2/stores/v2StoreSelection.test.js`, which asserts that
 selecting `firestore` without `GOOGLE_CLOUD_PROJECT` fails exactly the way
-v1's Firestore initialization already does, and that the default path never
-attempts it.
+v1's Firestore initialization already does, that selecting `local` succeeds
+without `GOOGLE_CLOUD_PROJECT` (proving it never reaches Firestore either),
+and that the default path never attempts it.
 
 ### Firestore query construction, cursor pagination, and index safety
 
@@ -295,6 +308,14 @@ was changed, moved, or removed.
 | `GET /api/v2/music` | Paginated `music` list (empty) |
 | `GET /api/v2/proverbs` | Paginated `proverb` list (empty) |
 | `GET /api/v2/historical-contexts` | Paginated `historicalContext` list (empty) |
+| `GET /api/v2/media` | Paginated `media` list (empty by default; 6 under `V2_DATA_STORE=local`) |
+
+With the default `EmptyV2Store`, every list above is empty. Under
+`V2_DATA_STORE=local` (see "Local real-data v2 runtime" below), these same
+endpoints serve the 23 real mapped entities: `structures` returns 8,
+`stories`/`music`/`historical-contexts` return 3 each, `media` returns 6, and
+`communities`/`beliefs`/`places`/`proverbs` remain `0` because no such
+content has been authored yet.
 
 Every list response uses the same envelope as v1's `/api/archive`:
 
@@ -472,18 +493,193 @@ the only artifacts this tool produces, and both live outside
    suppress — a validation failure.
 9. `--apply` is explicitly rejected; there is no write path in this tool.
 
+## Local real-data v2 runtime
+
+`LocalMappedV2Store` (`backend/v2/stores/localMappedV2Store.js`) turns the
+dry-run mapper from a report-only tool into a real, queryable `/api/v2`
+runtime, for local development only. It is selected with:
+
+```
+V2_DATA_STORE=local
+```
+
+**Production-safe default is unchanged**: `V2_DATA_STORE` still defaults to
+`empty` everywhere. `local` is never assumed — an operator or developer must
+set it explicitly, exactly like `memory` or `firestore`.
+
+### What it does at startup
+
+`initialize()` runs entirely in memory, in this order:
+
+1. Reads `data/archive.json` from disk (respecting `ARCHIVE_JSON_PATH` if
+   set, mirroring `backend/stores/fileStore.js`'s own path resolution — but
+   without importing that module, since v2 store selection stays independent
+   of v1's `DATA_STORE`).
+2. Validates the loaded JSON as a v1 archive with the existing
+   `assertValidArchive()` (`backend/dataModel.js`).
+3. Maps every record through `mapV1ArchiveToV2Entities()`, the same mapper
+   the dry-run CLI uses — no separate/duplicate mapping logic.
+4. Validates every mapped entity against the real v2 schemas
+   (`validateEntity()`, `backend/v2/schemas/index.js`).
+5. Loads the validated entities into a `MemoryV2Store` and exposes the
+   standard `V2Store` interface on top of it.
+
+**On any invalid mapped record, `initialize()` throws** — naming the
+offending v1 record id, its source category, and the schema validation
+error — instead of silently dropping it. A broken local runtime fails loudly
+at startup; it never serves a partial or silently-truncated entity set.
+
+### Exact local entity counts
+
+Running against the current 23-record `data/archive.json`:
+
+| `entityType` | count |
+| --- | --- |
+| `historicalContext` | 3 |
+| `story` | 3 |
+| `structure` | 8 (4 from v1 `structures` + 4 from v1 `beliefs`, all belief-site structures) |
+| `music` | 3 |
+| `media` | 6 |
+| `community` | 0 |
+| `belief` | 0 |
+| `place` | 0 |
+| `proverb` | 0 |
+| `source` | 0 |
+
+**23 total.** This step creates no new cultural entity — every count above
+comes directly from the existing, already-reviewed mapper (see "Belief-site
+handling" and "No production migration yet" above): `community`, `belief`,
+`place`, and `proverb` stay at zero until a separately reviewed content task
+authors them. Seven of the 23 mapped records have no real image in v1
+(`h2`, `s3`, `b3`, `m1`, `m2`, `m3`, `g1`) and remain valid entities with no
+fabricated media — see "Public media representation" below.
+
+### Public vs. private migration fields
+
+The mapper (step 2) attaches migration-provenance fields to every mapped
+entity: `sourceVersion`, `sourceCategory`, `sourceRecordId`, `migrationNote`
+(belief-site records only), a raw `media` preview array, and a verbatim
+`sources` array. This step makes an explicit, deliberate decision about each
+one rather than leaving it to accident:
+
+| Field | Decision | Reasoning |
+| --- | --- | --- |
+| `sourceVersion`, `sourceCategory`, `sourceRecordId` | **A — internal-only** | Editorial/migration provenance, not cultural content; no product reason for a public client to see "this came from v1 record st1." Already excluded by `publicSerializer.js`'s allowlist; this step keeps it that way. |
+| `migrationNote` | **A — internal-only** | An editorial instruction to a future human reviewer ("relate this via `hasSite`, never re-type as belief"), not reader-facing text. |
+| `sources` (verbatim v1 `sources[]`) | **A — internal-only** | v2 has its own, separate `source` entity type and `sourceIds` reference-array convention (see "Source vs. media rights" above); re-exposing the raw v1 array would pre-empt that design instead of migrating into it. A future task can turn these into real `source` entities. |
+| `media` (raw preview array, incl. `isPlaceholder`, `date`, `originalUrl`, `accessedAt`) | **B — transformed** | The array shape and internal-only fields (`isPlaceholder`) are migration bookkeeping, but the underlying image is real, already-published v1 content the frontend already serves today. The public serializer derives a safe, minimal object from it rather than exposing the array as-is (see below) — never both. |
+
+No migration-only field is ever exposed unmodified; `publicSerializer.js`
+remains allowlist-based, so a newly added private field cannot leak by
+being forgotten in a denylist.
+
+### Public media representation
+
+`backend/v2/serializers/publicSerializer.js` derives a `media` field for
+`structure`, `story`, `historicalContext`, and `music` entities from their
+internal migration-preview array, when — and only when — a real (non-
+placeholder) image exists:
+
+```json
+"media": {
+  "path": "/images/structures/habib-i-neccar-camii-antakya-2018.webp",
+  "alt": { "tr": "...", "en": "...", "ar": "..." },
+  "caption": { "tr": "...", "en": "...", "ar": "..." },
+  "source": "Wikimedia Commons",
+  "author": "Nedim Ardoğa",
+  "license": "CC BY-SA 4.0",
+  "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+  "aiGenerated": false
+}
+```
+
+A placeholder record (no real v1 image) gets **no `media` key at all** —
+never a fabricated one. `path` is the same root-relative public path v1
+already serves from `public/images/`; it is not a filesystem path, an
+image-staging path, a checksum, or `media.originalStoragePath` (which stays
+private on the `media` entity type, per the existing allowlist).
+
+`media`-entityType entities (from v1 `gallery`) already expose their own
+public `derivativeStoragePaths`/`source`/`author`/`license`/`rightsStatus`/
+`rightsNote`/`aiGenerated` fields; this step additionally surfaces `alt` and
+`caption` text (previously only present in the internal preview) directly on
+those entities, without duplicating the rest of the summary shape used by
+the other four types.
+
+### Side-by-side v1/v2 local testing
+
+`V2_DATA_STORE` and `DATA_STORE` are independent (see "Store selection"
+above), so both can be set at once for local development:
+
+```
+DATA_STORE=file
+V2_DATA_STORE=local
+```
+
+With this configuration, `GET /api/archive` continues to serve v1's
+unchanged 23-record archive from `backend/dataStore.js`'s `fileStore`, while
+`GET /api/v2/*` serves the same 23 records re-shaped into v2 entities from
+`LocalMappedV2Store` — two independent read paths over the same underlying
+`data/archive.json`, neither one affecting the other.
+`backend/test/v2/localStoreRoutes.test.js` asserts this explicitly: with
+`V2_DATA_STORE=local` active, `GET /api/archive` still returns exactly 23
+v1 records via the untouched v1 code path.
+
+### Relationships remain empty
+
+`LocalMappedV2Store` is constructed with `relationships: []`. The 10
+`POTENTIAL_DUPLICATE_OR_RELATED_ENTITY` warnings the dry-run report
+surfaces (e.g. `st1`/`b1`/`g4` all describing Habib-i Neccar) are **not**
+converted into relationship records by this step — that remains a
+separate, editorially reviewed decision. Any relationship-listing endpoint
+therefore returns an empty page under `V2_DATA_STORE=local`, exactly as it
+does under `EmptyV2Store`.
+
+### Local Docker / environment setup
+
+`backend/.env.example` documents `V2_DATA_STORE` alongside `DATA_STORE`; it
+is commented out (defaulting to `empty`) so a fresh checkout never
+accidentally serves mapped data. To opt in locally:
+
+```
+# backend/.env (developer-local only — never committed)
+DATA_STORE=file
+V2_DATA_STORE=local
+```
+
+or, when running the existing `docker compose up antiochia-archive-web
+antiochia-archive-backend` development flow, export it before invoking
+Compose:
+
+```
+V2_DATA_STORE=local docker compose up antiochia-archive-web antiochia-archive-backend
+```
+
+`docker-compose.yml`'s `antiochia-archive-backend` service declares
+`V2_DATA_STORE=${V2_DATA_STORE:-empty}` alongside its existing
+`DATA_STORE=${DATA_STORE:-file}` and `MAIL_MODE=${MAIL_MODE:-mock}`
+passthroughs — a host-exported `V2_DATA_STORE` reaches the container, and it
+still defaults to `empty` when unset, so existing Compose runs are
+unaffected unless a developer explicitly exports it first. No production
+deployment default changes.
+
 ## What is deliberately NOT implemented
 
 - No real v2 Firestore document has been written (`FirestoreV2Store` is
   read-only and is not the selected store by default).
 - No Cloud Storage bucket, upload, or media-serving path.
 - No write/create/update/delete endpoints under `/api/v2`.
-- No actual community, belief, place, structure, story, music, proverb,
-  historicalContext, media, or source records in any datastore — the
-  schemas validate a shape, and the migration dry run only maps records in
-  memory for a report; nothing is written or migrated.
+- No actual community, belief, place, or proverb records anywhere — not in
+  Firestore, not in the local mapped runtime, not in any datastore. The one
+  exception to "nothing is written or migrated" is `LocalMappedV2Store`
+  itself (`V2_DATA_STORE=local`), which holds real `structure`/`story`/
+  `music`/`historicalContext`/`media` records **in an in-process, local-only
+  memory store**, rebuilt from `data/archive.json` on every startup — never
+  persisted to Firestore, a file, or any other datastore. See "Local
+  real-data v2 runtime" above.
 - No actual relationships between entities (`v2Relationships` is an empty,
-  documented collection shape).
+  documented collection shape; `LocalMappedV2Store` also holds zero
+  relationships).
 - No real consent records — `consent.js` is validation only; `v2Consents`
   and `v2Editorial` are documented, unused collection names.
 - No admin/editorial UI for v2.

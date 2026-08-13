@@ -18,6 +18,7 @@ const TYPE_ROUTES = Object.freeze({
   music: "music",
   proverbs: "proverb",
   "historical-contexts": "historicalContext",
+  media: "media",
 });
 
 function parseListRequest(req) {

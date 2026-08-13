@@ -83,6 +83,10 @@ services:
       - ARCHIVE_JSON_PATH=/appdata/private/archive.json
       - SUBMISSIONS_JSON_PATH=/appdata/private/submissions.json
       - MAIL_MODE=${MAIL_MODE:-mock}
+      # v2 stays on the safe empty store unless a developer explicitly opts in, e.g.:
+      #   V2_DATA_STORE=local docker compose up antiochia-archive-web antiochia-archive-backend
+      # See V2-ARCHITECTURE.md "Local real-data v2 runtime". Never set in production.
+      - V2_DATA_STORE=${V2_DATA_STORE:-empty}
     volumes:
       # Temporary local/development persistence only. Cloud Run uses Firestore.
       - ./data:/appdata/private

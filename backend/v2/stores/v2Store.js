@@ -13,16 +13,20 @@
 // explicitly overridden — this is what prevents an accidental production v2
 // Firestore read: `firestore` is only ever selected when an operator sets
 // V2_DATA_STORE=firestore themselves. `memory` is a local-only deterministic
-// store, safe for demos/tests; it never contacts Firestore either.
+// store, safe for demos/tests; it never contacts Firestore either. `local`
+// maps the real data/archive.json through the validated v1 -> v2 mapper into
+// an in-process store — also local-only, also never contacts Firestore.
 
 import { emptyV2Store } from "./emptyV2Store.js";
 import { memoryV2Store } from "./memoryV2Store.js";
 import { firestoreV2Store } from "./firestoreV2Store.js";
+import { localMappedV2Store } from "./localMappedV2Store.js";
 
 const stores = Object.freeze({
   empty: emptyV2Store,
   memory: memoryV2Store,
   firestore: firestoreV2Store,
+  local: localMappedV2Store,
 });
 
 let selectedStore = emptyV2Store;

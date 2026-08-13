@@ -11,6 +11,8 @@ const TRANSLATIONS = {
       stories:    "Stories",
       structures: "Structures",
       beliefs:    "Beliefs",
+      communities: "Communities",
+      places:      "Places",
       music:      "Music",
       gallery:    "Gallery",
       methodology: "Methodology",
@@ -20,6 +22,7 @@ const TRANSLATIONS = {
       explore:    "Explore the archive",
       learnMore:  "Learn more",
       viewRecord: "View record",
+      viewAll:    "View all",
     },
     searchPlaceholder: "Search...",
     backToTop: "Back to Top",
@@ -48,6 +51,7 @@ const TRANSLATIONS = {
       backToCollection: "Back to collection",
       viewOriginal: "View original source",
       imagePending: "Image pending archival review",
+      relatedEntities: "Related records",
     },
     notFound: {
       title: "This archive path could not be found.",
@@ -197,9 +201,9 @@ const TRANSLATIONS = {
       }
     },
     beliefsSection: {
-      eyebrow: "Interfaith Heritage",
-      title: "Shared Sanctuaries & Faith History",
-      body: "Antioch's spiritual landscape is unique—a city where mosques, churches, and synagogues stand side-by-side, sharing sacred history and traditions.",
+      eyebrow: "Belief Traditions",
+      title: "Belief Traditions of Antioch",
+      body: "Sunni Islam, the Arab Alawite / Nusayri tradition, Judaism, Greek Orthodox Christianity, and the region's other living belief traditions—documented alongside the interfaith heritage that binds them.",
       card1: {
         title: "Habib-i Neccar Shrine",
         desc: "Venerated by Muslims and Christians alike, honoring Habib-i Neccar, the historic martyr of Antioch."
@@ -212,6 +216,16 @@ const TRANSLATIONS = {
         title: "Antioch Synagogue",
         desc: "A historic place of worship preserving centuries-old Torah scrolls and the living memory of Antioch's Jewish community."
       }
+    },
+    communitiesSection: {
+      eyebrow: "Cultural Memory",
+      title: "Communities of Antioch",
+      body: "Documented cultural, ethnic, and religious communities of Antakya and Hatay, their language, history, and living identity.",
+    },
+    placesSection: {
+      eyebrow: "Geography of Memory",
+      title: "Places of Antioch",
+      body: "Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.",
     },
     musicSection: {
       eyebrow: "Musical Traditions",
@@ -282,9 +296,21 @@ const TRANSLATIONS = {
       },
       beliefs: {
         eyebrow: "Spiritual Landscape",
-        title: "Shared Sanctuaries & Sacred Calendars",
-        subtitle: "A testament to centuries of interfaith coexistence, shared holiday feasts, venerated hilltops, and traditions.",
-        badge: "Interfaith Heritage",
+        title: "Belief Traditions of Antioch",
+        subtitle: "Sunni Islam, Arab Alawite / Nusayri tradition, Judaism, Greek Orthodox Christianity, and the interfaith heritage of Antakya.",
+        badge: "Belief Traditions",
+      },
+      communities: {
+        eyebrow: "Cultural Memory",
+        title: "Communities of Antioch",
+        subtitle: "Documented cultural, ethnic, and religious communities of Antakya and Hatay, their language, history, and living identity.",
+        badge: "Community Archive",
+      },
+      places: {
+        eyebrow: "Geography of Memory",
+        title: "Places of Antioch",
+        subtitle: "Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.",
+        badge: "Geographic Archive",
       },
       music: {
         eyebrow: "Audio Archive",
@@ -361,6 +387,8 @@ const TRANSLATIONS = {
       stories:    "Hikâyeler",
       structures: "Yapılar",
       beliefs:    "İnançlar",
+      communities: "Topluluklar",
+      places:      "Yerler",
       music:      "Müzik",
       gallery:    "Galeri",
       methodology: "Yöntem",
@@ -370,6 +398,7 @@ const TRANSLATIONS = {
       explore:    "Arşivi keşfet",
       learnMore:  "Daha fazla",
       viewRecord: "Kaydı görüntüle",
+      viewAll:    "Tümünü gör",
     },
     searchPlaceholder: "Bir şey ara...",
     backToTop: "Yukarı Çık",
@@ -398,6 +427,7 @@ const TRANSLATIONS = {
       backToCollection: "Koleksiyona dön",
       viewOriginal: "Özgün kaynağı görüntüle",
       imagePending: "Görsel arşiv incelemesinde",
+      relatedEntities: "İlgili kayıtlar",
     },
     notFound: {
       title: "Bu arşiv yolu bulunamadı.",
@@ -547,9 +577,9 @@ const TRANSLATIONS = {
       }
     },
     beliefsSection: {
-      eyebrow: "İnanç Kültürü",
-      title: "İnançlar ve Kutsal Mabetler",
-      body: "Antakya'nın inanç iklimi eşsizdir; camiler, kiliseler ve sinagoglar yan yana durur, asırlık kutsal miras ortaklaşa yaşatılır.",
+      eyebrow: "İnanç Gelenekleri",
+      title: "Antakya'nın İnanç Gelenekleri",
+      body: "Sünni İslam, Arap Alevi/Nusayri geleneği, Musevilik, Rum Ortodoks Hristiyanlığı ve bölgenin diğer yaşayan inanç gelenekleri — onları birbirine bağlayan ortak mirasla birlikte belgelenir.",
       card1: {
         title: "Habib-i Neccar Türbesi",
         desc: "Müslümanlar ve Hristiyanlarca saygı duyulan, Yasin Suresi'nde yer alan Habib-i Neccar'ın tarihi türbesi."
@@ -562,6 +592,16 @@ const TRANSLATIONS = {
         title: "Yahudi Havrası",
         desc: "Asırlık Tevrat tomarını ve Antakya Musevi cemaatinin kadim hafızasını yaşatan tarihi ibadethane."
       }
+    },
+    communitiesSection: {
+      eyebrow: "Kültürel Hafıza",
+      title: "Antakya'nın Toplulukları",
+      body: "Antakya ve Hatay'ın belgelenmiş kültürel, etnik ve dini toplulukları; dilleri, tarihleri ve yaşayan kimlikleri.",
+    },
+    placesSection: {
+      eyebrow: "Hafızanın Coğrafyası",
+      title: "Antakya'nın Yerleri",
+      body: "Antakya ve Hatay ilindeki belgelenmiş kasabalar, ilçeler ve simge yapılar; yer adları ve bölge hafızasındaki yerleri.",
     },
     musicSection: {
       eyebrow: "Müzik Kültürü",
@@ -632,9 +672,21 @@ const TRANSLATIONS = {
       },
       beliefs: {
         eyebrow: "İnanç İklimi",
-        title: "Ortak Mabetler ve Kutsal Takvimler",
-        subtitle: "Asırlar süren dinler arası bir arada yaşamın, ortak bayram yemeklerinin ve kutsal mekanların mirası.",
-        badge: "Ortak Miras",
+        title: "Antakya'nın İnanç Gelenekleri",
+        subtitle: "Sünni İslam, Arap Alevi/Nusayri geleneği, Musevilik, Rum Ortodoks Hristiyanlığı ve Antakya'nın dinler arası mirası.",
+        badge: "İnanç Gelenekleri",
+      },
+      communities: {
+        eyebrow: "Kültürel Hafıza",
+        title: "Antakya'nın Toplulukları",
+        subtitle: "Antakya ve Hatay'ın belgelenmiş kültürel, etnik ve dini toplulukları; dilleri, tarihleri ve yaşayan kimlikleri.",
+        badge: "Topluluk Arşivi",
+      },
+      places: {
+        eyebrow: "Hafızanın Coğrafyası",
+        title: "Antakya'nın Yerleri",
+        subtitle: "Antakya ve Hatay ilindeki belgelenmiş kasabalar, ilçeler ve simge yapılar; yer adları ve bölge hafızasındaki yerleri.",
+        badge: "Coğrafi Arşiv",
       },
       music: {
         eyebrow: "Ses Arşivi",
@@ -711,6 +763,8 @@ const TRANSLATIONS = {
       stories:    "الحكايات",
       structures: "المعالم",
       beliefs:    "المعتقدات",
+      communities: "المجتمعات",
+      places:      "الأماكن",
       music:      "الموسيقى",
       gallery:    "المعرض",
       methodology: "المنهجية",
@@ -720,6 +774,7 @@ const TRANSLATIONS = {
       explore:    "استكشف الأرشيف",
       learnMore:  "اعرف أكثر",
       viewRecord: "عرض السجل",
+      viewAll:    "عرض الكل",
     },
     searchPlaceholder: "ابحث...",
     backToTop: "العودة إلى الأعلى",
@@ -748,6 +803,7 @@ const TRANSLATIONS = {
       backToCollection: "العودة إلى المجموعة",
       viewOriginal: "عرض المصدر الأصلي",
       imagePending: "الصورة قيد المراجعة الأرشيفية",
+      relatedEntities: "سجلات ذات صلة",
     },
     notFound: {
       title: "تعذر العثور على هذا المسار في الأرشيف.",
@@ -897,9 +953,9 @@ const TRANSLATIONS = {
       }
     },
     beliefsSection: {
-      eyebrow: "تراث التعايش والمعتقدات",
-      title: "المعتقدات والمقامات المقدسة",
-      body: "تتميز أنطاكية بطابعها الروحي الفريد حيث تجاور المساجد والكنائس والمعابد، وتتشارك التاريخ والتراث الروحي.",
+      eyebrow: "تقاليد المعتقد",
+      title: "تقاليد المعتقد في أنطاكية",
+      body: "الإسلام السني، والتقليد العلوي العربي/النصيري، واليهودية، والمسيحية الأرثوذكسية اليونانية، وتقاليد المعتقد الحية الأخرى في المنطقة — موثقة إلى جانب التراث المشترك بين الأديان الذي يجمعها.",
       card1: {
         title: "مقام حبيب النجار",
         desc: "مقام مقدس يحظى باحترام المسلمين والمسيحيين، يُكرم حبيب النجار المذكور في سورة يس."
@@ -912,6 +968,16 @@ const TRANSLATIONS = {
         title: "كنيس أنطاكية",
         desc: "مكان عبادة تاريخي يحفظ لفيات التوراة القديمة والذاكرة الحية للجالية اليهودية في أنطاكية."
       }
+    },
+    communitiesSection: {
+      eyebrow: "الذاكرة الثقافية",
+      title: "مجتمعات أنطاكية",
+      body: "المجتمعات الثقافية والعرقية والدينية الموثقة في أنطاكية وهاتاي، بلغاتها وتاريخها وهويتها الحية.",
+    },
+    placesSection: {
+      eyebrow: "جغرافيا الذاكرة",
+      title: "أماكن أنطاكية",
+      body: "البلدات والأحياء والمعالم الموثقة في أنطاكية ومحافظة هاتاي، وأسماؤها الجغرافية ومكانتها في ذاكرة المنطقة.",
     },
     musicSection: {
       eyebrow: "التراث الموسيقي",
@@ -982,9 +1048,21 @@ const TRANSLATIONS = {
       },
       beliefs: {
         eyebrow: "المشهد الروحي",
-        title: "المقدسات المشتركة والتقاويم المقدسة",
-        subtitle: "شهادة على قرون من التعايش بين الأديان ومشاركة موائد الأعياد والمواقع المبجلة.",
-        badge: "تراث مشترك",
+        title: "تقاليد المعتقد في أنطاكية",
+        subtitle: "الإسلام السني، التقليد العلوي العربي/النصيري، اليهودية، المسيحية الأرثوذكسية اليونانية، والتراث المشترك بين الأديان في أنطاكية.",
+        badge: "تقاليد المعتقد",
+      },
+      communities: {
+        eyebrow: "الذاكرة الثقافية",
+        title: "مجتمعات أنطاكية",
+        subtitle: "المجتمعات الثقافية والعرقية والدينية الموثقة في أنطاكية وهاتاي، بلغاتها وتاريخها وهويتها الحية.",
+        badge: "أرشيف المجتمعات",
+      },
+      places: {
+        eyebrow: "جغرافيا الذاكرة",
+        title: "أماكن أنطاكية",
+        subtitle: "البلدات والأحياء والمعالم الموثقة في أنطاكية ومحافظة هاتاي، وأسماؤها الجغرافية ومكانتها في ذاكرة المنطقة.",
+        badge: "الأرشيف الجغرافي",
       },
       music: {
         eyebrow: "الأرشيف الصوتي",

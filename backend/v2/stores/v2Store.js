@@ -12,10 +12,29 @@
 // V2_DATA_STORE selects the implementation and defaults to `empty` unless
 // explicitly overridden — this is what prevents an accidental production v2
 // Firestore read: `firestore` is only ever selected when an operator sets
-// V2_DATA_STORE=firestore themselves. `memory` is a local-only deterministic
-// store, safe for demos/tests; it never contacts Firestore either. `local`
-// maps the real data/archive.json through the validated v1 -> v2 mapper into
-// an in-process store — also local-only, also never contacts Firestore.
+// V2_DATA_STORE=firestore themselves (and today reads real-but-currently-empty
+// Firestore collections — no migration script populates them yet). `memory`
+// is a local-only deterministic store, safe for demos/tests; it never
+// contacts Firestore either. `local` maps the real data/archive.json plus
+// data/v2/*.json through the validated v1 -> v2 mapper, the legacy
+// replacement layer, and the real v2 schema validators into an in-process,
+// read-only, in-memory store — it never writes anywhere and never contacts
+// Firestore or Cloud Storage, regardless of where the JSON files it reads
+// physically live. That last property is exactly what makes it safe to
+// select in production too, as long as the JSON files it needs are actually
+// present: locally that means the live repository-root data/ directory (dev
+// server or docker-compose's bind mount); in the deployed backend container
+// it means the committed, drift-checked bundle at backend/data/ (see
+// backend/Dockerfile's `COPY data/ ./data/` and
+// backend/test/v2/dataBundleDrift.test.js) with V2_ENTITIES_JSON_PATH/
+// V2_RELATIONSHIPS_JSON_PATH/V2_LEGACY_REPLACEMENTS_JSON_PATH/
+// ARCHIVE_JSON_PATH pointed at the in-image copies. See V2-ARCHITECTURE.md
+// "Local real-data v2 runtime" and "Production v2 data path" for the full
+// reasoning — `local` is not a "dev-only, never production" label, it is
+// simply "reads these JSON files from disk, wherever they are, and never
+// writes." Selecting it in production without also bundling those files
+// (the state before this was addressed) would crash the backend at startup;
+// see the Dockerfile comment for why that gap existed and how it's closed.
 
 import { emptyV2Store } from "./emptyV2Store.js";
 import { memoryV2Store } from "./memoryV2Store.js";

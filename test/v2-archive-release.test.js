@@ -1,0 +1,180 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  V2_DETAIL_TYPES,
+  V2_TYPE_INFO,
+  collectPublicV2Entities,
+  generateV2DetailDocument,
+  v2DetailPath,
+  v2EntityFact,
+  v2SitemapUrls,
+  validatePublicV2Entities,
+} from "../scripts/v2-archive-release.js";
+
+function fixtureStore(entities) {
+  return () => ({
+    async initialize() {},
+    async listEntities({ limit }) {
+      return { items: entities.slice(0, limit), nextCursor: null };
+    },
+  });
+}
+
+const FIXTURE_ENTITIES = [
+  {
+    id: "structure-0005", slug: "hz-hizir-ziyareti-samandag", entityType: "structure", status: "published",
+    title: { tr: "Hz. Hızır", en: "Shrine of Khidr", ar: "مقام الخضر" },
+    summary: { en: "A sacred visitation site." }, structureType: "sacred visitation site",
+    media: {
+      path: "/images/structures/example.webp",
+      alt: { en: "Alt text" }, caption: { en: "A caption." },
+      author: "Author Name", source: "Example Archive", license: "Public Domain",
+      aiGenerated: false,
+    },
+  },
+  {
+    id: "belief-0002", slug: "sunni-islam-hatay", entityType: "belief", status: "published",
+    title: { en: "Sunni Islam" }, summary: { en: "Summary." }, tags: ["Islam"],
+  },
+  {
+    id: "music-0001", slug: "fann-oral-poetry", entityType: "music", status: "published",
+    title: { en: "Fann" }, summary: { en: "Summary." }, genre: "oral poetry",
+  },
+  // Never public, never eligible for a detail page — excluded upstream by isPublic().
+  { id: "story-0099", slug: "hidden-lead", entityType: "story", status: "inReview", title: { en: "Hidden" }, summary: {} },
+  // Statusless media entity: always "public" per isPublic(), but has no slug
+  // and is not in V2_DETAIL_TYPES — must never get a detail page.
+  { id: "media-0001", entityType: "media", path: "/images/x.webp" },
+];
+
+test("collectPublicV2Entities returns only published, slug-bearing, detail-page-eligible entities (never draft/inReview, never media/source)", async () => {
+  const entities = await collectPublicV2Entities({ createStore: fixtureStore(FIXTURE_ENTITIES) });
+  const ids = entities.map((entity) => entity.id).sort();
+  assert.deepEqual(ids, ["belief-0002", "music-0001", "structure-0005"]);
+  assert.ok(entities.every((entity) => V2_DETAIL_TYPES.includes(entity.entityType)));
+});
+
+test("collectPublicV2Entities returns the public-serializer shape, not the raw internal record (never leaks editorialNotes/researchExtensions/etc.)", async () => {
+  const withInternalFields = [{
+    ...FIXTURE_ENTITIES[0],
+    editorialNotes: "internal only",
+    researchExtensions: { secret: true },
+    consentRef: "should-never-leave-the-server",
+  }];
+  const [entity] = await collectPublicV2Entities({ createStore: fixtureStore(withInternalFields) });
+  assert.equal(entity.editorialNotes, undefined);
+  assert.equal(entity.researchExtensions, undefined);
+  assert.equal(entity.consentRef, undefined);
+  assert.equal(entity.id, "structure-0005");
+});
+
+test("v2EntityFact returns the correct type-specific fact per entity type", () => {
+  assert.equal(v2EntityFact({ entityType: "structure", structureType: "mosque" }), "mosque");
+  assert.equal(v2EntityFact({ entityType: "music", genre: "folk" }), "folk");
+  assert.equal(v2EntityFact({ entityType: "story", storyCategory: "historicalMemory" }), "historicalMemory");
+  assert.equal(v2EntityFact({ entityType: "story", tags: ["fallback-tag"] }), "fallback-tag");
+  assert.equal(v2EntityFact({ entityType: "historicalContext", period: { label: { en: "Seleucid Era" } } }, "en"), "Seleucid Era");
+  assert.equal(
+    v2EntityFact({ entityType: "place", title: { en: "Antakya" }, officialName: { en: "Antakya" } }, "en"),
+    "",
+    "must not repeat officialName when identical to title",
+  );
+  assert.equal(
+    v2EntityFact({ entityType: "place", title: { en: "Antakya" }, officialName: { en: "Antioch on the Orontes" } }, "en"),
+    "Antioch on the Orontes",
+  );
+  assert.equal(v2EntityFact({ entityType: "community" }), "", "community has no single extra fact field");
+});
+
+test("validatePublicV2Entities rejects duplicate slugs, invalid slugs, and entity types with no detail-page mapping", () => {
+  assert.throws(() => validatePublicV2Entities([
+    { id: "a", slug: "same-slug", entityType: "belief" },
+    { id: "b", slug: "same-slug", entityType: "place" },
+  ]), /Duplicate v2 slug/);
+  assert.throws(() => validatePublicV2Entities([{ id: "a", slug: "Not Valid Slug!", entityType: "belief" }]), /invalid or missing slug/);
+  assert.throws(() => validatePublicV2Entities([{ id: "a", slug: "ok-slug", entityType: "media" }]), /no detail-page mapping/);
+});
+
+test("v2DetailPath and v2SitemapUrls produce the separate /archive-v2/ namespace, never colliding with v1's /archive/", () => {
+  const entity = { id: "belief-0002", slug: "sunni-islam-hatay", entityType: "belief" };
+  assert.equal(v2DetailPath(entity), "/archive-v2/sunni-islam-hatay/");
+  const urls = v2SitemapUrls([entity]);
+  assert.equal(urls.length, 1);
+  assert.match(urls[0], /\/archive-v2\/sunni-islam-hatay\/$/);
+});
+
+test("generateV2DetailDocument produces a canonical, single-H1, correctly-breadcrumbed page per type", () => {
+  for (const entity of FIXTURE_ENTITIES.filter((item) => V2_DETAIL_TYPES.includes(item.entityType) && item.status === "published")) {
+    const html = generateV2DetailDocument({
+      entity,
+      stylesheet: "/assets/style-test.css",
+      langScript: "/assets/lang-test.js",
+      v2ApiScript: "/assets/archive-v2-api-test.js",
+      appScript: "/assets/script-test.js",
+    });
+    const typeInfo = V2_TYPE_INFO[entity.entityType];
+    assert.match(html, new RegExp(`<link rel="canonical" href="https://[^"]+${v2DetailPath(entity)}">`));
+    assert.equal((html.match(/<h1\b/g) || []).length, 1, `${entity.id} must have exactly one H1`);
+    assert.match(html, /"@type":"WebPage"/);
+    assert.match(html, new RegExp(`href="${typeInfo.href}"`));
+    assert.doesNotMatch(html, new RegExp(`href="${v2DetailPath(entity)}"`), "must not self-link");
+    assert.match(html, new RegExp(`data-entity-id="${entity.id}"`));
+    assert.match(html, /data-related-entities-section/);
+    assert.match(html, /related-entities-section[^>]* hidden /, "related-entities section must ship hidden by default");
+  }
+});
+
+test("generateV2DetailDocument shows the real media image when present, and the intentional placeholder when absent", () => {
+  const withMedia = generateV2DetailDocument({
+    entity: FIXTURE_ENTITIES[0],
+    stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.match(withMedia, /<img class="record-detail-image"/);
+  assert.match(withMedia, /src="\/images\/structures\/example\.webp"/);
+  assert.doesNotMatch(withMedia, /record-detail-placeholder/);
+
+  const withoutMedia = generateV2DetailDocument({
+    entity: FIXTURE_ENTITIES[1],
+    stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.doesNotMatch(withoutMedia, /<img class="record-detail-image"/);
+  assert.match(withoutMedia, /record-detail-placeholder/);
+});
+
+test("generateV2DetailDocument never renders a literal sentinel placeholder value", () => {
+  // The real serializer strips sentinels before this ever runs, but the
+  // generator itself must not introduce a new leak path if a sentinel-ish
+  // string slipped through for any reason.
+  const entity = {
+    id: "belief-0099", slug: "sentinel-check", entityType: "belief", status: "published",
+    title: { en: "Fine Title" }, summary: { en: "Fine summary." },
+  };
+  const html = generateV2DetailDocument({
+    entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.doesNotMatch(html, /NEEDS VERIFICATION|UNRESOLVED|NOT YET RESEARCHED/);
+});
+
+test("REAL DATA: collectPublicV2Entities against the canonical data/ files matches the reviewed per-type public counts", async () => {
+  const entities = await collectPublicV2Entities();
+  const counts = {};
+  for (const entity of entities) counts[entity.entityType] = (counts[entity.entityType] || 0) + 1;
+
+  assert.deepEqual(counts, {
+    historicalContext: 22,
+    community: 12,
+    belief: 8,
+    place: 24,
+    structure: 15,
+    story: 11,
+    music: 7,
+  });
+  assert.equal(entities.length, 99);
+
+  // No oralHistoryLead-shaped story or non-detail-page type ever reaches this set.
+  assert.ok(entities.every((entity) => V2_DETAIL_TYPES.includes(entity.entityType)));
+  assert.ok(!entities.some((entity) => entity.storyRecordType === "oralHistoryLead"));
+
+  const validation = validatePublicV2Entities(entities);
+  assert.equal(validation.count, 99);
+});

@@ -1,0 +1,799 @@
+{
+  "history": [
+    {
+      "id": "h1",
+      "slug": "antik-akdeniz-kavsagi-antakya",
+      "entityType": "historicalContext",
+      "categoryKey": "infrastructure",
+      "era": {
+        "en": "300 BCE — Roman Capital",
+        "tr": "MÖ 300 — Roma Başkenti",
+        "ar": "300 ق.م — العاصمة الرومانية"
+      },
+      "title": {
+        "en": "Crossroads of the Ancient Mediterranean",
+        "tr": "Antik Akdeniz'in Kavşak Noktası",
+        "ar": "ملتقى البحر الأبيض المتوسط القديم"
+      },
+      "body": {
+        "en": "Established by Seleucus I Nicator, Antioch became the third largest city of the Roman Empire, renowned for its colonnaded avenues and mosaic masterpieces.",
+        "tr": "Seleukos I Nikator tarafından kurulan Antakya, sütunlu caddeleri ve mozaik şaheserleriyle ünlü, Roma İmparatorluğu'nun üçüncü büyük şehri haline geldi.",
+        "ar": "أسّسها سيلوقس الأول نيكاتور، وأصبحت أنطاكية ثالث أكبر مدن الإمبراطورية الرومانية، اشتهرت بشوارعها ذات الأعمدة وروائعها الفسيفسائية."
+      },
+      "svgColor": "#903628",
+      "svgBg": "#ded4c0",
+      "svgType": "columns",
+      "image": "/images/history/antik-yapi-kalintisi-antakya-2017.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Antik Antiokheia'daki anıtsal yapı podyumu kalıntıları",
+          "en": "Remains of a monumental podium at ancient Antioch",
+          "ar": "بقايا منصة بناء ضخم في أنطاكية القديمة"
+        },
+        "caption": {
+          "tr": "Antik Antiokheia'da muhtemelen MS 2. yüzyıl sonuna tarihlenen anıtsal yapı podyumu kalıntıları; fotoğraf 2017.",
+          "en": "Remains of a monumental podium at ancient Antioch, probably dating to the late 2nd century CE; photographed in 2017.",
+          "ar": "بقايا منصة مبنى ضخم في أنطاكية القديمة، يُرجَّح أنها تعود إلى أواخر القرن الثاني الميلادي؛ صُوّرت عام 2017."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Carole Raddato",
+        "license": "CC BY-SA 2.0",
+        "date": "2017-07-09",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:The_remains_of_the_massive_Temple%27s_podium,_probably_dating_to_the_end_of_the_2nd_century_AD,_Antioch_on_the_Orontes,_Antakya,_Turkey_(35477346333).jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      }
+    },
+    {
+      "id": "h2",
+      "slug": "antakya-kultur-ve-ticaret-mozaigi",
+      "entityType": "historicalContext",
+      "categoryKey": "courtyard",
+      "era": {
+        "en": "Medieval & Ottoman Eras",
+        "tr": "Ortaçağ ve Osmanlı Dönemleri",
+        "ar": "العصور الوسطى والعهد العثماني"
+      },
+      "title": {
+        "en": "Mosaic of Cultures & Trade",
+        "tr": "Kültür ve Ticaret Mozaiği",
+        "ar": "فسيفساء الثقافات والتجارة"
+      },
+      "body": {
+        "en": "Through centuries of transformation, the city maintained its position as a vibrant hub of silk trade, craftsmanship, and peaceful co-existence.",
+        "tr": "Yüzyıllar boyunca yaşanan dönüşümlerin ortasında şehir, ipek ticaretinin, el sanatlarının ve barış içinde bir arada yaşamanın canlı merkezi olarak kalmaya devam etti.",
+        "ar": "على مدى قرون من التحولات، حافظت المدينة على مكانتها مركزاً حيّاً لتجارة الحرير والحرف اليدوية والتعايش السلمي."
+      },
+      "svgColor": "#5e6142",
+      "svgBg": "#d8ceb8",
+      "svgType": "arches",
+      "image": null
+    },
+    {
+      "id": "h3",
+      "slug": "antakya-kimligini-korumak",
+      "entityType": "historicalContext",
+      "categoryKey": "all",
+      "era": {
+        "en": "Modern Memory",
+        "tr": "Modern Hafıza",
+        "ar": "الذاكرة الحديثة"
+      },
+      "title": {
+        "en": "Preserving Identity Across Time",
+        "tr": "Kimliği Zamana Karşı Korumak",
+        "ar": "الحفاظ على الهوية عبر الزمن"
+      },
+      "body": {
+        "en": "Today, AntiochiaArchive safeguards physical landmarks and intangible heritage so future generations can retrace the living memory of Antioch.",
+        "tr": "Bugün AntiochiaArchive, gelecek nesillerin Antakya'nın yaşayan hafızasını izleyebilmesi için fiziksel yapıları ve somut olmayan mirası koruma altına almaktadır.",
+        "ar": "اليوم، يحمي AntiochiaArchive المعالم المادية والتراث غير المادي، لكي تتمكن الأجيال القادمة من إعادة رسم الذاكرة الحية لأنطاكية."
+      },
+      "svgColor": "#1c1814",
+      "svgBg": "#dfd5c4",
+      "svgType": "circles",
+      "image": "/images/history/kurtulus-caddesi-kent-dokusu-antakya-2019.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Kurtuluş Caddesi'ndeki tarihî yapı dokusu, Antakya",
+          "en": "Historic urban fabric along Kurtuluş Street in Antakya",
+          "ar": "النسيج العمراني التاريخي في شارع كورتولوش بأنطاكية"
+        },
+        "caption": {
+          "tr": "Antakya'nın Kurtuluş Caddesi'ndeki tarihî kent dokusu, 2019.",
+          "en": "Historic urban fabric of Kurtuluş Street in Antakya, 2019.",
+          "ar": "النسيج العمراني التاريخي لشارع كورتولوش في أنطاكية، 2019."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Dosseman (Dick Osseman)",
+        "license": "CC BY-SA 4.0",
+        "date": "2019-09-27",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Antakya_Kurtulu%C5%9F_Caddesi_in_2019_01.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      }
+    }
+  ],
+  "stories": [
+    {
+      "id": "s1",
+      "slug": "kurtulus-caddesi-eski-tas-ev",
+      "entityType": "story",
+      "categoryKey": "courtyard",
+      "tag": {
+        "en": "Kurtuluş Street",
+        "tr": "Kurtuluş Caddesi",
+        "ar": "شارع كورتولوش"
+      },
+      "title": {
+        "en": "The Old Stone House on Kurtuluş Street",
+        "tr": "Kurtuluş Caddesi'ndeki Eski Taş Ev",
+        "ar": "البيت الحجري القديم في شارع كورتولوش"
+      },
+      "body": {
+        "en": "An oral account of multi-generational life inside one of Antioch's historic courtyard homes before the earthquake.",
+        "tr": "Deprem öncesinde Antakya'nın tarihi avlulu evlerinden birinin içindeki çok kuşaklı yaşamın sözlü anlatımı.",
+        "ar": "رواية شفهية عن الحياة متعددة الأجيال داخل أحد منازل أنطاكية التاريخية ذات الفناء قبل الزلزال."
+      },
+      "svgColor": "#8c392b",
+      "svgBg": "#ded4c0",
+      "svgType": "house",
+      "image": "/images/stories/kurtulus-caddesi-tarihi-yapi-antakya-2019.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Kurtuluş Caddesi'nde tarihî bir yapı cephesi, Antakya",
+          "en": "Historic building facade on Kurtuluş Street in Antakya",
+          "ar": "واجهة مبنى تاريخي في شارع كورتولوش بأنطاكية"
+        },
+        "caption": {
+          "tr": "Kurtuluş Caddesi'ndeki tarihî yapı dokusundan bir görünüm, 2019. Fotoğrafın sözlü anlatıda geçen evin kendisini gösterdiği doğrulanmamıştır.",
+          "en": "View of the historic building fabric on Kurtuluş Street, 2019. The photograph has not been verified as the specific house in the oral account.",
+          "ar": "مشهد من النسيج المعماري التاريخي في شارع كورتولوش عام 2019. لم يُثبت أن الصورة تُظهر المنزل المذكور تحديداً في الرواية الشفهية."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Dosseman (Dick Osseman)",
+        "license": "CC BY-SA 4.0",
+        "date": "2019-09-27",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Antakya_Kurtulu%C5%9F_Caddesi_in_2019_02.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      }
+    },
+    {
+      "id": "s2",
+      "slug": "asi-nehri-su-dolaplari",
+      "entityType": "story",
+      "categoryKey": "infrastructure",
+      "tag": {
+        "en": "Orontes River",
+        "tr": "Asi Nehri",
+        "ar": "نهر العاصي"
+      },
+      "title": {
+        "en": "Echoes of the Orontes Waterwheels",
+        "tr": "Asi'nin Dolap Sesleri",
+        "ar": "أصداء ناعور العاصي"
+      },
+      "body": {
+        "en": "Memories of the ancient wooden waterwheels along the Orontes river that once fed the gardens of Antioch.",
+        "tr": "Antakya'nın bahçelerini sulayan Asi kıyısındaki antik ahşap dolapların anıları.",
+        "ar": "ذكريات النواعير الخشبية القديمة على ضفاف نهر العاصي التي كانت تروي حدائق أنطاكية."
+      },
+      "svgColor": "#5d6645",
+      "svgBg": "#d8ceb8",
+      "svgType": "wheel",
+      "image": "/images/stories/antakya-tarihi-su-dolabi.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Antakya'da tarihî bir su dolabı",
+          "en": "Historic waterwheel in Antioch",
+          "ar": "ناعورة تاريخية في أنطاكية"
+        },
+        "caption": {
+          "tr": "Antakya'da tarihî bir su dolabı, yaklaşık 1898–1930. Kaynak kaydı nehrin adını ayrıca belirtmez.",
+          "en": "Historic waterwheel in Antioch, c. 1898–1930. The source catalog does not separately name the river.",
+          "ar": "ناعورة تاريخية في أنطاكية، نحو 1898–1930. لا يذكر سجل المصدر اسم النهر بشكل منفصل."
+        },
+        "source": "Library of Congress / Matson Collection",
+        "author": "Matson Collection",
+        "license": "Public Domain / No known restrictions on publication",
+        "date": "circa 1898–1930",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Waterwheel_at_Antioch,_Turkey_LOC_matpc.07198.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Public-domain source with no known restrictions on publication according to the reviewed source record; preserve source attribution and catalog information.",
+        "aiGenerated": false
+      }
+    },
+    {
+      "id": "s3",
+      "slug": "ekmek-ve-tuz-ortak-bayram-sofralari",
+      "entityType": "story",
+      "categoryKey": "all",
+      "tag": {
+        "en": "Old Quarter",
+        "tr": "Eski Mahalle",
+        "ar": "الحي القديم"
+      },
+      "title": {
+        "en": "Bread & Salt: Shared Festive Tables",
+        "tr": "Ekmek ve Tuz: Ortak Bayram Sofraları",
+        "ar": "الخبز والملح: موائد الأعياد المشتركة"
+      },
+      "body": {
+        "en": "How neighboring communities gathered across religious calendars to share festive dishes and holiday breads.",
+        "tr": "Komşu toplulukların farklı dini takvimler boyunca bayram yemeklerini ve tatil ekmeklerini paylaşmak için bir araya gelişi.",
+        "ar": "كيف تجمّعت المجتمعات المجاورة عبر التقاويم الدينية المختلفة لمشاركة أطباق الأعياد وخبز المناسبات."
+      },
+      "svgColor": "#903628",
+      "svgBg": "#dfd5c4",
+      "svgType": "table",
+      "image": null
+    }
+  ],
+  "structures": [
+    {
+      "id": "st1",
+      "slug": "habib-i-neccar-camii",
+      "entityType": "structure",
+      "categoryKey": "mosque",
+      "tag": {
+        "en": "Historic Mosque",
+        "tr": "Tarihi Cami",
+        "ar": "مسجد تاريخي"
+      },
+      "title": {
+        "en": "Habib-i Neccar Mosque",
+        "tr": "Habib-i Neccar Camii",
+        "ar": "جامع حبيب النجار"
+      },
+      "desc": {
+        "en": "Constructed on ancient foundations, representing Anatolia's earliest Islamic heritage site.",
+        "tr": "Anadolu'da inşa edilen ilk cami olarak kabul edilen, antik temeller üzerindeki tarihi ibadethane.",
+        "ar": "أحد أقدم المساجد في الأناضول، بُني على أسس قديمة ليصبح رمزاً للتراث الإسلامي."
+      },
+      "svgColor": "#5e6142",
+      "svgBg": "#d8ceb8",
+      "svgType": "minaret",
+      "image": "/images/structures/habib-i-neccar-camii-antakya-2018.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Habib-i Neccar Camii'nin Antakya'daki avlu cephesi",
+          "en": "Courtyard facade of Habib-i Neccar Mosque in Antakya",
+          "ar": "واجهة فناء جامع حبيب النجار في أنطاكية"
+        },
+        "caption": {
+          "tr": "Habib-i Neccar Camii'nin Antakya'daki avlu ve revak cephesi, 2018.",
+          "en": "Courtyard and arcade facade of Habib-i Neccar Mosque in Antakya, 2018.",
+          "ar": "واجهة الفناء والأروقة في جامع حبيب النجار في أنطاكية، 2018."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Nedim Ardoğa",
+        "license": "CC BY-SA 4.0",
+        "date": "2018-06-03",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Habib%27i_Neccar_Mosque.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      }
+    },
+    {
+      "id": "st2",
+      "slug": "st-pierre-kilisesi",
+      "entityType": "structure",
+      "categoryKey": "church",
+      "tag": {
+        "en": "Cave Sanctuary",
+        "tr": "Kaya Kilisesi",
+        "ar": "كنيسة الكهف"
+      },
+      "title": {
+        "en": "St. Pierre Cave Church",
+        "tr": "St. Pierre Kilisesi",
+        "ar": "كنيسة القديس بطرس"
+      },
+      "desc": {
+        "en": "One of the earliest Christian places of worship carved directly into the slopes of Mount Staurin.",
+        "tr": "Staurin Dağı'nın yamaçlarına doğrudan oyulmuş, Hristiyanlığın en eski ibadethanelerinden biri.",
+        "ar": "واحدة من أقدم أطلال العبادة المسيحية المنحوتة في منحدرات جبل استاورين."
+      },
+      "svgColor": "#903628",
+      "svgBg": "#e0d6c4",
+      "svgType": "arch",
+      "image": "/images/structures/st-pierre-kilisesi-antakya-2017.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "St. Pierre Mağara Kilisesi'nin Antakya'daki taş cephesi",
+          "en": "Stone facade of St. Pierre Cave Church in Antakya",
+          "ar": "الواجهة الحجرية لكنيسة القديس بطرس الكهفية في أنطاكية"
+        },
+        "caption": {
+          "tr": "St. Pierre Mağara Kilisesi'nin kayalık yamaçla bütünleşen taş cephesi, Antakya, 2017.",
+          "en": "Stone facade of St. Pierre Cave Church set into the rocky hillside in Antakya, 2017.",
+          "ar": "الواجهة الحجرية لكنيسة القديس بطرس الكهفية المندمجة مع السفح الصخري في أنطاكية، 2017."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Carole Raddato",
+        "license": "CC BY-SA 2.0",
+        "date": "2017-07-09",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:ChurchSaintPeterAntakya.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      }
+    },
+    {
+      "id": "st3",
+      "slug": "roma-mozaikleri-antakya",
+      "entityType": "structure",
+      "categoryKey": "mosaic",
+      "tag": {
+        "en": "Roman Heritage",
+        "tr": "Roma Mirası",
+        "ar": "التراث الروماني"
+      },
+      "title": {
+        "en": "Roman Mosaics of Antioch",
+        "tr": "Roma Mozaikleri",
+        "ar": "الفسيفساء الرومانية"
+      },
+      "desc": {
+        "en": "World-renowned floor mosaics depicting mythological legends, natural themes, and seasonal motifs.",
+        "tr": "Antik mitleri, mevsimleri ve doğa motiflerini işleyen, dünyaca ünlü antik taban mozaikleri.",
+        "ar": "فسيفساء أرضية عالمية الشهرة تجسد الأساطير القديمة والفصول والمشاهد الطبيعية."
+      },
+      "svgColor": "#1c1814",
+      "svgBg": "#dfd5c4",
+      "svgType": "mosaic",
+      "image": "/images/structures/daphne-roma-mozaigi-antakya.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Daphne-Harbiye'de bulunan 2. yüzyıl Roma taban mozaiği",
+          "en": "Second-century Roman floor mosaic found at Daphne-Harbiye near Antioch",
+          "ar": "فسيفساء أرضية رومانية من القرن الثاني عُثر عليها في دافني-هاربيي قرب أنطاكية"
+        },
+        "caption": {
+          "tr": "Antik Antiokheia'nın Daphne-Harbiye yerleşiminde 1937 kazılarında bulunan, MS 2. yüzyıla tarihlenen Roma taban mozaiği.",
+          "en": "Roman floor mosaic dating to the 2nd century CE, excavated in 1937 at Daphne-Harbiye near ancient Antioch.",
+          "ar": "فسيفساء أرضية رومانية تعود إلى القرن الثاني الميلادي، اكتُشفت عام 1937 في دافني-هاربيي قرب أنطاكية القديمة."
+        },
+        "source": "The Metropolitan Museum of Art",
+        "author": null,
+        "license": "Public Domain",
+        "date": null,
+        "originalUrl": "https://www.metmuseum.org/art/collection/search/253565",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Public-domain source according to the reviewed source record.",
+        "aiGenerated": false
+      }
+    },
+    {
+      "id": "st4",
+      "slug": "antakya-evleri",
+      "entityType": "structure",
+      "categoryKey": "courtyard",
+      "tag": {
+        "en": "Urban Fabric",
+        "tr": "Kent Dokusu",
+        "ar": "النسيج الحضري"
+      },
+      "title": {
+        "en": "Traditional Antioch Houses",
+        "tr": "Antakya Evleri",
+        "ar": "بيوت أنطاكية التقليدية"
+      },
+      "desc": {
+        "en": "Intricate stone residences featuring central courtyards, citrus trees, and decorative ironwork.",
+        "tr": "Yüksek taş duvarlar arkasında gizli avluları, narenciye ağaçları ve süslü demir işçiliği ile ünlü tarihi evler.",
+        "ar": "منازل حجريّة تتميّز بأفنيتها الداخلية النضرة، وأشجار الحمضيات والأعمال الحديدية الزخرفية."
+      },
+      "svgColor": "#903628",
+      "svgBg": "#ebdcc8",
+      "svgType": "house",
+      "image": "/images/structures/antakya-geleneksel-ev-2008.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Antakya'da geleneksel tarzda bir evin taş cephe ve giriş detayları",
+          "en": "Stone facade and entrance details of a traditional-style house in Antakya",
+          "ar": "تفاصيل الواجهة الحجرية والمدخل لبيت ذي طراز تقليدي في أنطاكية"
+        },
+        "caption": {
+          "tr": "Antakya'nın eski konut dokusundan geleneksel tarzda bir ev cephesi, 2008.",
+          "en": "Facade of a traditional-style house in Antakya's historic residential fabric, 2008.",
+          "ar": "واجهة بيت ذي طراز تقليدي ضمن النسيج السكني القديم في أنطاكية، 2008."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Dosseman",
+        "license": "CC BY-SA 4.0",
+        "date": "2008-12-08",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Antakya_Old_style_buildings_in_2008_01.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      }
+    }
+  ],
+  "beliefs": [
+    {
+      "id": "b1",
+      "slug": "habib-i-neccar-turbesi",
+      "entityType": "beliefSite",
+      "categoryKey": "mosque",
+      "image": "/images/beliefs/habib-i-neccar-turbesi-antakya-2017.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Habib-i Neccar Camii'nin altındaki Habib-i Neccar'a atfedilen kabir",
+          "en": "Tomb attributed to Habib-i Neccar beneath the Habib-i Neccar Mosque",
+          "ar": "القبر المنسوب إلى حبيب النجار أسفل جامع حبيب النجار"
+        },
+        "caption": {
+          "tr": "Habib-i Neccar Camii'nin altında bulunan ve geleneksel olarak Habib-i Neccar'a atfedilen kabir, Antakya, 2017.",
+          "en": "Tomb beneath the Habib-i Neccar Mosque traditionally attributed to Habib-i Neccar, Antakya, 2017.",
+          "ar": "القبر الواقع أسفل جامع حبيب النجار والمنسوب تقليدياً إلى حبيب النجار، أنطاكية، 2017."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Ozlmktv",
+        "license": "CC BY-SA 4.0",
+        "date": "2017-10-01",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Habib-i_Neccar_Camii_Alt%C4%B1nda_Habib-i_Neccar_Kabri.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      },
+      "icon": "🕌",
+      "title": {
+        "en": "Habib-i Neccar Shrine",
+        "tr": "Habib-i Neccar Türbesi",
+        "ar": "مقام حبيب النجار"
+      },
+      "desc": {
+        "en": "Venerated by Muslims and Christians alike, honoring Habib-i Neccar, the historic martyr of Antioch.",
+        "tr": "Müslümanlar ve Hristiyanlarca saygı duyulan, Yasin Suresi'nde yer alan Habib-i Neccar'ın tarihi türbesi.",
+        "ar": "مقام مقدس يحظى باحترام المسلمين والمسيحيين، يُكرم حبيب النجار المذكور في سورة يس."
+      }
+    },
+    {
+      "id": "b2",
+      "slug": "st-pierre-magara-kilisesi",
+      "entityType": "beliefSite",
+      "categoryKey": "church",
+      "image": "/images/beliefs/st-pierre-magara-kilisesi-ic-mekan-antakya-2019.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "St. Pierre Mağara Kilisesi'nin Antakya'daki kaya iç mekânı",
+          "en": "Rock-cut interior of St. Pierre Cave Church in Antakya",
+          "ar": "الفضاء الداخلي المنحوت في الصخر لكنيسة القديس بطرس الكهفية في أنطاكية"
+        },
+        "caption": {
+          "tr": "St. Pierre Mağara Kilisesi'nin doğal kaya yüzeyleriyle çevrili iç mekânı, Antakya, 2019.",
+          "en": "Interior of St. Pierre Cave Church surrounded by its natural rock surfaces, Antakya, 2019.",
+          "ar": "الفضاء الداخلي لكنيسة القديس بطرس الكهفية المحاط بالأسطح الصخرية الطبيعية، أنطاكية، 2019."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Dosseman (Dick Osseman)",
+        "license": "CC BY-SA 4.0",
+        "date": "2019-09-25",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Antakya_Church_of_St._Peter_interior_general_%C4%B1n_2019_05.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      },
+      "icon": "⛪",
+      "title": {
+        "en": "St. Pierre Cave Church",
+        "tr": "St. Pierre Mağara Kilisesi",
+        "ar": "كنيسة القديس بطرس الكهفية"
+      },
+      "desc": {
+        "en": "Carved into Mount Staurin, it is considered one of the earliest cave churches in Christian history.",
+        "tr": "Staurin Dağı yamaçlarına oyulmuş, inananlara ilk kez 'Hristiyan' adının verildiği tarihi ibadethane.",
+        "ar": "مُنحوتة في جبل استاورين، وتُعتبر أول كنيسة كهفية في العالم حيث أُطلق اسم 'مسيحيين' لأول مرة."
+      }
+    },
+    {
+      "id": "b3",
+      "slug": "antakya-sinagogu",
+      "entityType": "beliefSite",
+      "categoryKey": "synagogue",
+      "icon": "🕍",
+      "title": {
+        "en": "Antioch Synagogue",
+        "tr": "Yahudi Havrası",
+        "ar": "كنيس أنطاكية"
+      },
+      "desc": {
+        "en": "A historic place of worship preserving centuries-old Torah scrolls and the living memory of Antioch's Jewish community.",
+        "tr": "Asırlık Tevrat tomarını ve Antakya Musevi cemaatinin kadim hafızasını yaşatan tarihi ibadethane.",
+        "ar": "مكان عبادة تاريخي يحفظ لفيات التوراة القديمة والذاكرة الحية للجالية اليهودية في أنطاكية."
+      }
+    },
+    {
+      "id": "b4",
+      "slug": "hz-hizir-ziyareti-samandag",
+      "entityType": "beliefSite",
+      "categoryKey": "shrine",
+      "icon": "🕯️",
+      "title": {
+        "en": "Shrine of Khidr — Samandağ",
+        "tr": "Hz. Hızır Ziyareti — Samandağ",
+        "ar": "مقام الخضر — صمنداغ"
+      },
+      "desc": {
+        "en": "A sacred coastal shrine traditionally associated with the meeting of Khidr and Moses, holding an important place in the religious heritage of Samandağ and Hatay.",
+        "tr": "Hızır ile Musa'nın buluştuğuna inanılan, Samandağ ve Hatay'ın inanç mirasında önemli yere sahip sahil makamı.",
+        "ar": "مقام مقدس على ساحل صمنداغ، يرتبط في الموروث المحلي بلقاء الخضر وموسى ويحتل مكانة مهمة في التراث الديني للمنطقة."
+      },
+      "image": "/images/beliefs/hz-hizir-ziyareti-samandag.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Samandağ'daki beyaz kubbeli Hz. Hızır Makamı",
+          "en": "White-domed Shrine of Khidr in Samandağ",
+          "ar": "مقام الخضر ذو القبة البيضاء في صمنداغ"
+        },
+        "caption": {
+          "tr": "Samandağ sahilindeki Hz. Hızır Ziyareti, Hızır ile Musa'nın buluştuğuna inanılan kutsal makam, 2024.",
+          "en": "Shrine of Khidr on the Samandağ coast, traditionally associated with the meeting of Khidr and Moses, 2024.",
+          "ar": "مقام الخضر على ساحل صمنداغ، المرتبط في الموروث المحلي بلقاء الخضر وموسى، 2024."
+        },
+        "source": "Wikimedia Commons",
+        "author": "TheJoyfulTentmaker",
+        "license": "CC BY 4.0",
+        "date": "2024-07-28",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Shrine_of_Khidr.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required.",
+        "aiGenerated": false
+      }
+    }
+  ],
+  "music": [
+    {
+      "id": "m1",
+      "slug": "mezopotamya-ezgileri",
+      "entityType": "musicTradition",
+      "categoryKey": "folk",
+      "badge": "🎵",
+      "tag": {
+        "en": "Ancient Heritage",
+        "tr": "Kadim Miras",
+        "ar": "تراث قديم"
+      },
+      "title": {
+        "en": "Mesopotamian Melodies",
+        "tr": "Mezopotamya Ezgileri",
+        "ar": "ألحان بلاد ما بين النهرين"
+      },
+      "desc": {
+        "en": "Ancient modal structures and acoustic traditions echoing through centuries of Levantine history.",
+        "tr": "Doğu Akdeniz ve Levanten kültürünün asırlardır yankılanan makam yapıları ve antik enstrüman gelenekleri.",
+        "ar": "بُنى مقامية قديمة وتقاليد صوتية عريقة تتردد أصداؤها عبر قرون من تاريخ المشرق."
+      }
+    },
+    {
+      "id": "m2",
+      "slug": "ziyaret-ve-kutsal-ilahiler",
+      "entityType": "musicTradition",
+      "categoryKey": "hymn",
+      "badge": "📜",
+      "tag": {
+        "en": "Sacred Chants",
+        "tr": "Kutsal İlahiler",
+        "ar": "أناشيد مقدسة"
+      },
+      "title": {
+        "en": "Ziyaret & Sacred Chants",
+        "tr": "Ziyaret / Necef İlahileri",
+        "ar": "ترانيم الزيارات وأناشيد النجف"
+      },
+      "desc": {
+        "en": "Liturgical chants and spiritual melodies sung in sacred spaces, shrines, and seasonal gatherings.",
+        "tr": "Kutsal mekânlarda, manevi ziyaretgahlar ve bayram toplantılarında seslendirilen ilahiler ve dualar.",
+        "ar": "أناشيد طقسية وألحان روحية تُنشَد في الأماكن المقدسة والمزارات والتجمعات الموسمية."
+      }
+    },
+    {
+      "id": "m3",
+      "slug": "antakya-turkuleri",
+      "entityType": "musicTradition",
+      "categoryKey": "folk",
+      "badge": "🪕",
+      "tag": {
+        "en": "Local Folk Songs",
+        "tr": "Mahalli Türküler",
+        "ar": "أغانٍ شعبية محليّة"
+      },
+      "title": {
+        "en": "Antioch Folk Songs & Ballads",
+        "tr": "Antakya Türküleri / Mahalli Şarkılar",
+        "ar": "أغاني وأهازيج أنطاكية المحلية"
+      },
+      "desc": {
+        "en": "Heartfelt folk ballads, courtyard songs, and celebratory music reflecting the daily rhythm of Antioch.",
+        "tr": "Antakya sokaklarında, avlularında ve düğünlerinde söylenen samimi halk türküleri ve mahalli ezgiler.",
+        "ar": "أغاني شعبية صادقة وألحان الأفنية والمناسبات التي تعكس الإيقاع اليومي للحياة في أنطاكية."
+      }
+    }
+  ],
+  "gallery": [
+    {
+      "id": "g1",
+      "slug": "kurtulus-caddesi-tas-avlusu",
+      "entityType": "media",
+      "categoryKey": "courtyard",
+      "src": null,
+      "svgType": "house",
+      "svgColor": "#903628",
+      "svgBg": "#ded4c0",
+      "category": { "en": "Courtyard Homes", "tr": "Avlulu Evler", "ar": "منازل الفناء" },
+      "title": { "en": "Kurtuluş Street Stone Courtyard", "tr": "Kurtuluş Caddesi Taş Avlusu", "ar": "فناء حجري في شارع كورتولوش" },
+      "caption": { "en": "Architectural documentation of a traditional multi-generational courtyard home built with local limestone and citrus gardens.", "tr": "Yerel kireç taşı ve narenciye bahçeleriyle inşa edilmiş geleneksel çok kuşaklı avlulu bir evin mimari belgelemesi.", "ar": "توثيق معماري لمنزل تقليدي ذي فناء متعدد الأجيال مبني من الحجر الجيري المحلي وحدائق الحمضيات." }
+    },
+    {
+      "id": "g2",
+      "slug": "st-pierre-kilisesi-cephesi",
+      "entityType": "media",
+      "categoryKey": "church",
+      "src": "/images/gallery/st-pierre-kilisesi-cephe-antakya-2003.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "St. Pierre Mağara Kilisesi'nin Antakya'daki taş cephesi",
+          "en": "Stone facade of St. Pierre Cave Church in Antakya",
+          "ar": "الواجهة الحجرية لكنيسة القديس بطرس الكهفية في أنطاكية"
+        },
+        "caption": {
+          "tr": "St. Pierre Mağara Kilisesi'nin taş cephesi, Antakya, 2003.",
+          "en": "Stone facade of St. Pierre Cave Church, Antakya, 2003.",
+          "ar": "الواجهة الحجرية لكنيسة القديس بطرس الكهفية، أنطاكية، 2003."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Onur Volkan Hatem",
+        "license": "CC BY-SA 3.0",
+        "date": "2003-05-22",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Antioch_Saint_Pierre_Church_Front.JPG",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      },
+      "svgType": "arch",
+      "svgColor": "#903628",
+      "svgBg": "#e0d6c4",
+      "category": { "en": "Cave Sanctuaries", "tr": "Kaya Mabetleri", "ar": "المزارات الكهفية" },
+      "title": { "en": "St. Pierre Cave Facade", "tr": "St. Pierre Kilisesi Cephesi", "ar": "واجهة كنيسة القديس بطرس" },
+      "caption": { "en": "Historical view of the Gothic stone portal erected by Crusaders at the entrance of Mount Staurin cave sanctuary.", "tr": "Haçlılar döneminde Staurin Dağı mağara mabedinin girişine inşa edilen Gotik taş cephenin tarihi görünümü.", "ar": "منظر تاريخي للواجهة الحجرية القوطية التي شيدها الصليبيون عند مدخل مزار جبل استاورين." }
+    },
+    {
+      "id": "g3",
+      "slug": "okeanos-ve-tethys-roma-mozaigi",
+      "entityType": "media",
+      "categoryKey": "mosaic",
+      "src": "/images/gallery/oceanus-tethys-mozaigi-antakya.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Hatay Arkeoloji Müzesi'ndeki Okeanos ve Tethys Roma mozaiği",
+          "en": "Oceanus and Tethys Roman mosaic in the Hatay Archaeology Museum",
+          "ar": "فسيفساء أوكيانوس وتيثيس الرومانية في متحف هاتاي للآثار"
+        },
+        "caption": {
+          "tr": "Hatay Arkeoloji Müzesi koleksiyonundaki, MS 2. yüzyıla tarihlenen Okeanos ve Tethys mozaiği; fotoğraf 2019.",
+          "en": "Oceanus and Tethys mosaic in the Hatay Archaeology Museum collection, dated to the 2nd century CE; photographed in 2019.",
+          "ar": "فسيفساء أوكيانوس وتيثيس في مجموعة متحف هاتاي للآثار، وتعود إلى القرن الثاني الميلادي؛ صُوّرت عام 2019."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Dosseman (Dick Osseman)",
+        "license": "CC BY-SA 4.0",
+        "date": "2019-09-26",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Antakya_Archaeological_Museum_Thetis_and_Oceanus_mosaic_all_in_2019_02.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      },
+      "svgType": "mosaic",
+      "svgColor": "#1c1814",
+      "svgBg": "#dfd5c4",
+      "category": { "en": "Roman Mosaics", "tr": "Roma Mozaikleri", "ar": "الفسيفساء الرومانية" },
+      "title": { "en": "Oceanus & Tethys Roman Mosaic", "tr": "Okeanos ve Tethys Roma Mozaği", "ar": "فسيفساء أوكيانوس وتيثيس الرومانية" },
+      "caption": { "en": "A 2nd-century Roman floor mosaic featuring sea deities, intricate tesserae work, and geometric borders.", "tr": "Deniz tanrılarını, ince tessera işçiliğini ve geometrik bordürleri sergileyen 2. yüzyıl Roma taban mozaiği.", "ar": "فسيفساء أرضية رومانية من القرن الثاني تُجسد آلهة البحر والأعمال الفسيفسائية الدقيقة." }
+    },
+    {
+      "id": "g4",
+      "slug": "habib-i-neccar-camii-minaresi",
+      "entityType": "media",
+      "categoryKey": "mosque",
+      "src": "/images/gallery/habib-i-neccar-camii-minaresi-antakya-2014.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Habib-i Neccar Camii minaresi, Antakya",
+          "en": "Minaret of Habib-i Neccar Mosque in Antakya",
+          "ar": "مئذنة جامع حبيب النجار في أنطاكية"
+        },
+        "caption": {
+          "tr": "Habib-i Neccar Camii'nin minaresi, Antakya, 2014.",
+          "en": "Minaret of Habib-i Neccar Mosque, Antakya, 2014.",
+          "ar": "مئذنة جامع حبيب النجار في أنطاكية، 2014."
+        },
+        "source": "Wikimedia Commons",
+        "author": "Zeynel Cebeci",
+        "license": "CC BY-SA 4.0",
+        "date": "2014-05-24",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Habib_al-Najj%C3%A2r_Mosque_-_Habib-i_Neccar_Camii_01.JPG",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Attribution required. ShareAlike requirements apply to adaptations.",
+        "aiGenerated": false
+      },
+      "svgType": "minaret",
+      "svgColor": "#5e6142",
+      "svgBg": "#d8ceb8",
+      "category": { "en": "Islamic Monuments", "tr": "İslam Eserleri", "ar": "المعالم الإسلامية" },
+      "title": { "en": "Habib-i Neccar Mosque Minaret", "tr": "Habib-i Neccar Camii Minaresi", "ar": "مئذنة جامع حبيب النجار" },
+      "caption": { "en": "The iconic minaret and courtyard arches of Anatolia's earliest Islamic heritage site.", "tr": "Anadolu'nun ilk İslam mirası kabul edilen ibadethanenin simgesel minaresi ve avlu kemerleri.", "ar": "المئذنة الأيقونية وأقواس الفناء لأقدم موقع تراثي إسلامي في الأناضول." }
+    },
+    {
+      "id": "g5",
+      "slug": "asi-nehri-ahsap-su-dolaplari",
+      "entityType": "media",
+      "categoryKey": "infrastructure",
+      "src": "/images/gallery/asi-nehri-kopru-su-dolabi-antakya.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Asi Nehri kıyısında köprü ve tarihî su dolabı, Antakya",
+          "en": "Bridge and historic waterwheel on the Orontes in Antioch",
+          "ar": "جسر وناعورة تاريخية على نهر العاصي في أنطاكية"
+        },
+        "caption": {
+          "tr": "Asi Nehri üzerinde köprü ve tarihî su dolabı, Antakya, yaklaşık 1898–1946.",
+          "en": "Bridge and historic waterwheel on the Orontes in Antioch, c. 1898–1946.",
+          "ar": "جسر وناعورة تاريخية على نهر العاصي في أنطاكية، نحو 1898–1946."
+        },
+        "source": "Library of Congress / Matson Collection",
+        "author": "Matson Collection",
+        "license": "Public Domain / No known restrictions on publication",
+        "date": "circa 1898–1946",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Bridge_and_waterwheel_(Antioch)_LOC_matpc.07208.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Public-domain source with no known restrictions on publication according to the reviewed source record; preserve source attribution and catalog information.",
+        "aiGenerated": false
+      },
+      "svgType": "wheel",
+      "svgColor": "#5d6645",
+      "svgBg": "#d8ceb8",
+      "category": { "en": "River Infrastructure", "tr": "Su Mimarisi", "ar": "المنشآت المائية" },
+      "title": { "en": "Ancient Waterwheels of the Orontes", "tr": "Asi Nehri Ahşap Su Dolapları", "ar": "نواعير نهر العاصي الخشبية" },
+      "caption": { "en": "Archival photo documenting the historic wooden waterwheels along the Orontes river that supplied irrigation to city gardens.", "tr": "Şehir bahçelerine su taşıyan Asi Nehri kıyısındaki tarihi ahşap su dolaplarını belgeleyen arşiv fotoğrafı.", "ar": "صورة أرشيفية توثق النواعير الخشبية التاريخية على ضفاف نهر العاصي التي كانت تزود حدائق المدينة بالمياه." }
+    },
+    {
+      "id": "g6",
+      "slug": "demirkapi-su-kemerleri-ve-gecidi",
+      "entityType": "media",
+      "categoryKey": "infrastructure",
+      "src": "/images/gallery/demirkapi-gecidi-antakya-1905.webp",
+      "imageMetadata": {
+        "alt": {
+          "tr": "Antakya Demirkapı'daki su kemeri kalıntıları, 1905",
+          "en": "Aqueduct remains at the Iron Gate in Antioch, 1905",
+          "ar": "بقايا القناة المائية عند بوابة الحديد في أنطاكية، 1905"
+        },
+        "caption": {
+          "tr": "Gertrude Bell'in 1905'te fotoğrafladığı Bab el-Hadid (Demirkapı) su kemeri kalıntıları, Antakya.",
+          "en": "Aqueduct remains at Bab el-Hadid (Iron Gate), Antioch, photographed by Gertrude Bell in 1905.",
+          "ar": "بقايا القناة المائية عند باب الحديد في أنطاكية، صوّرتها غيرترود بيل عام 1905."
+        },
+        "source": "Gertrude Bell archive / Wikimedia Commons",
+        "author": "Gertrude Bell",
+        "license": "Public Domain",
+        "date": "1905",
+        "originalUrl": "https://commons.wikimedia.org/wiki/File:Bab_el_Hadid_Iron_Gate_2.jpg",
+        "accessedAt": "2026-08-11",
+        "rightsNote": "Public-domain source according to the reviewed source record.",
+        "aiGenerated": false
+      },
+      "svgType": "aqueduct",
+      "svgColor": "#1c1814",
+      "svgBg": "#dfd5c4",
+      "category": { "en": "Roman Engineering", "tr": "Roma Mühendisliği", "ar": "الهندسة الرومانية" },
+      "title": { "en": "Iron Gate Mountain Pass Aqueduct", "tr": "Demirkapı Su Kemerleri ve Geçidi", "ar": "قناوات وبوابة الحديد الجبلية" },
+      "caption": { "en": "Roman engineering marvel that controlled torrent waters and provided fresh spring water across Silpius mountain passes.", "tr": "Silpius Dağı geçitlerinde dağ pınarlarını şehre aktaran ve sel sularını denetleyen Roma mühendislik harikası.", "ar": "أعجوبة هندسية رومانية كانت تتحكم في مياه السيول وتوفر مياه الينابيع العذبة عبر ممرات جبل سيلبيوس." }
+    }
+  ]
+}

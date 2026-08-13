@@ -85,7 +85,14 @@ services:
       - MAIL_MODE=${MAIL_MODE:-mock}
       # v2 stays on the safe empty store unless a developer explicitly opts in, e.g.:
       #   V2_DATA_STORE=local docker compose up antiochia-archive-web antiochia-archive-backend
-      # See V2-ARCHITECTURE.md "Local real-data v2 runtime". Never set in production.
+      # See V2-ARCHITECTURE.md "Local real-data v2 runtime" / "Production v2 data path".
+      # `local` is also the strategy Cloud Run production now uses (as of the
+      # canonical v2 archive frontend integration) — there it reads a
+      # committed, drift-checked JSON bundle baked into the image
+      # (backend/data/, see backend/Dockerfile) instead of this bind mount,
+      # via different V2_*_JSON_PATH values set directly in the Cloud Run
+      # deploy command (see V1-RELEASE.md). Compose's default stays `empty`
+      # here only because most local dev work doesn't need v2 data loaded.
       - V2_DATA_STORE=${V2_DATA_STORE:-empty}
       # Only read when V2_DATA_STORE=local; mirrors ARCHIVE_JSON_PATH above so the
       # container's mounted ./data volume (not the image's /app/data, which doesn't

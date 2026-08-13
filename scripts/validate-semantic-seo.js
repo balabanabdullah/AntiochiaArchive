@@ -7,6 +7,7 @@ import {
   recordDetailPath,
   validateReleaseArchive,
 } from "./archive-release.js";
+import { collectPublicV2Entities, v2SitemapUrls } from "./v2-archive-release.js";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const productionOrigin = "https://antiochia-app-6939593871.europe-west1.run.app";
@@ -17,6 +18,8 @@ const publicPages = [
   { file: "pages/stories.html", url: `${productionOrigin}/pages/stories.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/structures.html", url: `${productionOrigin}/pages/structures.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/beliefs.html", url: `${productionOrigin}/pages/beliefs.html`, types: ["CollectionPage", "BreadcrumbList"] },
+  { file: "pages/communities.html", url: `${productionOrigin}/pages/communities.html`, types: ["CollectionPage", "BreadcrumbList"] },
+  { file: "pages/places.html", url: `${productionOrigin}/pages/places.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/music.html", url: `${productionOrigin}/pages/music.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/gallery.html", url: `${productionOrigin}/pages/gallery.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/contributions.html", url: `${productionOrigin}/pages/contributions.html`, types: [] },
@@ -28,6 +31,12 @@ const structuredUrls = new Set(publicPages.filter((page) => page.types.length).m
 const archive = JSON.parse(read("data/archive.json"));
 validateReleaseArchive(archive);
 flattenArchive(archive).forEach(({ record }) => structuredUrls.add(`${productionOrigin}${recordDetailPath(record)}`));
+
+// v2 detail pages are generated entirely at build time (no source HTML file
+// to read here) — computed live via the same merge/suppress/publish pipeline
+// the static generator and the live API both use, never a hardcoded list.
+const v2Entities = await collectPublicV2Entities();
+v2SitemapUrls(v2Entities).forEach((url) => structuredUrls.add(url));
 
 function read(file) {
   return fs.readFileSync(path.join(repositoryRoot, file), "utf8");

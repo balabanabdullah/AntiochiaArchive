@@ -57,6 +57,8 @@
         <a href="/pages/stories.html"    data-i18n="nav.stories">Stories</a>
         <a href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
         <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
+        <a href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
+        <a href="/pages/places.html" data-i18n="nav.places">Places</a>
         <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
       </nav>
@@ -119,6 +121,8 @@
         <a href="/pages/stories.html"    data-i18n="nav.stories">Stories</a>
         <a href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
         <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
+        <a href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
+        <a href="/pages/places.html" data-i18n="nav.places">Places</a>
         <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
         <a href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
@@ -273,15 +277,22 @@
     <!-- -------------------------------------------------------------------
          History Section (#history)
          ------------------------------------------------------------------- -->
-    <section class="section-history" id="history" aria-labelledby="history-heading">
+    <section class="section-history" id="history" aria-labelledby="history-heading" data-homepage-limit="6" data-homepage-entity-type="historicalContext">
       <div class="container">
-        <div class="history-header" data-reveal>
-          <span class="eyebrow" data-i18n="historySection.eyebrow">Chronicle of a City</span>
-          <h2 id="history-heading" data-i18n="historySection.title">Twenty-Five Centuries of Heritage</h2>
-          <p class="history-lead" data-i18n="historySection.body">Founded in 300 BCE along the Orontes River, Antioch grew into one of the ancient Mediterranean's great capitals.</p>
+        <div class="section-header-row">
+          <div class="history-header" data-reveal>
+            <span class="eyebrow" data-i18n="historySection.eyebrow">Chronicle of a City</span>
+            <h2 id="history-heading" data-i18n="historySection.title">Twenty-Five Centuries of Heritage</h2>
+            <p class="history-lead" data-i18n="historySection.body">Founded in 300 BCE along the Orontes River, Antioch grew into one of the ancient Mediterranean's great capitals.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/history.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
         <div class="history-timeline" id="history-timeline-container" aria-live="polite">
-          <!-- dynamically populated from /api/archive -->
+          <!-- dynamically populated from /api/v2/historical-contexts (preview only — full list at /pages/history.html) -->
         </div>
       </div>
     </section>
@@ -289,15 +300,22 @@
     <!-- -------------------------------------------------------------------
          Stories Section (#stories)
          ------------------------------------------------------------------- -->
-    <section class="stories-section" id="stories" aria-labelledby="stories-heading">
+    <section class="stories-section" id="stories" aria-labelledby="stories-heading" data-homepage-limit="6" data-homepage-entity-type="story">
       <div class="container">
-        <div class="stories-header" data-reveal>
-          <span class="eyebrow" data-i18n="storiesSection.eyebrow">Oral Histories</span>
-          <h2 id="stories-heading" data-i18n="storiesSection.title">Voices &amp; Memories of Antioch</h2>
-          <p class="stories-intro" data-i18n="storiesSection.intro">Every neighborhood in Antioch holds memories carried across generations.</p>
+        <div class="section-header-row">
+          <div class="stories-header" data-reveal>
+            <span class="eyebrow" data-i18n="storiesSection.eyebrow">Oral Histories</span>
+            <h2 id="stories-heading" data-i18n="storiesSection.title">Voices &amp; Memories of Antioch</h2>
+            <p class="stories-intro" data-i18n="storiesSection.intro">Every neighborhood in Antioch holds memories carried across generations.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/stories.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
         <div class="stories-grid" id="stories-grid-container" aria-live="polite">
-          <!-- dynamically populated from /api/archive -->
+          <!-- dynamically populated from /api/v2/stories (preview only — full list at /pages/stories.html) -->
         </div>
       </div>
     </section>
@@ -305,15 +323,22 @@
     <!-- -------------------------------------------------------------------
          Structures Section (#structures)
          ------------------------------------------------------------------- -->
-    <section class="section-structures" id="structures" aria-labelledby="structures-heading">
+    <section class="section-structures" id="structures" aria-labelledby="structures-heading" data-homepage-limit="6" data-homepage-entity-type="structure">
       <div class="container">
-        <div class="structures-header" data-reveal>
-          <span class="eyebrow" data-i18n="structuresSection.eyebrow">Architectural Heritage</span>
-          <h2 id="structures-heading" data-i18n="structuresSection.title">Stones of Time &amp; Faith</h2>
-          <p class="structures-lead" data-i18n="structuresSection.body">Discover the historic courtyard houses, ancient places of worship, stone bridges, and narrow streets.</p>
+        <div class="section-header-row">
+          <div class="structures-header" data-reveal>
+            <span class="eyebrow" data-i18n="structuresSection.eyebrow">Architectural Heritage</span>
+            <h2 id="structures-heading" data-i18n="structuresSection.title">Stones of Time &amp; Faith</h2>
+            <p class="structures-lead" data-i18n="structuresSection.body">Discover the historic courtyard houses, ancient places of worship, stone bridges, and narrow streets.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/structures.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
         <div class="structures-grid" id="structures-grid-container" aria-live="polite">
-          <!-- dynamically populated from /api/archive -->
+          <!-- dynamically populated from /api/v2/structures (preview only — full list at /pages/structures.html) -->
         </div>
       </div>
     </section>
@@ -321,15 +346,68 @@
     <!-- -------------------------------------------------------------------
          Beliefs Section (#beliefs)
          ------------------------------------------------------------------- -->
-    <section class="section-beliefs" id="beliefs" aria-labelledby="beliefs-heading">
+    <section class="section-beliefs" id="beliefs" aria-labelledby="beliefs-heading" data-homepage-limit="6" data-homepage-entity-type="belief">
       <div class="container">
-        <div class="beliefs-header" data-reveal>
-          <span class="eyebrow" data-i18n="beliefsSection.eyebrow">Interfaith Heritage</span>
-          <h2 id="beliefs-heading" data-i18n="beliefsSection.title">Shared Sanctuaries &amp; Sacred Calendars</h2>
-          <p class="beliefs-lead" data-i18n="beliefsSection.body">Antioch's spiritual landscape is unique—a city where churches, mosques, and synagogues stand side-by-side.</p>
+        <div class="section-header-row">
+          <div class="beliefs-header" data-reveal>
+            <span class="eyebrow" data-i18n="beliefsSection.eyebrow">Belief Traditions</span>
+            <h2 id="beliefs-heading" data-i18n="beliefsSection.title">Belief Traditions of Antioch</h2>
+            <p class="beliefs-lead" data-i18n="beliefsSection.body">Sunni Islam, the Arab Alawite / Nusayri tradition, Judaism, Greek Orthodox Christianity, and the region's other living belief traditions.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/beliefs.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
         <div class="beliefs-grid" id="beliefs-grid-container" aria-live="polite">
-          <!-- dynamically populated from /api/archive -->
+          <!-- dynamically populated from /api/v2/beliefs (preview only — full list at /pages/beliefs.html) -->
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         Communities Section (#communities)
+         ------------------------------------------------------------------- -->
+    <section class="section-communities" id="communities" aria-labelledby="communities-heading" data-homepage-limit="6" data-homepage-entity-type="community">
+      <div class="container">
+        <div class="section-header-row">
+          <div class="communities-header" data-reveal>
+            <span class="eyebrow" data-i18n="communitiesSection.eyebrow">Cultural Memory</span>
+            <h2 id="communities-heading" data-i18n="communitiesSection.title">Communities of Antioch</h2>
+            <p class="communities-lead" data-i18n="communitiesSection.body">Documented cultural, ethnic, and religious communities of Antakya and Hatay, their language, history, and living identity.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/communities.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div class="communities-grid" id="communities-grid-container" aria-live="polite">
+          <!-- dynamically populated from /api/v2/communities (preview only — full list at /pages/communities.html) -->
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         Places Section (#places)
+         ------------------------------------------------------------------- -->
+    <section class="section-places" id="places" aria-labelledby="places-heading" data-homepage-limit="6" data-homepage-entity-type="place">
+      <div class="container">
+        <div class="section-header-row">
+          <div class="places-header" data-reveal>
+            <span class="eyebrow" data-i18n="placesSection.eyebrow">Geography of Memory</span>
+            <h2 id="places-heading" data-i18n="placesSection.title">Places of Antioch</h2>
+            <p class="places-lead" data-i18n="placesSection.body">Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/places.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div class="places-grid" id="places-grid-container" aria-live="polite">
+          <!-- dynamically populated from /api/v2/places (preview only — full list at /pages/places.html) -->
         </div>
       </div>
     </section>
@@ -337,15 +415,22 @@
     <!-- -------------------------------------------------------------------
          Music Section (#music)
          ------------------------------------------------------------------- -->
-    <section class="section-music" id="music" aria-labelledby="music-heading">
+    <section class="section-music" id="music" aria-labelledby="music-heading" data-homepage-limit="6" data-homepage-entity-type="music">
       <div class="container">
-        <div class="music-header" data-reveal>
-          <span class="eyebrow" data-i18n="musicSection.eyebrow">Musical Traditions</span>
-          <h2 id="music-heading" data-i18n="musicSection.title">Sounds, Melodies &amp; Soundscapes</h2>
-          <p class="music-lead" data-i18n="musicSection.body">The music of Antioch weaves together Levantine maqams, church hymns, local folk songs, and the resonant sounds of the Oud and Ney.</p>
+        <div class="section-header-row">
+          <div class="music-header" data-reveal>
+            <span class="eyebrow" data-i18n="musicSection.eyebrow">Musical Traditions</span>
+            <h2 id="music-heading" data-i18n="musicSection.title">Sounds, Melodies &amp; Soundscapes</h2>
+            <p class="music-lead" data-i18n="musicSection.body">The music of Antioch weaves together Levantine maqams, church hymns, local folk songs, and the resonant sounds of the Oud and Ney.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/music.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span class="section-count-badge" data-homepage-count-badge aria-hidden="true">0</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
         <div class="music-list" id="music-list-container" aria-live="polite">
-          <!-- dynamically populated from /api/archive -->
+          <!-- dynamically populated from /api/v2/music (preview only — full list at /pages/music.html) -->
         </div>
       </div>
     </section>
@@ -470,6 +555,8 @@
             <a href="/pages/stories.html"    data-i18n="nav.stories">Stories</a>
             <a href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
             <a href="/pages/beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
+            <a href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
+            <a href="/pages/places.html" data-i18n="nav.places">Places</a>
             <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
             <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
             <a href="/pages/methodology.html" data-i18n="nav.methodology">Methodology</a>
@@ -518,6 +605,7 @@
   <!-- lang.js is served from /public/lang.js → Vite publicDir / nginx html root -->
   <script src="/lang.js"></script>
   <script src="/archive-api.js"></script>
+  <script src="/archive-v2-api.js"></script>
   <script src="/script.js"></script>
   <script>
     // Set footer year

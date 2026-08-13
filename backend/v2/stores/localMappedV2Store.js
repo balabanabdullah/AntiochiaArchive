@@ -1,32 +1,39 @@
-// LOCAL DEVELOPMENT ONLY: builds the local v2 dataset at startup and serves
-// it from an in-process MemoryV2Store. Three sources are merged:
+// Builds the merged v2 dataset at startup and serves it from an in-process
+// MemoryV2Store. Local dev and Cloud Run production both use this store
+// (selected via V2_DATA_STORE=local) — the only difference between them is
+// *where* the JSON files it reads physically live (a live bind mount
+// locally, a committed bundle baked into the image in production; see
+// "Safety properties" below and V2-ARCHITECTURE.md "Production v2 data
+// path"). It is read-only and in-memory regardless of environment. Three
+// sources are merged:
 //
 //   A. data/archive.json, mapped through the existing validated v1 -> v2
-//      mapper (23 records today).
+//      mapper (23 records).
 //   B. data/v2/entities.json + data/v2/relationships.json, hand-authored
 //      v2-native records validated against the same v2 schemas and checked
 //      for id/slug collisions and relationship referential integrity
-//      against the merged entity set. See ../localData/nativeV2DataSource.js.
+//      against the merged entity set (168 reviewed cultural entities, 81
+//      reviewed relationships as of the canonical v2 promotion — see
+//      ../localData/nativeV2DataSource.js).
 //   C. data/v2/legacyReplacements.json, the reviewed record of which mapped
 //      v1 entities (A) a native entity (B) is confirmed to supersede. A
 //      mapped entity is suppressed from the merged set ONLY when its
 //      replacement is "active" — i.e. the native/canonical entity it names
-//      actually exists in (B) today. Until the canonical entity is promoted,
-//      the mapping is "pending" and the legacy mapped record stays fully
-//      visible — see ../localData/legacyReplacements.js and
+//      actually exists in (B) today. All 7 confirmed replacements are
+//      active as of the canonical v2 promotion. Until a canonical entity is
+//      promoted, its mapping is "pending" and the legacy mapped record stays
+//      fully visible — see ../localData/legacyReplacements.js and
 //      V2-ARCHITECTURE.md "Legacy replacement layer".
 //
 // Safety properties:
 //   - reads data/archive.json, data/v2/entities.json,
-//     data/v2/relationships.json, and data/v2/legacyReplacements.json only;
-//     never writes any of them.
+//     data/v2/relationships.json, and data/v2/legacyReplacements.json only
+//     (or their env-var-overridden paths — see "Config paths" in
+//     V2-ARCHITECTURE.md); never writes any of them.
 //   - never contacts Firestore or Cloud Storage.
 //   - authors zero cultural content itself — the mapper, the native data
 //     source, and the legacy replacement layer only validate/merge/suppress
-//     what is already committed to those files; this step's committed
-//     data/v2/*.json start empty (legacyReplacements.json starts populated
-//     only with already human-reviewed supersession decisions, all pending
-//     until their canonical target is promoted).
+//     what is already committed to those files.
 //   - fails loudly at startup on any invalid mapped/native/replacement
 //     record, any id/slug collision, any orphan/type-mismatched
 //     relationship, or any malformed replacement entry; it never silently
@@ -34,8 +41,11 @@
 //     hides the legacy record it will eventually supersede.
 //
 // Selected via V2_DATA_STORE=local (see ./v2Store.js). The production-safe
-// default remains V2_DATA_STORE=empty; this store is never constructed or
-// read unless an operator explicitly opts in.
+// *default* remains V2_DATA_STORE=empty — this store is never constructed
+// or read unless an operator (or a deploy's env vars) explicitly opts in.
+// Opting in in production requires the JSON files it needs to actually be
+// present in the deployed container; see backend/Dockerfile's
+// `COPY data/ ./data/` and backend/test/v2/dataBundleDrift.test.js.
 
 import fs from "fs/promises";
 import path from "path";

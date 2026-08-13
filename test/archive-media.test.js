@@ -24,21 +24,27 @@ function createRendererContext() {
   return context;
 }
 
-test("record images use localized metadata while held records keep placeholders", () => {
+test("gallery record images use localized metadata (TR/EN/AR) while held records keep placeholders", () => {
+  // Superseded, by Phase 3 of the v2 frontend integration, the old
+  // renderBeliefs-based version of this test: beliefs-grid-container is now
+  // fed by v2 data (renderV2Beliefs), so v1's renderBeliefs has no live
+  // caller left and was removed. renderGallery remains v1-shaped forever
+  // (gallery stays v1-sourced — see V2-ARCHITECTURE.md), and g1 is a real,
+  // still-committed "held" placeholder record (src: null) alongside 5 real
+  // images, so it exercises the exact same localized-metadata /
+  // placeholder-fallback pipeline this test always cared about.
   const context = createRendererContext();
-  context.beliefItems = archive.beliefs;
+  context.galleryItems = archive.gallery;
 
-  const turkish = vm.runInContext('renderBeliefs(beliefItems, "tr")', context);
-  const english = vm.runInContext('renderBeliefs(beliefItems, "en")', context);
-  const arabic = vm.runInContext('renderBeliefs(beliefItems, "ar")', context);
+  const turkish = vm.runInContext('renderGallery(galleryItems, "tr")', context);
+  const english = vm.runInContext('renderGallery(galleryItems, "en")', context);
+  const arabic = vm.runInContext('renderGallery(galleryItems, "ar")', context);
 
-  assert.match(turkish, /class="belief-image"/);
-  assert.match(turkish, /Habib-i Neccar Camii'nin altındaki/);
-  assert.match(english, /Tomb attributed to Habib-i Neccar/);
-  assert.match(arabic, /القبر المنسوب إلى حبيب النجار/);
-  assert.equal((turkish.match(/class="belief-image"/g) || []).length, 3);
-  assert.match(turkish, /🕍/);
-  assert.match(turkish, /Hz\. Hızır Ziyareti/);
+  assert.match(turkish, /class="gallery-img"/);
+  assert.match(turkish, /Antakya Demirkapı'daki su kemeri kalıntıları, 1905/);
+  assert.match(english, /Aqueduct remains at the Iron Gate in Antioch, 1905/);
+  assert.match(arabic, /بقايا القناة المائية عند بوابة الحديد في أنطاكية، 1905/);
+  assert.equal((turkish.match(/class="gallery-img"/g) || []).length, 5);
   assert.doesNotMatch(turkish, /generated with artificial intelligence/);
 });
 

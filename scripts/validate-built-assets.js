@@ -8,6 +8,8 @@ const HTML_ENTRIES = Object.freeze([
   "pages/stories.html",
   "pages/structures.html",
   "pages/beliefs.html",
+  "pages/communities.html",
+  "pages/places.html",
   "pages/music.html",
   "pages/gallery.html",
   "pages/contributions.html",
@@ -16,7 +18,7 @@ const HTML_ENTRIES = Object.freeze([
   "pages/methodology.html",
   "404.html",
 ]);
-const STABLE_RUNTIME_REFERENCES = /(?:src|href)=["']\/(?:(?:script|lang|archive-api|admin-api|admin-archive)\.js|style\.css)["']/g;
+const STABLE_RUNTIME_REFERENCES = /(?:src|href)=["']\/(?:(?:script|lang|archive-api|archive-v2-api|admin-api|admin-archive)\.js|style\.css)["']/g;
 
 async function assertBuiltAssetExists(assetPath, htmlEntry) {
   if (!assetPath.startsWith("/assets/")) {

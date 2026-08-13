@@ -10,9 +10,9 @@
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/generate-detail-pages.js && node scripts/validate-built-assets.js && node scripts/validate-detail-pages.js",
+    "postbuild": "node scripts/generate-sitemap.js && node scripts/generate-detail-pages.js && node scripts/generate-v2-detail-pages.js && node scripts/validate-built-assets.js && node scripts/validate-detail-pages.js && node scripts/validate-v2-detail-pages.js",
     "preview": "vite preview",
-    "test": "node --test test/archive-api.test.js test/admin-archive.test.js test/archive-media.test.js test/archive-release.test.js",
+    "test": "node --test test/archive-api.test.js test/archive-v2-api.test.js test/archive-v2-render.test.js test/admin-archive.test.js test/archive-media.test.js test/archive-release.test.js test/v2-archive-release.test.js",
     "validate:seo": "node scripts/validate-semantic-seo.js",
     "validate:archive-source": "node scripts/validate-archive-source.js"
   },

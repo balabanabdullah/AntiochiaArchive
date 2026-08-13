@@ -53,7 +53,7 @@ configuration:
 ```powershell
 git push origin main
 
-gcloud.cmd run deploy antiochia-archive-backend --source backend --project antiochia-archive --region europe-west1 --platform managed
+gcloud.cmd run deploy antiochia-archive-backend --source backend --project antiochia-archive --region europe-west1 --platform managed --update-env-vars "V2_DATA_STORE=local,ARCHIVE_JSON_PATH=/app/data/archive.json,V2_ENTITIES_JSON_PATH=/app/data/v2/entities.json,V2_RELATIONSHIPS_JSON_PATH=/app/data/v2/relationships.json,V2_LEGACY_REPLACEMENTS_JSON_PATH=/app/data/v2/legacyReplacements.json"
 
 gcloud.cmd run deploy antiochia-app --source . --project antiochia-archive --region europe-west1 --platform managed --port 8080 --allow-unauthenticated --update-env-vars "BACKEND_UPSTREAM=https://antiochia-archive-backend-6939593871.europe-west1.run.app"
 ```
@@ -61,6 +61,15 @@ gcloud.cmd run deploy antiochia-app --source . --project antiochia-archive --reg
 When deploying the backend, first inspect the existing Cloud Run service and
 preserve its service account, Secret Manager bindings, environment variables,
 ingress, and authentication settings. Do not put secret values on a command line.
+Do not change `DATA_STORE` — v1 stays on Firestore.
+
+**Before every backend deploy:** run `npm test` inside `backend/` and confirm
+`backend/test/v2/dataBundleDrift.test.js` passes. `backend/data/*.json` is a
+committed, bundled copy of the canonical `data/*.json` files used by the v2
+local-read-only store in production (see `V2-ARCHITECTURE.md` "Production v2
+data path") — if it has drifted from the canonical files, re-sync it and
+commit that as its own reviewed change before deploying, or production will
+silently serve stale v2 content.
 
 ## Intentional v1.0 limitations
 

@@ -700,6 +700,54 @@ html[dir="rtl"] .hero-card-link:hover .arrow { transform: translateX(-5px); }
 }
 
 /* --------------------------------------------------------------------------
+   6b. Homepage section header row (shared by every homepage preview section:
+   History, Stories, Structures, Beliefs, Communities, Places, Music). Each
+   such section pairs its existing eyebrow/title/lead block with a
+   "View all N →" link to the section's full subpage, live-updated once real
+   API counts are known (see renderHomepageSectionCounts() in script.js).
+   -------------------------------------------------------------------------- */
+.section-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.section-view-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-bottom: var(--sp-2);
+  color: var(--clr-red);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.section-view-all-link:hover,
+.section-view-all-link:focus-visible {
+  color: var(--clr-red-dark);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+html[dir="rtl"] .section-view-all-link { flex-direction: row-reverse; }
+
+.section-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6em;
+  padding: 0.1em 0.5em;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+/* --------------------------------------------------------------------------
    7. History Section (#history)
    -------------------------------------------------------------------------- */
 .section-history {
@@ -1248,6 +1296,122 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 }
 
 /* --------------------------------------------------------------------------
+   11b. Communities Section (#communities) & Places Section (#places)
+   -------------------------------------------------------------------------- */
+.section-communities {
+  padding-block: var(--sp-8);
+  background: var(--clr-paper-deep);
+  border-top: 1px solid var(--clr-line);
+}
+
+.section-places {
+  padding-block: var(--sp-8);
+  background: var(--clr-paper);
+  border-top: 1px solid var(--clr-line);
+}
+
+.communities-header h2,
+.places-header h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 2.6vw, 2.8rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--sp-2);
+}
+
+.communities-lead,
+.places-lead {
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--clr-ink-muted);
+  max-width: 680px;
+}
+
+.communities-header,
+.places-header {
+  margin-bottom: var(--sp-6);
+}
+
+.communities-grid,
+.places-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+
+.community-card,
+.place-card {
+  background: var(--clr-paper);
+  border: 1px solid var(--clr-line-strong);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--dur-mid) var(--ease), border-color var(--dur-mid) var(--ease);
+}
+.community-card:hover,
+.place-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--clr-red);
+}
+
+.community-media,
+.place-media {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: var(--clr-paper-deep);
+}
+
+.community-media > img,
+.community-media > svg,
+.place-media > img,
+.place-media > svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease);
+}
+.community-card:hover .community-media > img,
+.community-card:hover .community-media > svg,
+.place-card:hover .place-media > img,
+.place-card:hover .place-media > svg {
+  transform: scale(1.05);
+}
+
+.community-title,
+.place-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 400;
+  margin: var(--sp-3) var(--sp-3) 0;
+}
+
+.place-official-name {
+  margin: 2px var(--sp-3) 0;
+  font-size: 0.78rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--clr-ink-muted);
+}
+
+.community-desc,
+.place-desc {
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--clr-ink-muted);
+  margin: 6px var(--sp-3) var(--sp-3);
+  flex: 1;
+}
+
+.community-card .archive-detail-link,
+.place-card .archive-detail-link {
+  margin: 0 var(--sp-3) var(--sp-3);
+}
+
+/* --------------------------------------------------------------------------
    12. Contribute Section
    -------------------------------------------------------------------------- */
 .section-contribute {
@@ -1635,6 +1799,8 @@ html[dir="rtl"] .back-to-top {
   .structures-grid,
   .beliefs-grid,
   .music-list,
+  .communities-grid,
+  .places-grid,
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1747,6 +1913,8 @@ html[dir="rtl"] .back-to-top {
   .structures-grid,
   .beliefs-grid,
   .music-list,
+  .communities-grid,
+  .places-grid,
   .gallery-grid {
     grid-template-columns: 1fr;
   }
@@ -2901,6 +3069,56 @@ html[dir="rtl"] .record-provenance {
   margin-top: var(--sp-8);
   padding-top: var(--sp-5);
   border-top: 1px solid var(--clr-line);
+}
+
+/* v2 detail pages: hidden-by-default related-entities section. Populated
+   client-side (see loadAndRenderRelatedEntities() in script.js) since
+   relationships are not yet public at build time — the [hidden] attribute
+   keeps this invisible until real data arrives, never a visible empty
+   heading. */
+.related-entities-section {
+  padding-block: var(--sp-6) var(--sp-8);
+  border-top: 1px solid var(--clr-line);
+}
+
+.related-entities-section h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-weight: 400;
+  margin-bottom: var(--sp-4);
+}
+
+.related-entities-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+
+.related-entity-card {
+  background: var(--clr-paper);
+  border: 1px solid var(--clr-line-strong);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.related-entity-type {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clr-olive);
+}
+
+.related-entity-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+@media (max-width: 800px) {
+  .related-entities-grid { grid-template-columns: 1fr; }
 }
 
 .methodology-content { padding: clamp(3rem, 7vw, 6rem) 0; background: var(--clr-paper); }

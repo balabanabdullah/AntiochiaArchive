@@ -7,6 +7,7 @@ import { readFile } from "node:fs/promises";
 const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "lang.js",
   "archive-api.js",
+  "archive-v2-api.js",
   "script.js",
   "admin-api.js",
   "admin-archive.js",
@@ -99,6 +100,8 @@ export default defineConfig({
         stories:       "pages/stories.html",
         structures:    "pages/structures.html",
         beliefs:       "pages/beliefs.html",
+        communities:   "pages/communities.html",
+        places:        "pages/places.html",
         music:         "pages/music.html",
         admin:         "pages/admin.html",
         gallery:       "pages/gallery.html",

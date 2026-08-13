@@ -1106,6 +1106,51 @@ already uses — all three variables are only ever *read* when
 `V2_DATA_STORE=local` is explicitly set, so they are inert at the default
 `V2_DATA_STORE=empty`.
 
+### Production v2 data path
+
+Cloud Run production has no bind mount — the paragraph above's `docker-compose`
+fix doesn't apply there, and for a long time this meant there was genuinely no
+way to serve v2 data in production at all: `gcloud run deploy
+antiochia-archive-backend --source backend` sends *only* the `backend/`
+directory as the Cloud Build context, so `backend/Dockerfile` has no way to
+`COPY` anything from the repository-root `data/` directory — it's physically
+outside that build's reach. Naively setting `V2_DATA_STORE=local` in Cloud Run
+without solving this would resolve every path to a location that doesn't
+exist in the image and crash-loop the backend at startup.
+
+**Fix: a committed, drift-checked bundle inside `backend/`.** `backend/data/`
+is a checked-in copy of `data/archive.json` and `data/v2/*.json`, kept
+identical to the canonical repository-root files by
+`backend/test/v2/dataBundleDrift.test.js` (structural JSON equality; run as
+part of `npm test` in `backend/`, and required before every backend deploy —
+see `V1-RELEASE.md`). `backend/Dockerfile` has an explicit `COPY data/
+./data/` step (deliberately separate from the blanket `COPY . .`, with its
+own comment, so it survives even if that earlier copy step ever changes).
+The Cloud Run deploy command sets `V2_DATA_STORE=local` plus
+`ARCHIVE_JSON_PATH=/app/data/archive.json`,
+`V2_ENTITIES_JSON_PATH=/app/data/v2/entities.json`,
+`V2_RELATIONSHIPS_JSON_PATH=/app/data/v2/relationships.json`, and
+`V2_LEGACY_REPLACEMENTS_JSON_PATH=/app/data/v2/legacyReplacements.json` —
+the in-image locations `COPY data/ ./data/` produces under `WORKDIR /app`.
+
+This is read-only (`LocalMappedV2Store` never writes anywhere, in any
+environment — see "Safety properties" above), deterministic (every replica
+loads the identical bundled JSON into memory independently at startup, no
+shared mutable state, no coordination needed), restart- and horizontally-safe
+(a new instance or a scale-up event just re-reads the same immutable
+in-image files), and based only on already-reviewed, already-committed JSON
+— nothing new is authored or migrated to make this work. It is also fully
+compatible with a later real Firestore migration for v2: `V2_DATA_STORE` is
+already a one-env-var selector (`empty`/`memory`/`local`/`firestore`), and
+switching it later doesn't require touching this bundling mechanism at all.
+
+**`DATA_STORE` (v1's own store selector, controlling `GET /api/archive`) is
+never touched by any of this** — production v1 remains on
+`DATA_STORE=firestore` exactly as before. `ARCHIVE_JSON_PATH` is set for v2's
+own internal use only (the `LocalMappedV2Store` mapping step needs the raw
+v1 archive to compute the 23-record mapped baseline); v1's own route never
+reads this env var while `DATA_STORE=firestore`.
+
 ### Missing file behavior
 
 `data/v2/entities.json`, `data/v2/relationships.json`, and
@@ -1665,6 +1710,138 @@ observation that individual mosaic artifacts may eventually need a
 dedicated entity type) — each with an explicit recommendation and whether a
 schema change was actually made (no broad schema change was made by this
 step; every case above validates against the existing schemas as-is).
+
+## v2 frontend integration and static detail pages
+
+The public frontend consumes the reviewed v2 archive (105 public entities as
+of the individual publication review) through the public `/api/v2/*`
+endpoints only — never a store or the raw JSON files directly — via a new
+`public/archive-v2-api.js` client (parallel to `public/archive-api.js`,
+`window.AntiochiaArchiveV2API`). This integration is entirely additive: v1's
+`GET /api/archive`, `data/archive.json`, and the existing `/archive/{slug}/`
+static detail pages are untouched.
+
+### Information architecture
+
+Seven primary sections, each with its own page under `pages/`:
+History (`historical-contexts`), Communities (`communities`), Beliefs
+(`beliefs`), Places (`places`), Structures (`structures`), Stories
+(`stories`), Music (`music`). `pages/beliefs.html` and `pages/structures.html`
+kept their v1 URLs but now render `/api/v2/beliefs` and `/api/v2/structures`
+— this is architecturally correct, not just convenient: v1's "beliefs"
+category was always physical sanctuary buildings, which the v1→v2 mapper
+(`v1ToV2Mapping.js`) has always mapped to `entityType: "structure"`, never
+`belief`. Genuine v2 `belief` entities (Sunni Islam, Arab Alawite/Nusayri
+tradition, Judaism, Greek Orthodox Christianity, ...) needed their own real
+home, which is what `pages/beliefs.html` now correctly provides.
+`pages/communities.html` and `pages/places.html` are new. Each page's
+category-filter bar (where one exists — communities/places have none, since
+there is no natural taxonomy in that data yet) is rebuilt client-side from
+the actual distinct `structureType`/`genre`/`storyCategory`/tag values
+present in the loaded dataset, never a hardcoded v1-style button list —
+v2 taxonomy fields are free-text research data, not a fixed enum.
+
+### Rendering: `public/script.js`
+
+Every v2 card renderer (`renderV2History`, `renderV2Communities`,
+`renderV2Beliefs`, `renderV2Places`, `renderV2Structures`, `renderV2Stories`,
+`renderV2Music`) reads fields through `localizedMetadataValue()`'s 4-way
+fallback (`lang → en → tr → ar → fallback`), never the naive
+`field[lang] ?? field.en` pattern v1's renderers use — safe only for v1's
+23 always-fully-populated records, not for v2 records where the public
+serializer may have stripped a per-language sentinel value, legitimately
+leaving a field partially populated.
+
+`resolveRecordMedia(item)` normalizes the two media-metadata shapes the
+frontend renders: v1's flat `item.image`/`item.src` + `item.imageMetadata`,
+and v2's nested `item.media` (`{ path, alt, caption, source, author,
+license, rightsNote, aiGenerated }` — see `publicSerializer.js`'s
+`MEDIA_PREVIEW_HOST_TYPES` summary, which only `historicalContext`/`story`/
+`structure`/`music` entities ever carry). `renderRecordImage()` and
+`imageAltText()` both go through this normalizer, so a v2 entity with real,
+reviewed, rights-cleared media renders that image — not the generic SVG
+placeholder every v2 entity fell back to before this normalizer existed.
+
+The homepage (`index.html`) renders a live truncated preview (6 items) of
+each of the 7 sections plus a live count badge and a "View all N →" link to
+the full subpage — `getHomepagePreviewItems()` slices the fetched dataset
+(honoring an empty-by-default `HOMEPAGE_FEATURED_IDS` curation allowlist per
+type, falling back to first-N in API order), and `renderHomepageSectionCounts()`
+writes the real fetched total into each section's badge. Both are driven by
+a `data-homepage-limit`/`data-homepage-entity-type` attribute pair on the
+homepage's `<section>` wrapper — subpages (`pages/beliefs.html` etc.) don't
+set this attribute and so render every fetched item, uncapped.
+
+### Relationships (`public/script.js`, `loadAndRenderRelatedEntities`)
+
+Since virtually all relationships are `inReview` (not yet public) as of this
+step, the related-entities section on every v2 detail page is genuinely
+live client-side code, not baked into the static build: a static page would
+otherwise freeze at "0 relationships" until the next rebuild. Every detail
+page ships a `<section data-related-entities-section data-entity-id="...">`
+that starts `hidden`. On load, `fetchRelatedEntities(id)` is called once
+(cached in `relatedEntitiesItems` so a language switch re-renders from
+memory instead of re-fetching); an empty result leaves the section `hidden`
+— never a visible-but-empty heading — and a non-empty result renders compact
+cards and un-hides the section. This lights up correctly the moment
+relationships are published, with no redeploy needed.
+
+### Static v2 detail pages (`scripts/v2-archive-release.js`)
+
+Parallel to `scripts/archive-release.js` (v1). `collectPublicV2Entities()`
+runs the exact same merge/suppress pipeline the live backend uses
+(`createLocalMappedV2Store`, reading the canonical repo-root `data/` files)
+and applies the exact same publication-visibility rule
+(`backend/v2/serializers/publicVisibility.js`'s `isPublic`, extracted out of
+`v2Routes.js` so the route layer and this static generator can never drift
+apart) and public-field allowlist (`serializePublicEntity`) the live API
+applies — a static page can never show a field, or an entity, the API
+itself would not serve.
+
+Only the 7 cultural entity types that carry a `slug`
+(historicalContext/community/belief/place/structure/story/music) get a
+static page at `/archive-v2/{slug}/` — a separate namespace from v1's
+`/archive/{slug}/`, collision-proof by construction. `media`/`source`
+entities have no `slug` at all and are never linked to directly; `proverb`
+has zero public records today. As of the individual publication review this
+is 99 static pages (105 public entities minus 6 statusless `media`
+entities, which have no detail page).
+
+`generateV2DetailDocument()` embeds the serialized entity as JSON in a
+`#v2-record-data` script tag; `public/script.js`'s `renderV2DetailPage(lang)`
+(reading it via `readV2DetailPageData()`, distinct from v1's
+`#archive-record-data`/`readDetailPageData()` — the two field shapes must
+never be conflated) re-renders title/summary/the type-specific fact
+(`v2DetailFact`: `period.label` for historicalContext, `structureType`,
+`genre`, `storyCategory`, or `officialName`-if-different-from-title for
+place; nothing extra for community/belief) and media alt/caption on every
+language switch, mirroring v1's `renderDetailPage` pattern.
+
+`scripts/generate-v2-detail-pages.js` is the postbuild runner: it resolves
+the actual content-hashed `lang.js`/`archive-v2-api.js`/`script.js` URLs by
+scanning the already-built `dist/index.html` (same technique
+`generate-detail-pages.js` uses for v1), then writes one
+`dist/archive-v2/{slug}/index.html` per public entity.
+`scripts/validate-v2-detail-pages.js` asserts page count against the
+**live-computed** public count (never hardcoded, since v2's public count
+grows over time unlike v1's frozen 23), plus canonical URLs, single-H1,
+correct parent-collection link, no self-link, media-or-placeholder, sitemap
+coverage, and a sentinel-leak guard.
+
+### Sitemap (`scripts/generate-sitemap.js`)
+
+Replaces the previously-checked-in static `public/sitemap.xml`. Combines
+v1's `sitemapUrls(archive)`, the 2 new v2 category pages
+(`communities.html`, `places.html` — `beliefs.html`/`structures.html` keep
+their existing v1 URLs, already covered), and every public v2 entity's
+detail URL (`v2SitemapUrls`). Runs first in the `postbuild` chain (before
+`generate-detail-pages.js`, which reads `dist/sitemap.xml` back to sanity-
+check its own v1 URL list is present) — `dist/sitemap.xml` no longer exists
+after `vite build` alone now that the static source file is gone.
+`scripts/validate-detail-pages.js`'s sitemap check was relaxed from an exact
+v1-only count match to a "contains every v1 URL" subset check, since the
+combined sitemap is now legitimately larger; `validate-v2-detail-pages.js`
+separately asserts full v2 URL coverage.
 
 ## What is deliberately NOT implemented
 

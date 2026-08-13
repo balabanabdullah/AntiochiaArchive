@@ -1,0 +1,1202 @@
+{
+  "relationships": [
+    {
+      "id": "relationship-0001",
+      "type": "associatedWith",
+      "sourceId": "story-0001",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0046"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0002",
+      "type": "associatedWith",
+      "sourceId": "story-0003",
+      "sourceType": "story",
+      "targetId": "comm-0015",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0037"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0003",
+      "type": "associatedWith",
+      "sourceId": "story-0004",
+      "sourceType": "story",
+      "targetId": "place-0024",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0047"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0004",
+      "type": "associatedWith",
+      "sourceId": "story-0004",
+      "sourceType": "story",
+      "targetId": "comm-0013",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0047"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0005",
+      "type": "associatedWith",
+      "sourceId": "story-0005",
+      "sourceType": "story",
+      "targetId": "comm-0014",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0048"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0006",
+      "type": "associatedWith",
+      "sourceId": "story-0006",
+      "sourceType": "story",
+      "targetId": "place-0003",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0049",
+        "source-0046"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0007",
+      "type": "associatedWith",
+      "sourceId": "story-0007",
+      "sourceType": "story",
+      "targetId": "place-0006",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0052",
+        "source-0046"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0008",
+      "type": "associatedWith",
+      "sourceId": "story-0008",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0046",
+        "source-0023"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0009",
+      "type": "associatedWith",
+      "sourceId": "story-0009",
+      "sourceType": "story",
+      "targetId": "place-0003",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0010",
+      "type": "associatedWith",
+      "sourceId": "story-0010",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0011",
+      "type": "associatedWith",
+      "sourceId": "story-0011",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0012",
+      "type": "associatedWith",
+      "sourceId": "story-0012",
+      "sourceType": "story",
+      "targetId": "place-0007",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0013",
+      "type": "associatedWith",
+      "sourceId": "story-0013",
+      "sourceType": "story",
+      "targetId": "place-0007",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0014",
+      "type": "associatedWith",
+      "sourceId": "story-0014",
+      "sourceType": "story",
+      "targetId": "place-0010",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0015",
+      "type": "associatedWith",
+      "sourceId": "story-0015",
+      "sourceType": "story",
+      "targetId": "place-0011",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0016",
+      "type": "associatedWith",
+      "sourceId": "story-0015",
+      "sourceType": "story",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0017",
+      "type": "associatedWith",
+      "sourceId": "story-0015",
+      "sourceType": "story",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0018",
+      "type": "associatedWith",
+      "sourceId": "story-0019",
+      "sourceType": "story",
+      "targetId": "place-0006",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0019",
+      "type": "associatedWith",
+      "sourceId": "story-0020",
+      "sourceType": "story",
+      "targetId": "place-0006",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0020",
+      "type": "associatedWith",
+      "sourceId": "story-0022",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0021",
+      "type": "associatedWith",
+      "sourceId": "story-0023",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0022",
+      "type": "associatedWith",
+      "sourceId": "story-0023",
+      "sourceType": "story",
+      "targetId": "place-0025",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0023",
+      "type": "associatedWith",
+      "sourceId": "story-0025",
+      "sourceType": "story",
+      "targetId": "place-0014",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0024",
+      "type": "associatedWith",
+      "sourceId": "story-0025",
+      "sourceType": "story",
+      "targetId": "place-0015",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0025",
+      "type": "associatedWith",
+      "sourceId": "story-0025",
+      "sourceType": "story",
+      "targetId": "comm-0005",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0026",
+      "type": "associatedWith",
+      "sourceId": "story-0026",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0027",
+      "type": "associatedWith",
+      "sourceId": "story-0026",
+      "sourceType": "story",
+      "targetId": "comm-0006",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0028",
+      "type": "associatedWith",
+      "sourceId": "story-0027",
+      "sourceType": "story",
+      "targetId": "comm-0004",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0029",
+      "type": "associatedWith",
+      "sourceId": "story-0028",
+      "sourceType": "story",
+      "targetId": "place-0011",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0030",
+      "type": "associatedWith",
+      "sourceId": "story-0028",
+      "sourceType": "story",
+      "targetId": "place-0009",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0031",
+      "type": "associatedWith",
+      "sourceId": "story-0028",
+      "sourceType": "story",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0032",
+      "type": "associatedWith",
+      "sourceId": "story-0029",
+      "sourceType": "story",
+      "targetId": "place-0022",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0033",
+      "type": "associatedWith",
+      "sourceId": "story-0029",
+      "sourceType": "story",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0034",
+      "type": "associatedWith",
+      "sourceId": "story-0030",
+      "sourceType": "story",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0035",
+      "type": "associatedWith",
+      "sourceId": "story-0031",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0036",
+      "type": "associatedWith",
+      "sourceId": "story-0034",
+      "sourceType": "story",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0037",
+      "type": "associatedWith",
+      "sourceId": "story-0034",
+      "sourceType": "story",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0038",
+      "type": "associatedWith",
+      "sourceId": "story-0034",
+      "sourceType": "story",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0039",
+      "type": "associatedWith",
+      "sourceId": "story-0034",
+      "sourceType": "story",
+      "targetId": "comm-0004",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0040",
+      "type": "associatedWith",
+      "sourceId": "story-0035",
+      "sourceType": "story",
+      "targetId": "place-0014",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0041",
+      "type": "associatedWith",
+      "sourceId": "story-0035",
+      "sourceType": "story",
+      "targetId": "comm-0005",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0042",
+      "type": "associatedWith",
+      "sourceId": "story-0038",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0043",
+      "type": "associatedWith",
+      "sourceId": "story-0042",
+      "sourceType": "story",
+      "targetId": "place-0011",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0044",
+      "type": "associatedWith",
+      "sourceId": "story-0042",
+      "sourceType": "story",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0045",
+      "type": "associatedWith",
+      "sourceId": "story-0042",
+      "sourceType": "story",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0046",
+      "type": "associatedWith",
+      "sourceId": "story-0043",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0047",
+      "type": "associatedWith",
+      "sourceId": "story-0044",
+      "sourceType": "story",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0048",
+      "type": "associatedWith",
+      "sourceId": "story-0045",
+      "sourceType": "story",
+      "targetId": "comm-0012",
+      "targetType": "community",
+      "status": "inReview",
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0049",
+      "type": "associatedWith",
+      "sourceId": "music-0001",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0030"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0050",
+      "type": "associatedWith",
+      "sourceId": "music-0002",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0051",
+      "type": "associatedWith",
+      "sourceId": "music-0002",
+      "sourceType": "music",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0052",
+      "type": "associatedWith",
+      "sourceId": "music-0002",
+      "sourceType": "music",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0053",
+      "type": "associatedWith",
+      "sourceId": "music-0003",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0054",
+      "type": "associatedWith",
+      "sourceId": "music-0003",
+      "sourceType": "music",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0055",
+      "type": "associatedWith",
+      "sourceId": "music-0003",
+      "sourceType": "music",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0056",
+      "type": "associatedWith",
+      "sourceId": "music-0005",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0031"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0057",
+      "type": "associatedWith",
+      "sourceId": "music-0006",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0058",
+      "type": "associatedWith",
+      "sourceId": "music-0006",
+      "sourceType": "music",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0059",
+      "type": "associatedWith",
+      "sourceId": "music-0006",
+      "sourceType": "music",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0060",
+      "type": "associatedWith",
+      "sourceId": "music-0006",
+      "sourceType": "music",
+      "targetId": "comm-0004",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0061",
+      "type": "associatedWith",
+      "sourceId": "music-0006",
+      "sourceType": "music",
+      "targetId": "comm-0012",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0062",
+      "type": "associatedWith",
+      "sourceId": "music-0007",
+      "sourceType": "music",
+      "targetId": "comm-0012",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0063",
+      "type": "associatedWith",
+      "sourceId": "music-0007",
+      "sourceType": "music",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0064",
+      "type": "associatedWith",
+      "sourceId": "music-0008",
+      "sourceType": "music",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0033"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0065",
+      "type": "associatedWith",
+      "sourceId": "music-0008",
+      "sourceType": "music",
+      "targetId": "comm-0007",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0033"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0066",
+      "type": "associatedWith",
+      "sourceId": "music-0008",
+      "sourceType": "music",
+      "targetId": "place-0001",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0033"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0067",
+      "type": "associatedWith",
+      "sourceId": "music-0009",
+      "sourceType": "music",
+      "targetId": "comm-0004",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0034"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0068",
+      "type": "associatedWith",
+      "sourceId": "music-0009",
+      "sourceType": "music",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0034"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0069",
+      "type": "associatedWith",
+      "sourceId": "music-0010",
+      "sourceType": "music",
+      "targetId": "comm-0005",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0035"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0070",
+      "type": "associatedWith",
+      "sourceId": "music-0010",
+      "sourceType": "music",
+      "targetId": "place-0014",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0035"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0071",
+      "type": "associatedWith",
+      "sourceId": "music-0010",
+      "sourceType": "music",
+      "targetId": "place-0015",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0035"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0072",
+      "type": "associatedWith",
+      "sourceId": "music-0011",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0060",
+        "source-0008"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0073",
+      "type": "associatedWith",
+      "sourceId": "music-0011",
+      "sourceType": "music",
+      "targetId": "place-0011",
+      "targetType": "place",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0060",
+        "source-0008"
+      ],
+      "note": "Explicit place association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0074",
+      "type": "associatedWith",
+      "sourceId": "music-0012",
+      "sourceType": "music",
+      "targetId": "comm-0014",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0048"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0075",
+      "type": "associatedWith",
+      "sourceId": "music-0014",
+      "sourceType": "music",
+      "targetId": "comm-0015",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0037"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "relationship-0076",
+      "type": "associatedWith",
+      "sourceId": "music-0015",
+      "sourceType": "music",
+      "targetId": "comm-0001",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0058",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0077",
+      "type": "associatedWith",
+      "sourceId": "music-0015",
+      "sourceType": "music",
+      "targetId": "comm-0002",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0058",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0078",
+      "type": "associatedWith",
+      "sourceId": "music-0015",
+      "sourceType": "music",
+      "targetId": "comm-0003",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0058",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0079",
+      "type": "associatedWith",
+      "sourceId": "music-0015",
+      "sourceType": "music",
+      "targetId": "comm-0004",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0058",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0080",
+      "type": "associatedWith",
+      "sourceId": "music-0015",
+      "sourceType": "music",
+      "targetId": "comm-0005",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0058",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "relationship-0081",
+      "type": "associatedWith",
+      "sourceId": "music-0015",
+      "sourceType": "music",
+      "targetId": "comm-0012",
+      "targetType": "community",
+      "status": "inReview",
+      "evidenceSourceIds": [
+        "source-0036",
+        "source-0058",
+        "source-0059"
+      ],
+      "note": "Explicit community association preserved from PART 3.",
+      "researchExtensions": {
+        "confidence": "medium"
+      }
+    }
+  ]
+}

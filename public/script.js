@@ -6,8 +6,12 @@
 
 /* Cached archive data (loaded once) */
 let archiveData = null;
+/* Cached v2 archive data (loaded once), keyed by entityType: historicalContext/
+   community/belief/place/structure/story/music. See V2_SECTION_RENDERERS. */
+let archiveDataV2 = null;
 let archiveLoadState = "idle";
 let detailPageData = null;
+let v2DetailPageData = null;
 
 /* ==========================================================================
    State
@@ -130,6 +134,8 @@ function applyLanguage(lang) {
   // 9. Re-render cached archive data (or its current error state) in the new language
   renderArchiveSections(lang);
   renderDetailPage(lang);
+  renderV2DetailPage(lang);
+  if (relatedEntitiesItems !== null) renderRelatedEntities(relatedEntitiesItems, lang);
   if (archiveLoadState === "error") renderArchiveErrorState(lang);
   if (typeof window.updateContributionsLang === "function") {
     window.updateContributionsLang();
@@ -374,8 +380,27 @@ function localizedMetadataValue(value, lang, fallback = "") {
   return value[lang] ?? value.en ?? value.tr ?? value.ar ?? fallback;
 }
 
+/**
+ * Normalizes the two media-metadata shapes this app renders: v1's flat
+ * item.image/item.src + item.imageMetadata, and v2's nested item.media (see
+ * backend/v2/serializers/publicSerializer.js's MEDIA_PREVIEW_HOST_TYPES
+ * summary — historicalContext/story/structure/music entities only). Returns
+ * null when the item has no real, non-placeholder media, so callers fall
+ * back to the SVG placeholder rather than rendering a broken <img>.
+ */
+function resolveRecordMedia(item) {
+  if (item.media && typeof item.media === "object" && item.media.path) {
+    return { url: item.media.path, metadata: item.media };
+  }
+  if (item.image || item.src) {
+    return { url: item.image || item.src, metadata: item.imageMetadata || {} };
+  }
+  return null;
+}
+
 function imageAltText(item, lang, title) {
-  return localizedMetadataValue(item.imageMetadata?.alt, lang, title || "");
+  const media = resolveRecordMedia(item);
+  return localizedMetadataValue(media?.metadata?.alt, lang, title || "");
 }
 
 function archiveDetailHref(item) {
@@ -414,120 +439,319 @@ function renderAiImageLabel(metadata, lang) {
 }
 
 function renderRecordImage(item, lang, title, className) {
-  const mediaUrl = safeHttpUrl(item.image || item.src);
+  const media = resolveRecordMedia(item);
+  const mediaUrl = media && safeHttpUrl(media.url);
   if (!mediaUrl) return null;
   const alt = imageAltText(item, lang, title);
   return `
     <figure class="archive-media-figure" data-fallback-type="${escapeHtml(item.svgType || "circles")}" data-fallback-color="${escapeHtml(item.svgColor || "#903628")}" data-fallback-bg="${escapeHtml(item.svgBg || "#ded4c0")}">
       <img class="${escapeHtml(className)}" src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(alt)}" loading="lazy" data-archive-image>
-      ${renderAiImageLabel(item.imageMetadata, lang)}
+      ${renderAiImageLabel(media.metadata, lang)}
     </figure>`;
 }
 
-function renderHistory(items, lang) {
+/* ==========================================================================
+   V2 Archive Renderers
+   ==========================================================================
+   v1's renderHistory/renderStories/renderStructures/renderBeliefs/renderMusic
+   read v1 field names (title/era/body/desc/tag/categoryKey/svgType) directly
+   with a naive `field[lang] ?? field.en` fallback — safe only because v1's
+   23 hand-authored records always populate all 3 languages. v2 records are
+   not guaranteed to: the public serializer strips per-language sentinel
+   placeholder values (see backend/v2/serializers/publicSerializer.js), so a
+   language can legitimately be missing. Every v2 field below goes through
+   localizedMetadataValue()'s 4-way fallback (lang -> en -> tr -> ar ->
+   fallback) instead, and never renders a missing optional field as literal
+   text. See V2-ARCHITECTURE.md "Cultural entity publication review".
+   ========================================================================== */
+
+// v2 entities never carry a curated svgType/svgColor/svgBg (that was always
+// a v1-only cosmetic field) — every non-imaged v2 entity of a given type
+// gets the same deliberately-chosen placeholder illustration instead of
+// buildSvg()'s generic "circles" fallback.
+const V2_DEFAULT_SVG_TYPE = Object.freeze({
+  historicalContext: "columns",
+  community: "circles",
+  belief: "arch",
+  place: "wheel",
+  structure: "arches",
+  story: "house",
+  music: "table",
+});
+
+// Curated homepage preview allowlist, per entity type. Empty until an editor
+// hand-picks representative entities (a future backend `featured` field is
+// the long-term home for this); until then every homepage section falls
+// back to the first N entities in API order, which is deterministic and
+// safe to ship today. See getHomepagePreviewItems() below.
+const HOMEPAGE_FEATURED_IDS = Object.freeze({
+  historicalContext: [],
+  community: [],
+  belief: [],
+  place: [],
+  structure: [],
+  story: [],
+  music: [],
+});
+
+/** Truncate a v2 list to the homepage preview size, honoring curated IDs first. */
+function getHomepagePreviewItems(entityType, items, limit) {
+  const featuredIds = HOMEPAGE_FEATURED_IDS[entityType] || [];
+  if (!featuredIds.length) return items.slice(0, limit);
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const featured = featuredIds.map((id) => byId.get(id)).filter(Boolean);
+  if (featured.length >= limit) return featured.slice(0, limit);
+  const featuredIdSet = new Set(featured.map((item) => item.id));
+  const remaining = items.filter((item) => !featuredIdSet.has(item.id));
+  return featured.concat(remaining).slice(0, limit);
+}
+
+function archiveV2DetailHref(item) {
+  // Separate namespace from v1's /archive/{slug}/ — collision-proof by
+  // construction as v2's slug set grows, no runtime uniqueness check needed.
+  // See V2-ARCHITECTURE.md "Static v2 detail pages".
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(item?.slug || ""))
+    ? `/archive-v2/${item.slug}/`
+    : null;
+}
+
+function renderArchiveV2DetailLink(item, lang) {
+  const href = archiveV2DetailHref(item);
+  if (!href) return "";
+  const label = resolveKey(lang, "actions.viewRecord") || "View record";
+  return `<a class="archive-detail-link" href="${escapeHtml(href)}"><span>${escapeHtml(label)}</span><span aria-hidden="true">→</span></a>`;
+}
+
+/** Category used for data-category / filter-bar matching, per entity type. */
+function v2CardCategory(entityType, item) {
+  if (entityType === "structure") return item.structureType || "all";
+  if (entityType === "music") return item.genre || "all";
+  const tags = Array.isArray(item.tags) ? item.tags : [];
+  if (entityType === "story") return item.storyCategory || tags[0] || "all";
+  return tags[0] || "all";
+}
+
+function v2SearchText(item, ...extra) {
+  return multilingualSearchText(item.title, item.summary, item.tags || [], ...extra);
+}
+
+function renderV2History(items, lang) {
   return items.map((item) => {
-    const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
-    const title = item.title[lang] ?? item.title.en;
-    const era = item.era[lang] ?? item.era.en;
-    const body = item.body[lang] ?? item.body.en;
-    const cat = item.categoryKey || "all";
-    const searchStr = multilingualSearchText(item.title, item.era, item.body);
+    const svg = buildSvg(V2_DEFAULT_SVG_TYPE.historicalContext);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const era = localizedMetadataValue(item.period?.label, lang, "");
+    const body = localizedMetadataValue(item.summary, lang, "");
+    const cat = v2CardCategory("historicalContext", item);
+    const searchStr = v2SearchText(item, era);
     const mediaHtml = renderRecordImage(item, lang, title, "timeline-image") || svg;
     return `
       <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
-        <span class="timeline-era">${escapeHtml(era)}</span>
+        ${era ? `<span class="timeline-era">${escapeHtml(era)}</span>` : ""}
         <div class="timeline-visual"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
         <h3 class="timeline-title">${escapeHtml(title)}</h3>
         <p class="timeline-desc">${escapeHtml(body)}</p>
-        ${renderArchiveDetailLink(item, lang)}
+        ${renderArchiveV2DetailLink(item, lang)}
       </article>`;
   }).join("");
 }
 
-function renderStories(items, lang) {
+function renderV2Stories(items, lang) {
   return items.map((item) => {
-    const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
-    const title = item.title[lang] ?? item.title.en;
-    const tag = item.tag[lang] ?? item.tag.en;
-    const body = item.body[lang] ?? item.body.en;
-    const cat = item.categoryKey || "all";
-    const searchStr = multilingualSearchText(item.title, item.tag, item.body);
+    const svg = buildSvg(V2_DEFAULT_SVG_TYPE.story);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const tag = item.storyCategory || (Array.isArray(item.tags) ? item.tags[0] : "") || "";
+    const body = localizedMetadataValue(item.summary, lang, "");
+    const cat = v2CardCategory("story", item);
+    const searchStr = v2SearchText(item, tag);
     const realImage = renderRecordImage(item, lang, title, "story-image");
     return `
-      <article class="story-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" aria-label="Story: ${escapeHtml(title)}">
+      <article class="story-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" aria-label="${escapeHtml(title)}">
         <div class="story-image-wrap">
           ${realImage || `<svg class="story-image" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`}
-          <span class="story-tag">${escapeHtml(tag)}</span>
+          ${tag ? `<span class="story-tag">${escapeHtml(tag)}</span>` : ""}
         </div>
         <div class="story-content">
           <h3 class="story-title">${escapeHtml(title)}</h3>
           <p class="story-body">${escapeHtml(body)}</p>
-          ${renderArchiveDetailLink(item, lang)}
+          ${renderArchiveV2DetailLink(item, lang)}
         </div>
       </article>`;
   }).join("");
 }
 
-function renderStructures(items, lang) {
+function renderV2Structures(items, lang) {
   return items.map((item) => {
-    const svg = buildSvg(item.svgType, item.svgColor, item.svgBg);
-    const title = item.title[lang] ?? item.title.en;
-    const tag = item.tag[lang] ?? item.tag.en;
-    const desc = item.desc[lang] ?? item.desc.en;
-    const cat = item.categoryKey || "all";
-    const searchStr = multilingualSearchText(item.title, item.tag, item.desc);
+    const svg = buildSvg(V2_DEFAULT_SVG_TYPE.structure);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const tag = item.structureType || "";
+    const desc = localizedMetadataValue(item.summary, lang, "");
+    const cat = v2CardCategory("structure", item);
+    const searchStr = v2SearchText(item, tag);
     const realImage = renderRecordImage(item, lang, title, "struct-image");
     return `
     <article class="struct-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
         <div class="struct-media">
           ${realImage || `<svg class="struct-svg" viewBox="0 0 360 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "")}</svg>`}
-          <span class="struct-tag">${escapeHtml(tag)}</span>
+          ${tag ? `<span class="struct-tag">${escapeHtml(tag)}</span>` : ""}
         </div>
         <div class="struct-info">
           <h3 class="struct-title">${escapeHtml(title)}</h3>
           <p class="struct-desc">${escapeHtml(desc)}</p>
-          ${renderArchiveDetailLink(item, lang)}
+          ${renderArchiveV2DetailLink(item, lang)}
         </div>
       </article>`;
   }).join("");
 }
 
-function renderBeliefs(items, lang) {
+function renderV2Beliefs(items, lang) {
   return items.map((item) => {
-    const title = item.title[lang] ?? item.title.en;
-    const desc = item.desc[lang] ?? item.desc.en;
-    const cat = item.categoryKey || "all";
-    const searchStr = multilingualSearchText(item.title, item.desc);
-    const realImage = renderRecordImage(item, lang, title, "belief-image");
+    const svg = buildSvg(V2_DEFAULT_SVG_TYPE.belief);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const desc = localizedMetadataValue(item.summary, lang, "");
+    const cat = v2CardCategory("belief", item);
+    const searchStr = v2SearchText(item);
+    // v1's belief-site records carried a curated icon emoji (🕌/⛪/🕍/🕯️); v2
+    // belief-tradition entities carry no such field, so every belief card
+    // now uses the same media/SVG-placeholder pattern as the other types
+    // rather than an icon that would have to be invented per record.
+    const mediaHtml = renderRecordImage(item, lang, title, "belief-image") || svg;
     return `
     <article class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
-      ${realImage ? `<div class="belief-media">${realImage}</div>` : ""}
-      <div class="belief-icon" aria-hidden="true">${escapeHtml(item.icon)}</div>
+      <div class="belief-media"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
       <h3 class="belief-title">${escapeHtml(title)}</h3>
       <p class="belief-desc">${escapeHtml(desc)}</p>
-      ${renderArchiveDetailLink(item, lang)}
+      ${renderArchiveV2DetailLink(item, lang)}
     </article>`;
   }).join("");
 }
 
-function renderMusic(items, lang) {
+function renderV2Music(items, lang) {
   return items.map((item) => {
-    const title = item.title[lang] ?? item.title.en;
-    const tag = item.tag[lang] ?? item.tag.en;
-    const desc = item.desc[lang] ?? item.desc.en;
-    const cat = item.categoryKey || "all";
-    const searchStr = multilingualSearchText(item.title, item.tag, item.desc);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const tag = item.genre || "";
+    const desc = localizedMetadataValue(item.summary, lang, "");
+    const cat = v2CardCategory("music", item);
+    const searchStr = v2SearchText(item, tag);
     return `
     <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
-      <div class="track-badge" aria-hidden="true">${escapeHtml(item.badge)}</div>
+      <div class="track-badge" aria-hidden="true">🎵</div>
       <div class="track-info">
-        <span class="track-tag">${escapeHtml(tag)}</span>
+        ${tag ? `<span class="track-tag">${escapeHtml(tag)}</span>` : ""}
         <h3 class="track-title">${escapeHtml(title)}</h3>
         <p class="track-desc">${escapeHtml(desc)}</p>
-        ${renderArchiveDetailLink(item, lang)}
+        ${renderArchiveV2DetailLink(item, lang)}
       </div>
     </article>`;
   }).join("");
+}
+
+function renderV2Communities(items, lang) {
+  return items.map((item) => {
+    const svg = buildSvg(V2_DEFAULT_SVG_TYPE.community);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const desc = localizedMetadataValue(item.summary, lang, "");
+    const cat = v2CardCategory("community", item);
+    const searchStr = v2SearchText(item);
+    const mediaHtml = renderRecordImage(item, lang, title, "community-image") || svg;
+    return `
+    <article class="community-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+      <div class="community-media"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
+      <h3 class="community-title">${escapeHtml(title)}</h3>
+      <p class="community-desc">${escapeHtml(desc)}</p>
+      ${renderArchiveV2DetailLink(item, lang)}
+    </article>`;
+  }).join("");
+}
+
+function renderV2Places(items, lang) {
+  return items.map((item) => {
+    const svg = buildSvg(V2_DEFAULT_SVG_TYPE.place);
+    const title = localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const desc = localizedMetadataValue(item.summary, lang, "");
+    const officialName = localizedMetadataValue(item.officialName, lang, "");
+    const cat = v2CardCategory("place", item);
+    const searchStr = v2SearchText(item, officialName);
+    const mediaHtml = renderRecordImage(item, lang, title, "place-image") || svg;
+    return `
+    <article class="place-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+      <div class="place-media"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
+      <h3 class="place-title">${escapeHtml(title)}</h3>
+      ${officialName && officialName !== title ? `<p class="place-official-name">${escapeHtml(officialName)}</p>` : ""}
+      <p class="place-desc">${escapeHtml(desc)}</p>
+      ${renderArchiveV2DetailLink(item, lang)}
+    </article>`;
+  }).join("");
+}
+
+// Maps entityType -> the nav.* i18n key used for that type's label, for the
+// compact related-entity card badge. historicalContext/story/music etc. all
+// use plural subpage nav labels already defined in lang.js.
+const V2_ENTITY_TYPE_NAV_KEY = Object.freeze({
+  historicalContext: "history",
+  community: "communities",
+  belief: "beliefs",
+  place: "places",
+  structure: "structures",
+  story: "stories",
+  music: "music",
+});
+
+function relatedEntityCompactCard(entity, lang) {
+  const title = localizedMetadataValue(entity.title, lang, entity.slug || entity.id);
+  const typeKey = V2_ENTITY_TYPE_NAV_KEY[entity.entityType];
+  const typeLabel = (typeKey && resolveKey(lang, `nav.${typeKey}`)) || entity.entityType || "";
+  return `
+    <article class="related-entity-card">
+      ${typeLabel ? `<span class="related-entity-type">${escapeHtml(typeLabel)}</span>` : ""}
+      <h3 class="related-entity-title">${escapeHtml(title)}</h3>
+      ${renderArchiveV2DetailLink(entity, lang)}
+    </article>`;
+}
+
+// Raw { relationship, entity } pairs from the last successful fetch, cached
+// so a language switch re-renders instantly from memory instead of
+// re-fetching. null = not yet loaded; [] = loaded and genuinely empty.
+let relatedEntitiesItems = null;
+
+/**
+ * Renders (or hides) the related-entities section from already-fetched data.
+ * Never shows a visible-but-empty heading: an empty/missing result keeps the
+ * section `hidden` rather than rendering a zero-item grid, since virtually
+ * all relationships are still `inReview` today (see V2-ARCHITECTURE.md
+ * "Public relationship gating") and this section must degrade cleanly.
+ */
+function renderRelatedEntities(items, lang) {
+  const section = document.querySelector("[data-related-entities-section]");
+  const container = document.getElementById("related-entities-container");
+  if (!section || !container) return;
+
+  const publicItems = (items || []).filter((item) => item && item.entity);
+  if (!publicItems.length) {
+    section.hidden = true;
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = publicItems.map(({ entity }) => relatedEntityCompactCard(entity, lang)).join("");
+  section.hidden = false;
+}
+
+/** Fetches (once, then cached) and renders the related-entities section, if present on this page. */
+async function loadAndRenderRelatedEntities(lang) {
+  const section = document.querySelector("[data-related-entities-section]");
+  if (!section) return;
+  const entityId = section.getAttribute("data-entity-id");
+  if (!entityId || !window.AntiochiaArchiveV2API) return;
+
+  if (relatedEntitiesItems === null) {
+    try {
+      relatedEntitiesItems = await window.AntiochiaArchiveV2API.fetchRelatedEntities(entityId);
+    } catch (error) {
+      console.error("[AntiochiaArchive] Related entities could not be loaded:", error);
+      relatedEntitiesItems = [];
+    }
+  }
+  renderRelatedEntities(relatedEntitiesItems, lang);
 }
 
 function renderGallery(items, lang) {
@@ -566,31 +790,75 @@ function renderGallery(items, lang) {
   }).join("");
 }
 
-const ARCHIVE_SECTION_RENDERERS = Object.freeze([
-  { id: "history-timeline-container", fn: renderHistory, key: "history" },
-  { id: "stories-grid-container", fn: renderStories, key: "stories" },
-  { id: "structures-grid-container", fn: renderStructures, key: "structures" },
-  { id: "beliefs-grid-container", fn: renderBeliefs, key: "beliefs" },
-  { id: "music-list-container", fn: renderMusic, key: "music" },
+// v1 /api/archive still backs gallery only — no v2 media entity is
+// promoted yet (see V2-ARCHITECTURE.md "Source/media deferred promotion"),
+// so gallery has nothing to gain from v2 and stays exactly as it always was.
+const V1_SECTION_RENDERERS = Object.freeze([
   { id: "gallery-grid-container", fn: renderGallery, key: "gallery" },
 ]);
 
+// The 7 v2 cultural-entity types. `typeRoute` matches
+// backend/v2/routes/v2Routes.js's TYPE_ROUTES keys exactly (also mirrored in
+// public/archive-v2-api.js's V2_TYPE_ROUTES). `key` is the property name
+// used in the local archiveDataV2 cache. Container ids for history/stories/
+// structures/beliefs/music are the SAME ids the old v1-only sections used —
+// only their data source changes; communities/places are net-new containers.
+const V2_SECTION_RENDERERS = Object.freeze([
+  { id: "history-timeline-container", fn: renderV2History, key: "historicalContext", typeRoute: "historical-contexts" },
+  { id: "communities-grid-container", fn: renderV2Communities, key: "community", typeRoute: "communities" },
+  { id: "beliefs-grid-container", fn: renderV2Beliefs, key: "belief", typeRoute: "beliefs" },
+  { id: "places-grid-container", fn: renderV2Places, key: "place", typeRoute: "places" },
+  { id: "structures-grid-container", fn: renderV2Structures, key: "structure", typeRoute: "structures" },
+  { id: "stories-grid-container", fn: renderV2Stories, key: "story", typeRoute: "stories" },
+  { id: "music-list-container", fn: renderV2Music, key: "music", typeRoute: "music" },
+]);
+
+// Every card class across both v1 and v2 sections — defined once and reused
+// by both the "mark newly rendered cards is-visible" step below and
+// applyCombinedFilters(), so the two can never drift out of sync with each
+// other again (they used to be two separately hardcoded copies).
+const ALL_CARD_SELECTORS = ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card, .gallery-card, .community-card, .place-card";
+
+function getV1SectionRenderers() {
+  return V1_SECTION_RENDERERS.filter(({ id }) => document.getElementById(id));
+}
+
+function getV2SectionRenderers() {
+  return V2_SECTION_RENDERERS.filter(({ id }) => document.getElementById(id));
+}
+
+/** Backward-compatible alias: every container (v1 + v2) present on this page. */
 function getArchiveSectionRenderers() {
-  return ARCHIVE_SECTION_RENDERERS.filter(({ id }) => document.getElementById(id));
+  return [...getV1SectionRenderers(), ...getV2SectionRenderers()];
 }
 
 /** Inject cached archive content into every container present on the current page. */
 function renderArchiveSections(lang) {
-  if (!archiveData) return;
+  if (archiveData) {
+    getV1SectionRenderers().forEach(({ id, fn, key }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = fn(archiveData[key], lang);
+    });
+  }
 
-  getArchiveSectionRenderers().forEach(({ id, fn, key }) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = fn(archiveData[key], lang);
-  });
+  if (archiveDataV2) {
+    getV2SectionRenderers().forEach(({ id, fn, key }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const allItems = archiveDataV2[key] || [];
+      const previewSection = el.closest("[data-homepage-limit]");
+      const items = previewSection
+        ? getHomepagePreviewItems(key, allItems, Number(previewSection.getAttribute("data-homepage-limit")) || allItems.length)
+        : allItems;
+      el.innerHTML = fn(items, lang);
+    });
+  }
+
+  if (!archiveData && !archiveDataV2) return;
 
   // Ensure rendered cards receive is-visible class immediately
-  document.querySelectorAll(".struct-card, .timeline-card, .story-card, .belief-card, .music-track-card, .gallery-card").forEach((card) => {
+  document.querySelectorAll(ALL_CARD_SELECTORS).forEach((card) => {
     card.classList.add("is-visible");
   });
 
@@ -602,7 +870,64 @@ function renderArchiveSections(lang) {
   initStoryButtons();
   initGalleryClickHandlers();
   initArchiveImageFallbacks();
+  renderDynamicFilterBars(lang);
   applyCombinedFilters();
+  renderHomepageSectionCounts();
+}
+
+/**
+ * Update each homepage preview section's live count badge and "View all N"
+ * link with the real fetched total for its entity type — never a hardcoded
+ * number, since the public v2 dataset grows over time. A no-op on subpages
+ * (structures.html etc.), which don't mark up data-homepage-limit sections.
+ */
+function renderHomepageSectionCounts() {
+  if (!archiveDataV2) return;
+  document.querySelectorAll("[data-homepage-limit]").forEach((section) => {
+    const entityType = section.getAttribute("data-homepage-entity-type");
+    if (!entityType) return;
+    const total = (archiveDataV2[entityType] || []).length;
+    const badge = section.querySelector("[data-homepage-count-badge]");
+    if (badge) badge.textContent = String(total);
+  });
+}
+
+/**
+ * Rebuild filter-bar buttons/select from the distinct category values
+ * actually present in the loaded v2 dataset. v2 entity types have no fixed
+ * taxonomy (structureType/genre/tags are free text set per-record during
+ * research), so a hardcoded v1-style filter button list (e.g. "mosque",
+ * "folk") would silently match zero cards. Only wraps opting in via
+ * data-dynamic-filter="<entityType>" are rebuilt; pages with no natural
+ * taxonomy (communities, places) simply omit the attribute and keep no
+ * filter bar at all.
+ */
+function renderDynamicFilterBars(lang) {
+  if (!archiveDataV2) return;
+  document.querySelectorAll(".filter-bar-wrap[data-dynamic-filter]").forEach((wrap) => {
+    const entityType = wrap.getAttribute("data-dynamic-filter");
+    const items = archiveDataV2[entityType] || [];
+    const btnGroup = wrap.querySelector(".filter-bar");
+    const select = wrap.querySelector(".filter-select");
+    if (!btnGroup || !select) return;
+
+    const categories = Array.from(new Set(
+      items.map((item) => v2CardCategory(entityType, item)).filter((cat) => cat && cat !== "all"),
+    )).sort((a, b) => a.localeCompare(b));
+
+    const allLabel = resolveKey(lang, "filters.all") || "All";
+    const options = [{ value: "all", label: allLabel }, ...categories.map((cat) => ({ value: cat, label: cat }))];
+
+    btnGroup.innerHTML = options.map(({ value, label }, idx) => (
+      `<button class="filter-btn${idx === 0 ? " is-active" : ""}" type="button" data-filter="${escapeHtml(value)}">${escapeHtml(label)}</button>`
+    )).join("");
+    select.innerHTML = options.map(({ value, label }) => (
+      `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`
+    )).join("");
+  });
+
+  currentActiveFilter = "all";
+  initFilterListeners();
 }
 
 function initArchiveImageFallbacks(root = document) {
@@ -660,6 +985,69 @@ function renderDetailPage(lang) {
   initArchiveImageFallbacks();
 }
 
+/**
+ * Reads the embedded serialized public entity from a static v2 detail page
+ * (see scripts/v2-archive-release.js's generateV2DetailDocument()). A
+ * distinct script id and reader from v1's #archive-record-data /
+ * readDetailPageData(): v2 entities have per-type field shapes (period.label,
+ * structureType, genre, storyCategory, officialName) that don't match v1's
+ * flat era/tag/category convention, so the two must not be conflated.
+ */
+function readV2DetailPageData() {
+  if (v2DetailPageData) return v2DetailPageData;
+  const element = document.getElementById("v2-record-data");
+  if (!element) return null;
+  try {
+    v2DetailPageData = JSON.parse(element.textContent);
+    return v2DetailPageData;
+  } catch (error) {
+    console.error("[AntiochiaArchive] v2 detail page data is invalid:", error);
+    return null;
+  }
+}
+
+/** The single type-specific fact shown under a v2 detail page's title, mirroring each card renderer's own tag/fact field. */
+function v2DetailFact(entity, lang) {
+  if (entity.entityType === "historicalContext") return localizedMetadataValue(entity.period?.label, lang, "");
+  if (entity.entityType === "structure") return entity.structureType || "";
+  if (entity.entityType === "music") return entity.genre || "";
+  if (entity.entityType === "story") return entity.storyCategory || (Array.isArray(entity.tags) ? entity.tags[0] : "") || "";
+  if (entity.entityType === "place") {
+    const officialName = localizedMetadataValue(entity.officialName, lang, "");
+    const title = localizedMetadataValue(entity.title, lang, "");
+    return officialName && officialName !== title ? officialName : "";
+  }
+  return "";
+}
+
+function renderV2DetailPage(lang) {
+  const data = readV2DetailPageData();
+  if (!data?.entity) return;
+  const entity = data.entity;
+  const title = localizedMetadataValue(entity.title, lang, entity.slug || entity.id);
+  const description = localizedMetadataValue(entity.summary, lang, "");
+  const fact = v2DetailFact(entity, lang);
+
+  document.querySelectorAll("[data-detail-title]").forEach((element) => { element.textContent = title; });
+  document.querySelectorAll("[data-detail-description]").forEach((element) => { element.textContent = description; });
+  document.querySelectorAll("[data-detail-taxonomy]").forEach((element) => { element.textContent = fact; });
+  document.querySelectorAll("[data-detail-category]").forEach((element) => {
+    const typeKey = V2_ENTITY_TYPE_NAV_KEY[entity.entityType];
+    element.textContent = (typeKey && resolveKey(lang, `nav.${typeKey}`)) || entity.entityType;
+  });
+
+  const image = document.querySelector(".record-detail-image");
+  if (image) image.alt = imageAltText(entity, lang, title);
+  const caption = document.querySelector("[data-detail-image-caption]");
+  if (caption) {
+    const media = resolveRecordMedia(entity);
+    caption.textContent = localizedMetadataValue(media?.metadata?.caption, lang, "");
+  }
+
+  document.title = `${title} — AntiochiaArchive`;
+  initArchiveImageFallbacks();
+}
+
 function localizedArchiveText(key, lang) {
   const fallback = {
     archiveLoading: "Loading archive data…",
@@ -699,11 +1087,30 @@ function renderArchiveErrorState(lang) {
   });
 }
 
-/** Fetch the backend archive once; language changes reuse the in-memory result. */
+/** Fetches every v2 type whose container is present on this page, in parallel. */
+async function fetchV2ArchiveData() {
+  const renderers = getV2SectionRenderers();
+  const entries = await Promise.all(
+    renderers.map(({ key, typeRoute }) => (
+      window.AntiochiaArchiveV2API.fetchEntitiesByType(typeRoute).then((items) => [key, items])
+    )),
+  );
+  return Object.fromEntries(entries);
+}
+
+/**
+ * Fetch v1 (gallery only) and v2 (7 cultural-entity types) once; language
+ * changes reuse the in-memory result. Both sources are fetched in parallel
+ * and treated as one atomic load: either failing puts the whole page into
+ * the existing error/retry state, matching today's all-or-nothing loading
+ * UX rather than partial/silent degradation.
+ */
 async function initArchive({ force = false } = {}) {
-  if (!getArchiveSectionRenderers().length) return;
+  const hasV1 = getV1SectionRenderers().length > 0;
+  const hasV2 = getV2SectionRenderers().length > 0;
+  if (!hasV1 && !hasV2) return;
   if (archiveLoadState === "loading") return;
-  if (archiveData && !force) {
+  if ((archiveData || !hasV1) && (archiveDataV2 || !hasV2) && !force) {
     renderArchiveSections(currentLang);
     return;
   }
@@ -712,12 +1119,21 @@ async function initArchive({ force = false } = {}) {
   renderArchiveLoadingState(currentLang);
 
   try {
-    if (!window.AntiochiaArchiveAPI) throw new Error("Archive API client is unavailable.");
-    archiveData = await window.AntiochiaArchiveAPI.fetchArchive();
+    const tasks = [];
+    if (hasV1) {
+      if (!window.AntiochiaArchiveAPI) throw new Error("Archive API client is unavailable.");
+      tasks.push(window.AntiochiaArchiveAPI.fetchArchive().then((data) => { archiveData = data; }));
+    }
+    if (hasV2) {
+      if (!window.AntiochiaArchiveV2API) throw new Error("Archive v2 API client is unavailable.");
+      tasks.push(fetchV2ArchiveData().then((data) => { archiveDataV2 = data; }));
+    }
+    await Promise.all(tasks);
     archiveLoadState = "loaded";
     renderArchiveSections(currentLang);
   } catch (err) {
-    archiveData = null;
+    if (hasV1) archiveData = null;
+    if (hasV2) archiveDataV2 = null;
     archiveLoadState = "error";
     console.error("[AntiochiaArchive] Archive API is unavailable:", err);
     renderArchiveErrorState(currentLang);
@@ -784,6 +1200,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Load archive content from the backend API --- */
   initArchive();
+
+  /* --- Related entities (v2 detail pages only; no-op if absent) --- */
+  loadAndRenderRelatedEntities(currentLang);
 
   /* --- Search filtering --- */
   initSearch();
@@ -1006,9 +1425,7 @@ function applyCombinedFilters() {
   const q = (currentSearchQuery || "").trim().toLowerCase();
   const cat = currentActiveFilter || "all";
 
-  const allCards = document.querySelectorAll(
-    ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card, .gallery-card"
-  );
+  const allCards = document.querySelectorAll(ALL_CARD_SELECTORS);
 
   allCards.forEach((card) => {
     const cardCategory = card.getAttribute("data-category") || "all";

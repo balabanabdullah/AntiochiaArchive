@@ -322,7 +322,7 @@ export async function buildImportPreview({ researchDir }) {
     includedSources, excludedSources,
     includedMedia, excludedMedia,
     includedRelationships, excludedRelationships,
-    p1, p2, p3,
+    p1, p2, p3, registryRecovery,
   });
 
   return {
@@ -340,6 +340,22 @@ function countByEntityType(entities) {
   return counts;
 }
 
+/**
+ * Distinct sourceIds actually referenced by cultural entities' own
+ * `sourceIds` arrays (PART 1/2/3), as opposed to the count of source
+ * *records* recovered in the registry (PART 4 K. SOURCES + registry_recovery
+ * supplements) — two different measurements that must never be conflated
+ * (see V2-ARCHITECTURE.md "Cultural dataset import preview" /
+ * "Source reference count audit").
+ */
+function computeDistinctReferencedSourceIds(entityRecords) {
+  const ids = new Set();
+  for (const record of entityRecords) {
+    for (const sourceId of record.sourceIds || []) ids.add(sourceId);
+  }
+  return ids;
+}
+
 function buildReport(ctx) {
   const {
     inputEntityRecords, sourceRecords, mediaRecords, relationshipRecords,
@@ -347,7 +363,7 @@ function buildReport(ctx) {
     includedSources, excludedSources,
     includedMedia, excludedMedia,
     includedRelationships, excludedRelationships,
-    p1, p2, p3,
+    p1, p2, p3, registryRecovery,
   } = ctx;
 
   const includedByType = countByEntityType(includedEntities.map((item) => item.entity));
@@ -410,6 +426,12 @@ function buildReport(ctx) {
     },
   };
 
+  const distinctReferencedSourceIds = computeDistinctReferencedSourceIds(inputEntityRecords);
+  const identityResolved = new Set(IDENTITY_RESOLVED_SOURCE_IDS);
+  const contextOnlySourceCount = sourceRecords.filter(
+    (record) => record.recoveredContext != null && !identityResolved.has(record.sourceId),
+  ).length;
+
   return {
     generatedAt: new Date().toISOString(),
     inputCounts: {
@@ -422,22 +444,41 @@ function buildReport(ctx) {
       music: p3.music.length,
       proverb: 0,
       totalCulturalEntities: inputEntityRecords.length,
-      sources: sourceRecords.length,
+      // Count of K. SOURCES + registry_recovery source *records*, NOT the
+      // count of distinct sourceIds referenced by cultural entities — see
+      // `sourceReferenceAudit` below, which must not be conflated with this.
+      sourceRegistryRecords: sourceRecords.length,
       media: mediaRecords.length,
       relationships: relationshipRecords.length,
     },
     normalizedCounts: {
       byEntityType: includedByType,
       totalEntities: includedEntities.length,
-      sources: includedSources.length,
+      sourceRegistryRecords: includedSources.length,
       media: includedMedia.length,
       relationships: includedRelationships.length,
     },
     excludedCounts: {
       entities: excludedEntities.length,
-      sources: excludedSources.length,
+      sourceRegistryRecords: excludedSources.length,
       media: excludedMedia.length,
       relationships: excludedRelationships.length,
+    },
+    // A precise breakdown so "distinct sourceIds referenced by cultural
+    // entities" (A) is never conflated with "source records represented in
+    // the recovered registry" (B) — a real terminology bug in an earlier
+    // report of this pipeline's output conflated the two.
+    sourceReferenceAudit: {
+      distinctSourceIdsReferencedByCulturalEntities: distinctReferencedSourceIds.size,
+      sourceRegistryRecordsRepresented: sourceRecords.length,
+      identityLevelRestoredSources: IDENTITY_RESOLVED_SOURCE_IDS.length,
+      contextOnlySources: contextOnlySourceCount,
+      bibliographicallyUnresolvedReferencedSourceIds: registryRecovery.unresolvedSourceIds.length,
+      unrecoverableLegacySourceRecords: registryRecovery.unrecoverableRegistryRecordCount,
+      note: "'distinctSourceIdsReferencedByCulturalEntities' (A) is computed by scanning every PART 1/2/3 "
+        + "cultural entity's own sourceIds array and counting distinct values — it is NOT the same "
+        + "measurement as 'sourceRegistryRecordsRepresented' (B), the count of source records recovered in "
+        + "K. SOURCES + registry_recovery.txt. A and B must never be conflated or used interchangeably.",
     },
     excludedEntities,
     excludedSources,

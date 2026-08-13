@@ -290,6 +290,32 @@ test("buildImportPreview excludes a record whose slug collides with a real mappe
   assert.match(excluded.detail, /habib-i-neccar-camii/);
 });
 
+test("buildImportPreview's sourceReferenceAudit never conflates distinct referenced sourceIds with source registry record count", async (context) => {
+  const dir = await withTempDir(context);
+  await writeFixtureFiles(dir);
+
+  const result = await buildImportPreview({ researchDir: dir });
+  const audit = result.report.sourceReferenceAudit;
+
+  // Fixture: hist-test-1, comm-test-1, and story-test-1 all cite the same
+  // single sourceId ("source-test-1") — so distinct references (A) is 1,
+  // matching the single source registry record (B) in this small fixture.
+  // The two metrics are still computed independently, so a fixture where
+  // they happen to match doesn't hide a real conflation bug (see the real
+  // dataset check below, where A=51 and B=22 differ).
+  assert.equal(audit.distinctSourceIdsReferencedByCulturalEntities, 1);
+  assert.equal(audit.sourceRegistryRecordsRepresented, 1);
+  assert.equal(typeof audit.identityLevelRestoredSources, "number");
+  assert.equal(typeof audit.contextOnlySources, "number");
+  assert.equal(typeof audit.bibliographicallyUnresolvedReferencedSourceIds, "number");
+  assert.equal(typeof audit.unrecoverableLegacySourceRecords, "number");
+  assert.match(audit.note, /must never be conflated/);
+
+  // The old ambiguous field name is gone; the new one is unambiguous.
+  assert.equal(Object.hasOwn(result.report.inputCounts, "sources"), false);
+  assert.equal(typeof result.report.inputCounts.sourceRegistryRecords, "number");
+});
+
 test("buildImportPreview excludes an orphan relationship referencing an unknown entity", async (context) => {
   const dir = await withTempDir(context);
   await writeFixtureFiles(dir);

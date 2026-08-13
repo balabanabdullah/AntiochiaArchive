@@ -1,7 +1,22 @@
 // Route-level tests for /api/v2 backed by V2_DATA_STORE=local — the local,
-// real-mapped-data runtime built on top of the validated v1 -> v2 mapper.
-// These exercise the actual data/archive.json, not a fixture, so counts here
-// double as a regression check on the mapper's real output shape.
+// real-mapped-data runtime built on top of the validated v1 -> v2 mapper,
+// now merged with the promoted canonical research batch (data/v2/entities.json,
+// 168 entities) and the active legacy replacement layer (7 mapped v1
+// records superseded — see V2-ARCHITECTURE.md "Legacy replacement layer").
+// These exercise the actual committed data files, not a fixture, so counts
+// here double as a regression check on the real, live system.
+//
+// Only 17 of 184 total entities in the store are currently PUBLIC (status
+// 'published', or media/source which carry no status concept at all) — the
+// vast majority of the newly promoted batch is correctly still 'inReview'
+// or 'draft' per the publication-status policy (see buildImportPreview.js),
+// so it stays invisible to every public route exactly as designed. The 6
+// mapped v1 records superseded by a confirmed, now-active legacy
+// replacement (st1, b1, st2, b2, b3, b4 — st4 too, 7 total) are gone
+// entirely, not just non-public; their canonical replacements
+// (structure-0001..0005, structure-0020) exist in the store but are
+// themselves not yet 'published', so they are correctly invisible to every
+// public route too, for now.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -30,61 +45,74 @@ async function startLocalTestServer(context) {
   return `http://127.0.0.1:${port}`;
 }
 
-test("GET /api/v2/entities returns all 23 mapped entities under the local store", async (context) => {
+test("GET /api/v2/entities, paginated across pages, returns exactly the 17 currently-public entities with no duplicates or gaps", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/entities?limit=100`);
-  const body = await response.json();
+  const seen = [];
+  let cursor = null;
+  let guard = 0;
 
-  assert.equal(response.status, 200);
-  assert.equal(body.data.length, 23);
-  assert.equal(body.meta.count, 23);
+  do {
+    const url = new URL(`${baseUrl}/api/v2/entities`);
+    url.searchParams.set("limit", "100");
+    if (cursor) url.searchParams.set("cursor", cursor);
+    // eslint-disable-next-line no-await-in-loop
+    const body = await (await fetch(url)).json();
+    for (const item of body.data) {
+      assert.ok(!seen.includes(item.id), `duplicate id ${item.id} across pages`);
+      assert.equal(item.status === "published" || item.entityType === "media" || item.entityType === "source", true, `${item.id} must be public`);
+      seen.push(item.id);
+    }
+    cursor = body.meta.nextCursor;
+    guard += 1;
+    // The store has 184 raw entities behind a server-enforced limit<=100,
+    // so reaching all public ones legitimately takes more than one page —
+    // this guard just bounds runaway pagination, not "should be 1 page".
+    assert.ok(guard <= 10, "pagination loop guard tripped");
+  } while (cursor);
+
+  assert.equal(seen.length, 17);
+  assert.deepEqual(seen, [...seen].sort());
 });
 
-test("GET /api/v2/structures returns 8 (4 structures + 4 belief sites)", async (context) => {
+test("GET /api/v2/structures returns 1 (only st3 — the sole mapped v1 structure with no active replacement, still published)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/structures?limit=100`);
   const body = await response.json();
-  assert.equal(body.data.length, 8);
+  assert.deepEqual(body.data.map((item) => item.id), ["st3"]);
 });
 
-test("GET /api/v2/stories returns 3", async (context) => {
+test("GET /api/v2/stories returns 3 (s1, s2, s3 — no active replacement targets any v1 story)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/stories?limit=100`);
   const body = await response.json();
-  assert.equal(body.data.length, 3);
+  assert.deepEqual(body.data.map((item) => item.id).sort(), ["s1", "s2", "s3"]);
 });
 
-test("GET /api/v2/music returns 3", async (context) => {
+test("GET /api/v2/music returns 4 (m1, m2, m3 unaffected, plus one published native record)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/music?limit=100`);
   const body = await response.json();
-  assert.equal(body.data.length, 3);
+  assert.equal(body.data.length, 4);
+  assert.ok(["m1", "m2", "m3"].every((id) => body.data.some((item) => item.id === id)));
 });
 
-test("GET /api/v2/historical-contexts returns 3", async (context) => {
+test("GET /api/v2/historical-contexts returns 3 (h1, h2, h3 — unaffected, no replacement targets historicalContext)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/historical-contexts?limit=100`);
   const body = await response.json();
-  assert.equal(body.data.length, 3);
+  assert.deepEqual(body.data.map((item) => item.id).sort(), ["h1", "h2", "h3"]);
 });
 
-test("GET /api/v2/media returns 6", async (context) => {
+test("GET /api/v2/media returns 6 (g1-g6 — media/source are statusless and always public)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/media?limit=100`);
   const body = await response.json();
   assert.equal(body.data.length, 6);
 });
 
-test("GET /api/v2/beliefs returns 0 — no broad belief-tradition entity has been authored yet", async (context) => {
+test("GET /api/v2/beliefs, /communities, /places, /proverbs return 0 — promoted content in those categories is not yet 'published'", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/beliefs`);
-  const body = await response.json();
-  assert.deepEqual(body.data, []);
-});
-
-test("GET /api/v2/communities, /places, /proverbs return 0", async (context) => {
-  const baseUrl = await startLocalTestServer(context);
-  for (const path of ["communities", "places", "proverbs"]) {
+  for (const path of ["beliefs", "communities", "places", "proverbs"]) {
     // eslint-disable-next-line no-await-in-loop
     const response = await fetch(`${baseUrl}/api/v2/${path}`);
     // eslint-disable-next-line no-await-in-loop
@@ -93,23 +121,35 @@ test("GET /api/v2/communities, /places, /proverbs return 0", async (context) => 
   }
 });
 
-test("GET /api/v2/entities/:id looks up st1, b4 (structure), and g3 (media) correctly", async (context) => {
+test("GET /api/v2/entities/:id: st3 (public structure) and g3 (media) resolve correctly", async (context) => {
   const baseUrl = await startLocalTestServer(context);
 
-  const st1 = await (await fetch(`${baseUrl}/api/v2/entities/st1`)).json();
-  assert.equal(st1.data.id, "st1");
-  assert.equal(st1.data.entityType, "structure");
-
-  const b4 = await (await fetch(`${baseUrl}/api/v2/entities/b4`)).json();
-  assert.equal(b4.data.id, "b4");
-  assert.equal(b4.data.entityType, "structure");
+  const st3 = await (await fetch(`${baseUrl}/api/v2/entities/st3`)).json();
+  assert.equal(st3.data.id, "st3");
+  assert.equal(st3.data.entityType, "structure");
 
   const g3 = await (await fetch(`${baseUrl}/api/v2/entities/g3`)).json();
   assert.equal(g3.data.id, "g3");
   assert.equal(g3.data.entityType, "media");
 });
 
-test("pagination over the real mapped set: no duplicates, no gaps, deterministic order", async (context) => {
+test("GET /api/v2/entities/:id: st1 is gone (suppressed by an active legacy replacement), not just non-public", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/entities/st1`);
+  assert.equal(response.status, 404);
+});
+
+test("GET /api/v2/entities/:id: structure-0001 exists (it superseded st1) but is not yet published, so the public route 404s exactly like a missing id", async (context) => {
+  const baseUrl = await startLocalTestServer(context);
+  const response = await fetch(`${baseUrl}/api/v2/entities/structure-0001`);
+  const body = await response.json();
+  assert.equal(response.status, 404);
+  assert.equal(body.success, false);
+  // Same response shape as a truly nonexistent id — a client must not be
+  // able to distinguish "exists but unpublished" from "doesn't exist".
+});
+
+test("pagination over the live store: no duplicates, no gaps across a full sweep of raw entities (public route)", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const seen = [];
   let cursor = null;
@@ -117,7 +157,7 @@ test("pagination over the real mapped set: no duplicates, no gaps, deterministic
 
   do {
     const url = new URL(`${baseUrl}/api/v2/entities`);
-    url.searchParams.set("limit", "5");
+    url.searchParams.set("limit", "50");
     if (cursor) url.searchParams.set("cursor", cursor);
     // eslint-disable-next-line no-await-in-loop
     const body = await (await fetch(url)).json();
@@ -130,26 +170,24 @@ test("pagination over the real mapped set: no duplicates, no gaps, deterministic
     assert.ok(guard <= 10, "pagination loop guard tripped");
   } while (cursor);
 
-  assert.equal(seen.length, 23);
-  assert.deepEqual(seen, [...seen].sort());
+  assert.equal(seen.length, 17);
 });
 
-test("filters: tag=beliefSite returns exactly the 4 mapped belief-site structures", async (context) => {
+test("filters: tag=beliefSite now returns 0 — the 4 mapped belief-site structures were suppressed by active replacements, and their canonical successors aren't published yet", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/structures?tag=beliefSite`);
   const body = await response.json();
-  assert.equal(body.data.length, 4);
-  assert.deepEqual(body.data.map((item) => item.id).sort(), ["b1", "b2", "b3", "b4"]);
+  assert.deepEqual(body.data, []);
 });
 
 test("filters: musicGenre reflects preserved v1 categoryKey values as-is, not a final taxonomy", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/music?musicGenre=folk`);
   const body = await response.json();
-  assert.equal(body.data.length, 2);
+  assert.deepEqual(body.data.map((item) => item.id).sort(), ["m1", "m3"]);
 });
 
-test("filters: storyCategory yields no results — migrated stories intentionally leave it unset", async (context) => {
+test("filters: storyCategory yields no results — migrated v1 stories intentionally leave it unset", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const response = await fetch(`${baseUrl}/api/v2/stories?storyCategory=familyMemory`);
   const body = await response.json();
@@ -158,7 +196,7 @@ test("filters: storyCategory yields no results — migrated stories intentionall
 
 test("public responses never leak migration-internal fields", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/entities/st1`);
+  const response = await fetch(`${baseUrl}/api/v2/entities/h1`);
   const body = await response.json();
 
   for (const forbidden of [
@@ -170,12 +208,12 @@ test("public responses never leak migration-internal fields", async (context) =>
 
 test("structure/story/historicalContext/music entities with a real image expose a safe public media summary", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/entities/st1`);
+  const response = await fetch(`${baseUrl}/api/v2/entities/st3`);
   const body = await response.json();
 
   assert.ok(body.data.media);
-  assert.equal(body.data.media.path, "/images/structures/habib-i-neccar-camii-antakya-2018.webp");
-  assert.equal(body.data.media.license, "CC BY-SA 4.0");
+  assert.equal(body.data.media.path, "/images/structures/daphne-roma-mozaigi-antakya.webp");
+  assert.equal(body.data.media.license, "Public Domain");
   assert.equal(Object.hasOwn(body.data.media, "isPlaceholder"), false);
 });
 

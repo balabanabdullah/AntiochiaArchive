@@ -116,18 +116,27 @@ export function createLocalMappedV2Store({
       const archive = await loadArchive();
       const mappedEntities = mapAndValidateArchive(archive);
 
-      // 3-6. Read native v2 entities, validate them, detect id/slug
-      // collisions against the mapped set (and against each other), then
-      // merge.
-      const nativeEntities = await loadEntities({ mappedEntities });
+      // 2a. Read and validate the legacy replacement map FIRST — before
+      // loading native entities — so loadEntities can accept a native
+      // entity's collision against a mapped v1 entity when a confirmed,
+      // reviewed entry names that exact pair. Without this ordering, a
+      // canonical entity sharing its superseded legacy record's exact slug
+      // (the normal case: e.g. structure-0001 vs v1 st1, same slug
+      // 'habib-i-neccar-camii') would hard-fail here as an "unexpected"
+      // collision before suppression ever gets a chance to apply.
+      const replacements = await loadReplacements({ mappedEntities });
 
-      // 6a. Read and validate the legacy replacement map, then classify each
-      // entry as active (canonical target exists in nativeEntities -> the
-      // named mapped entity must be suppressed) or pending (canonical target
-      // not promoted yet -> the mapped entity stays fully visible). Applied
+      // 3-6. Read native v2 entities, validate them, detect id/slug
+      // collisions against the mapped set (and against each other) —
+      // allowing only the collisions `replacements` explicitly confirms.
+      const nativeEntities = await loadEntities({ mappedEntities, legacyReplacements: replacements });
+
+      // 6a. Classify each replacement entry as active (canonical target
+      // actually present in the now-validated nativeEntities -> the named
+      // mapped entity must be suppressed) or pending (canonical target not
+      // promoted yet -> the mapped entity stays fully visible). Applied
       // BEFORE merging so a suppressed mapped entity never reaches the
       // served entity set, the relationship pool, or MemoryV2Store at all.
-      const replacements = await loadReplacements({ mappedEntities });
       const classification = classifyLegacyReplacements(replacements, nativeEntities);
       lastReplacementClassification = classification;
 

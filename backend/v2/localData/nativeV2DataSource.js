@@ -5,6 +5,13 @@
 // anything is merged into a running store. Pure and read-only: this module
 // never writes either file, and never contacts Firestore or Cloud Storage.
 //
+// loadNativeEntities also accepts validated data/v2/legacyReplacements.json
+// entries (see ../localData/legacyReplacements.js) so a native entity whose
+// id/slug collides with a mapped v1 entity it is a CONFIRMED, reviewed
+// replacement for is accepted rather than rejected — every other collision
+// still fails startup exactly as before. See V2-ARCHITECTURE.md "Legacy
+// replacement layer".
+//
 // Both files are committed to the repository and start empty
 // ({ "entities": [] } / { "relationships": [] }) — see V2-ARCHITECTURE.md
 // "Local editorial entity + relationship data infrastructure". A MISSING
@@ -60,18 +67,36 @@ async function readJsonFile(filePath, label) {
  * and its id/slug must not collide with an already-mapped v1 entity or with
  * another native entity. Throws on the first problem found, identifying the
  * offending array index and id — never silently drops or skips a record.
+ *
+ * `legacyReplacements` (validated entries from ../localData/legacyReplacements.js,
+ * shape `{ legacyMappedEntityId, canonicalNativeEntityId, reason }`) lets a
+ * native entity bypass a collision against the SPECIFIC mapped v1 entity a
+ * reviewed replacement entry names it as superseding — e.g. structure-0001
+ * sharing v1 st1's exact slug 'habib-i-neccar-camii' is expected and
+ * reviewed, not an unexpected duplicate. This is the same confirmed-
+ * replacement bypass buildImportPreview.js's own collision detection uses
+ * (see V2-ARCHITECTURE.md "Legacy replacement layer") — semantic
+ * replacement is still never inferred from name/slug similarity alone, only
+ * from this explicit, reviewed list. Any OTHER collision — including a
+ * native entity colliding with a mapped entity that has no replacement
+ * entry naming it, or two native entities colliding with each other — still
+ * fails startup exactly as before.
  */
 export async function loadNativeEntities({
   filePath = getNativeEntitiesFilePath(),
   mappedEntities = [],
+  legacyReplacements = [],
 } = {}) {
   const parsed = await readJsonFile(filePath, "V2 native entities");
   if (!parsed || !Array.isArray(parsed.entities)) {
     throw new Error(`V2 native entities file at '${filePath}' must be a JSON object with an 'entities' array.`);
   }
 
-  const mappedIds = new Set(mappedEntities.map((entity) => entity.id));
-  const mappedSlugs = new Set(mappedEntities.filter((entity) => entity.slug).map((entity) => entity.slug));
+  const mappedIdToEntity = new Map(mappedEntities.map((entity) => [entity.id, entity]));
+  const mappedSlugToId = new Map(mappedEntities.filter((entity) => entity.slug).map((entity) => [entity.slug, entity.id]));
+  const replacementsByLegacyId = new Map(
+    legacyReplacements.map((entry) => [entry.legacyMappedEntityId, entry.canonicalNativeEntityId]),
+  );
   const seenIds = new Set();
   const seenSlugs = new Set();
   const entities = [];
@@ -84,19 +109,31 @@ export async function loadNativeEntities({
       );
     }
 
-    if (mappedIds.has(entity.id) || seenIds.has(entity.id)) {
+    const collidingMappedIdByEntityId = mappedIdToEntity.has(entity.id) ? entity.id : null;
+    const collidingMappedIdBySlug = entity.slug ? mappedSlugToId.get(entity.slug) : null;
+    const collidingMappedId = collidingMappedIdByEntityId || collidingMappedIdBySlug;
+
+    if (collidingMappedId && replacementsByLegacyId.get(collidingMappedId) !== entity.id) {
+      const matchedOn = collidingMappedIdByEntityId ? `id '${entity.id}'` : `slug '${entity.slug}'`;
       throw new Error(
-        `V2 native entities[${index}]: id '${entity.id}' collides with an existing mapped v1 entity or another `
-        + "native entity. Native entity ids must be unique across both sets.",
+        `V2 native entities[${index}]: ${matchedOn} collides with mapped v1 entity '${collidingMappedId}', and no `
+        + "confirmed legacyReplacements.json entry names it as superseded by this native entity.",
+      );
+    }
+
+    if (seenIds.has(entity.id)) {
+      throw new Error(
+        `V2 native entities[${index}]: id '${entity.id}' collides with another native entity. Native entity ids `
+        + "must be unique across both sets.",
       );
     }
     seenIds.add(entity.id);
 
     if (entity.slug) {
-      if (mappedSlugs.has(entity.slug) || seenSlugs.has(entity.slug)) {
+      if (seenSlugs.has(entity.slug)) {
         throw new Error(
-          `V2 native entities[${index}]: slug '${entity.slug}' collides with an existing mapped v1 entity or `
-          + "another native entity. Native entity slugs must be unique across both sets.",
+          `V2 native entities[${index}]: slug '${entity.slug}' collides with another native entity. Native entity `
+          + "slugs must be unique across both sets.",
         );
       }
       seenSlugs.add(entity.slug);

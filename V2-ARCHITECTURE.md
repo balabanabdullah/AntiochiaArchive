@@ -778,20 +778,47 @@ Extends the pipeline described in "Local real-data v2 runtime" above:
 
 1. Read `data/archive.json` and validate it as a v1 archive.
 2. Map its 23 records to v2 entities (step 2's mapper) and validate each one.
+2a. Read and validate `data/v2/legacyReplacements.json` — **before** step 3,
+    not after. This ordering matters: it lets step 5's collision check
+    accept a native entity that shares its exact id/slug with a mapped v1
+    entity when a confirmed, reviewed entry names that specific pair (the
+    normal, expected shape of a real replacement — e.g. `structure-0001`
+    deliberately reuses v1 `st1`'s exact slug `habib-i-neccar-camii`).
+    Loading replacements after native entities would be circular (step 5
+    would need to know which collisions are "expected" before it can
+    validate the very entities that make them expected); loading them
+    first, and passing them into step 3/5, avoids that.
 3. Read `data/v2/entities.json`.
 4. Validate every native entity against the real v2 schemas.
 5. Check every native entity's id/slug for collisions against the mapped set
-   (step 2) and against other native entities.
-6. Merge: `entities = mappedEntities.concat(nativeEntities)`.
+   (step 2) and against other native entities — bypassing only the specific
+   collisions `legacyReplacements` (step 2a) confirms; every other collision
+   still fails startup exactly as before.
+6. Classify each replacement entry active/pending against the now-validated
+   native entities (see "Legacy replacement layer" below), and drop any
+   actively-superseded mapped entity from the merge: `entities =
+   survivingMappedEntities.concat(nativeEntities)`.
 7. Read `data/v2/relationships.json`.
 8. Validate every relationship's shape (`validateRelationship()`).
 9. Validate referential integrity against the full merged `entities` set
-   from step 6.
+   from step 6 — a relationship that targeted a now-suppressed legacy id
+   fails here as an orphan, exactly as if that id had never existed.
 10. Load the merged entities and validated relationships into a
     `MemoryV2Store` and expose the standard `V2Store` interface on top.
 
 Every step happens in memory, on every process startup — nothing is cached
 to disk, and no step here ever contacts Firestore or Cloud Storage.
+
+**Bug fixed during the first real promotion:** step 5's collision check
+originally validated native entities against the *raw* mapped set from step
+2, with no awareness of `legacyReplacements` at all — so every one of the 5
+replacements sharing an identical slug with its superseded legacy record
+(structure-0001/0002/0003/0004/0005, all confirmed, reviewed replacements)
+hard-failed startup, defeating the suppression mechanism for exactly the
+cases it exists to handle. Existing tests didn't catch this because their
+fixtures used non-colliding placeholder slugs rather than a real record's
+actual slug. Fixed by passing `legacyReplacements` into `loadNativeEntities`
+(step 5) and reordering step 2a before step 3, per above.
 
 ### Collision handling
 
@@ -1220,13 +1247,30 @@ importing anything. This is infrastructure and validation tooling, not a
 one-off script: it is meant to be re-run every time a new or revised
 research batch is supplied.
 
-**This is not a production import path.** It never writes
-`data/v2/entities.json` or `data/v2/relationships.json` (the committed,
-currently-empty native data files described above), never contacts
-Firestore or Cloud Storage, and never pushes or deploys anything. Promoting
-reviewed preview output into the committed native data files remains a
-separate, explicit, human decision every time — this tool only makes that
-decision safer to make by front-loading validation.
+**This is not a production import path.** The preview tool itself never
+writes `data/v2/entities.json` or `data/v2/relationships.json` — it only
+writes gitignored files under `tmp/v2-import-preview/` for human review, and
+never contacts Firestore, Cloud Storage, or production. Promoting reviewed
+preview output into the committed native data files remains a separate,
+explicit, human decision every time; this tool only makes that decision
+safer by front-loading validation.
+
+**Promotion status:** after a full pre-promotion identity reconciliation
+(source-reference audit, the legacy replacement layer above, and a final
+disposition review of every mapped v1 record with no proven canonical
+match), the first reviewed batch's 168 cultural entities and 81
+cultural-to-cultural relationships (of 112 total — the other 31 are
+`media`-sourced `depicts` edges, intentionally held back; media/source
+promotion needs its own future publication-status-gating work, since
+`media`/`source` entities carry no `status` field at all today and would be
+unconditionally public the moment they're promoted) were promoted into
+`data/v2/entities.json` / `data/v2/relationships.json`. This activated all 7
+legacy replacements, so the mapped-v1 layer now serves 23 − 7 = 16 legacy
+records instead of 23 (the 7 superseded ones — `st1`, `b1`, `st2`, `b2`,
+`b3`, `b4`, `st4` — are gone from v2, replaced by their canonical
+counterparts). `data/archive.json` and `GET /api/archive` (v1) are
+completely unaffected: v1 continues to serve all 23 original records,
+unchanged, always.
 
 ### Where the research input lives
 

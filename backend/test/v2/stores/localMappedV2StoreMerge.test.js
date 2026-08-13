@@ -49,7 +49,9 @@ async function writeJson(filePath, data) {
 function buildStore({ entitiesFilePath, relationshipsFilePath, replacementsFilePath }) {
   return createLocalMappedV2Store({
     loadArchive: loadRealArchive,
-    loadEntities: ({ mappedEntities }) => loadNativeEntities({ filePath: entitiesFilePath, mappedEntities }),
+    loadEntities: ({ mappedEntities, legacyReplacements }) => loadNativeEntities({
+      filePath: entitiesFilePath, mappedEntities, legacyReplacements,
+    }),
     loadRelationships: ({ entities }) => loadNativeRelationships({ filePath: relationshipsFilePath, entities }),
     ...(replacementsFilePath
       ? { loadReplacements: ({ mappedEntities }) => loadLegacyReplacements({ filePath: replacementsFilePath, mappedEntities }) }
@@ -95,9 +97,18 @@ async function setupFiles(dir, { entities = [], relationships = [], replacements
   return result;
 }
 
+// Deliberately reuses b4's REAL v1 slug ('hz-hizir-ziyareti-samandag') —
+// this is the actual real-world shape of a confirmed replacement (identical
+// slug to the legacy record it supersedes, e.g. structure-0001 vs v1 st1)
+// and is what exercises loadNativeEntities's own collision-bypass path, not
+// just LocalMappedV2Store's suppression filter. A fixture using a
+// non-colliding slug would pass every test here while leaving the real
+// production collision path (nativeV2DataSource.js's own mappedSlugToId
+// check) completely unexercised — exactly the gap that let the real
+// promotion fail on the first attempt despite this test suite being green.
 const CANONICAL_STRUCTURE_FIXTURE = Object.freeze({
   id: "structure-0005",
-  slug: "canonical-khidr-shrine-test",
+  slug: "hz-hizir-ziyareti-samandag",
   entityType: "structure",
   status: "published",
   title: { en: "Shrine of Khidr (Canonical Test Fixture)" },

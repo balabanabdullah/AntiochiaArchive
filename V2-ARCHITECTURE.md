@@ -18,6 +18,16 @@ migrating, or depending on any v1 production data:
    step 2 at startup and serves the resulting 23 entities through the real
    `/api/v2` HTTP endpoints, entirely in memory, for local development only.
    See "Local real-data v2 runtime" below.
+4. **Local editorial entity + relationship data infrastructure** — a
+   committed, currently-empty pair of files (`data/v2/entities.json`,
+   `data/v2/relationships.json`) plus a validating loader/merger
+   (`backend/v2/localData/nativeV2DataSource.js`) that lets
+   `LocalMappedV2Store` combine the 23 mapped v1 records with future
+   hand-authored, source-reviewed v2-native entities and relationships —
+   collision-checked and referentially validated, still entirely local and
+   in-memory. This step is infrastructure only: it authors zero real
+   community/belief/place/proverb records. See "Local editorial entity +
+   relationship data infrastructure" below.
 
 **No step migrates production data.** No Firestore document has ever been
 read or written by this work, no Cloud Storage resource was created, and
@@ -184,9 +194,12 @@ Four implementations exist:
   never constructed or contacted unless explicitly selected.
 - **`LocalMappedV2Store`** (`backend/v2/stores/localMappedV2Store.js`) — maps
   the real `data/archive.json` through the same validated mapper as the
-  dry-run CLI, into a `MemoryV2Store` instance, at startup. Local-only, never
-  contacts Firestore or Cloud Storage. See "Local real-data v2 runtime"
-  below.
+  dry-run CLI, merges in any validated, collision-checked entities and
+  referentially-valid relationships from `data/v2/entities.json` /
+  `data/v2/relationships.json`, and loads the result into a `MemoryV2Store`
+  instance, at startup. Local-only, never contacts Firestore or Cloud
+  Storage. See "Local real-data v2 runtime" and "Local editorial entity +
+  relationship data infrastructure" below.
 
 ### Firestore v2 collections
 
@@ -309,13 +322,22 @@ was changed, moved, or removed.
 | `GET /api/v2/proverbs` | Paginated `proverb` list (empty) |
 | `GET /api/v2/historical-contexts` | Paginated `historicalContext` list (empty) |
 | `GET /api/v2/media` | Paginated `media` list (empty by default; 6 under `V2_DATA_STORE=local`) |
+| `GET /api/v2/relationships` | Paginated relationship-edge list, optionally filtered by a controlled `type` (empty) |
+| `GET /api/v2/entities/:id/related` | Entities related to `:id`, each paired with the connecting relationship where identifiable (empty) |
 
 With the default `EmptyV2Store`, every list above is empty. Under
-`V2_DATA_STORE=local` (see "Local real-data v2 runtime" below), these same
-endpoints serve the 23 real mapped entities: `structures` returns 8,
-`stories`/`music`/`historical-contexts` return 3 each, `media` returns 6, and
+`V2_DATA_STORE=local` (see "Local real-data v2 runtime" and "Local editorial
+entity + relationship data infrastructure" below), these same endpoints
+serve the 23 real mapped entities: `structures` returns 8,
+`stories`/`music`/`historical-contexts` return 3 each, `media` returns 6,
 `communities`/`beliefs`/`places`/`proverbs` remain `0` because no such
-content has been authored yet.
+content has been authored yet, and `relationships` remains `0` because
+`data/v2/relationships.json` is still empty.
+
+Every list endpoint above — including the per-type ones — and the single-
+entity/relationship lookups only ever return records whose `status` is
+exactly `"published"` (see "Publication visibility" below); a `media`/
+`source` entity, which has no `status` concept at all, is always eligible.
 
 Every list response uses the same envelope as v1's `/api/archive`:
 
@@ -625,15 +647,21 @@ unchanged 23-record archive from `backend/dataStore.js`'s `fileStore`, while
 `V2_DATA_STORE=local` active, `GET /api/archive` still returns exactly 23
 v1 records via the untouched v1 code path.
 
-### Relationships remain empty
+### Relationships: empty by data, not by design
 
-`LocalMappedV2Store` is constructed with `relationships: []`. The 10
-`POTENTIAL_DUPLICATE_OR_RELATED_ENTITY` warnings the dry-run report
-surfaces (e.g. `st1`/`b1`/`g4` all describing Habib-i Neccar) are **not**
-converted into relationship records by this step — that remains a
-separate, editorially reviewed decision. Any relationship-listing endpoint
-therefore returns an empty page under `V2_DATA_STORE=local`, exactly as it
-does under `EmptyV2Store`.
+As originally built, `LocalMappedV2Store` was constructed with
+`relationships: []` — no relationship-loading capability existed yet. Step 4
+("Local editorial entity + relationship data infrastructure", below) adds
+that capability via `data/v2/relationships.json`, but the file itself still
+starts empty and stays empty in this step. The 10
+`POTENTIAL_DUPLICATE_OR_RELATED_ENTITY` warnings the dry-run report surfaces
+(e.g. `st1`/`b1`/`g4` all describing Habib-i Neccar) are **not** converted
+into relationship records by this or any step so far — that remains a
+separate, editorially reviewed decision. `GET /api/v2/relationships` and
+`GET /api/v2/entities/:id/related` therefore still return empty results
+under `V2_DATA_STORE=local` today, for the same reason `EmptyV2Store`
+returns empty results: no relationship data exists yet, not because the
+capability is missing.
 
 ### Local Docker / environment setup
 
@@ -663,6 +691,295 @@ still defaults to `empty` when unset, so existing Compose runs are
 unaffected unless a developer explicitly exports it first. No production
 deployment default changes.
 
+## Local editorial entity + relationship data infrastructure
+
+This step turns `LocalMappedV2Store` from "the 23 mapped v1 records only"
+into a real merge point for future hand-authored v2-native content, without
+authoring any of that content yet. **`data/v2/entities.json` and
+`data/v2/relationships.json` are committed to the repository and stay
+empty** (`{ "entities": [] }` / `{ "relationships": [] }`) — this step is
+infrastructure and validation only.
+
+```
+data/archive.json
+        |
+        v
+   v1 mapper (step 2)
+        |
+        v
+  23 mapped entities  ---+
+                          |
+data/v2/entities.json     |
+        |                 |
+        v                 |
+  native v2 entities       +--> merged entity set
+  (validated, collision-  |
+   checked against the    |
+   mapped set above)      |
+                          |
+data/v2/relationships.json
+        |
+        v
+  native relationships
+  (validated, referential
+   integrity checked
+   against the merged
+   entity set above)
+        |
+        v
+   MemoryV2Store  -->  /api/v2
+```
+
+### Native v2 data files
+
+| File | Shape | Notes |
+| --- | --- | --- |
+| `data/v2/entities.json` | `{ "entities": [ ...v2 entity objects... ] }` | Any `ENTITY_TYPES` value is allowed — `community`/`belief`/`place`/`proverb` included, since this is the mechanism a future *separately reviewed content task* will use to add them. |
+| `data/v2/relationships.json` | `{ "relationships": [ ...v2 relationship objects... ] }` | One edge per authored relationship (see "Relationship direction" below). |
+
+Both are plain JSON, not browser assets — they live under `data/`, never
+`public/`, exactly like `data/archive.json` and `data/submissions.json`.
+Neither is ever written by any part of v2; both are read-only inputs.
+
+### Loader/merger module
+
+`backend/v2/localData/nativeV2DataSource.js` exports two pure, read-only
+async functions, both used by `LocalMappedV2Store.initialize()`:
+
+- **`loadNativeEntities({ filePath, mappedEntities })`** — reads
+  `data/v2/entities.json` (or `V2_ENTITIES_JSON_PATH`, see "Config paths"
+  below), validates every entity against the real v2 schemas
+  (`validateEntity()`), and checks each one's `id` and `slug` (when present)
+  for collisions against `mappedEntities` and against other native entities
+  in the same file. Throws — naming the array index, id, and reason — on the
+  first invalid entity or collision. Never silently drops a record.
+- **`loadNativeRelationships({ filePath, entities })`** — reads
+  `data/v2/relationships.json` (or `V2_RELATIONSHIPS_JSON_PATH`), validates
+  every relationship's shape with the existing `validateRelationship()`
+  (`backend/v2/schemas/relationship.js`), then checks referential integrity
+  against the full merged `entities` set (mapped + native) passed in:
+  `sourceId`/`targetId` must resolve to a known entity, and
+  `sourceType`/`targetType` must match that entity's actual `entityType`.
+  Throws on the first orphan reference, type mismatch, or duplicate
+  relationship id. Never silently drops a relationship.
+
+### Merge pipeline (`LocalMappedV2Store.initialize()`)
+
+Extends the pipeline described in "Local real-data v2 runtime" above:
+
+1. Read `data/archive.json` and validate it as a v1 archive.
+2. Map its 23 records to v2 entities (step 2's mapper) and validate each one.
+3. Read `data/v2/entities.json`.
+4. Validate every native entity against the real v2 schemas.
+5. Check every native entity's id/slug for collisions against the mapped set
+   (step 2) and against other native entities.
+6. Merge: `entities = mappedEntities.concat(nativeEntities)`.
+7. Read `data/v2/relationships.json`.
+8. Validate every relationship's shape (`validateRelationship()`).
+9. Validate referential integrity against the full merged `entities` set
+   from step 6.
+10. Load the merged entities and validated relationships into a
+    `MemoryV2Store` and expose the standard `V2Store` interface on top.
+
+Every step happens in memory, on every process startup — nothing is cached
+to disk, and no step here ever contacts Firestore or Cloud Storage.
+
+### Collision handling
+
+A native entity's `id` must not equal any of the 23 mapped v1 ids (e.g.
+`b4`), and — where the native entity has a `slug` — that slug must not equal
+any mapped entity's slug either. Both checks also apply within the native
+file itself (two native entities cannot share an id or a slug). Any
+collision **fails startup** with a clear error naming the colliding id/slug;
+it is never resolved by silently renaming, dropping, or preferring one
+record over the other.
+
+### Referential integrity
+
+A native relationship's `sourceId`/`targetId` must resolve to *some* known
+entity — mapped or native — in the merged set, and its declared
+`sourceType`/`targetType` must equal that entity's actual `entityType`. An
+orphan relationship (referencing an id that doesn't exist) or a
+type-mismatched one (e.g. declaring `sourceType: "belief"` for an id that is
+actually a `community`) **fails startup**, exactly like an invalid entity —
+it is never silently dropped or "fixed" by trusting the declared type over
+the real one. This is intentionally allowed to reference a *mapped* v1
+record: e.g. a native `belief` entity's relationship may declare
+`targetId: "b4", targetType: "structure"`, since `b4` is one of the four
+migrated belief-site structures (see "Belief-site handling" above) — the
+architecture is capable of this today; no such relationship is actually
+authored by this step.
+
+### Relationship direction
+
+Relationship edges are recorded exactly as authored — **no inverse edge is
+ever synthesized automatically**. Authoring
+`community --hasBelief--> belief` does not implicitly create
+`belief --practicedBy--> community`; both directions must be authored
+explicitly if both are intended. This mirrors the existing relationship
+model's philosophy (see "Relationship model" above: relationships are
+explicit edge records, never inferred) and keeps the merge pipeline a pure
+function of its committed inputs.
+
+### Config paths
+
+```
+V2_ENTITIES_JSON_PATH       # default: data/v2/entities.json
+V2_RELATIONSHIPS_JSON_PATH  # default: data/v2/relationships.json
+```
+
+These mirror v1's existing `ARCHIVE_JSON_PATH` override pattern
+(`backend/stores/fileStore.js`) and are resolved with `path.resolve()`
+exactly the same way. They are **operator/developer-controlled local
+configuration**, not user input reachable from any HTTP request — no route
+or query parameter ever influences these paths, so there is no client-facing
+path-traversal surface. Neither path, nor any other filesystem path, is ever
+included in an `/api/v2` response (`GET /api/v2` continues to expose only
+`version`/`status`/`supportedEntityTypes`, per `backend/test/v2/routes.test.js`'s
+existing secret/path-leak assertions).
+
+The default (relative to `backend/v2/localData/`) only resolves correctly
+when running the backend directly from the repository, where `data/v2/`
+sits three directories up. `backend/Dockerfile` copies only the `backend/`
+directory into the image (`/app`), not the repository's top-level `data/`
+— exactly the same reason `ARCHIVE_JSON_PATH` is explicitly overridden in
+`docker-compose.yml` today. So `docker-compose.yml`'s
+`antiochia-archive-backend` service also always sets
+`V2_ENTITIES_JSON_PATH=/appdata/private/v2/entities.json` and
+`V2_RELATIONSHIPS_JSON_PATH=/appdata/private/v2/relationships.json`,
+pointing at the same `./data:/appdata/private` bind mount `ARCHIVE_JSON_PATH`
+already uses — both variables are only ever *read* when `V2_DATA_STORE=local`
+is explicitly set, so they are inert at the default `V2_DATA_STORE=empty`.
+
+### Missing file behavior
+
+`data/v2/entities.json` and `data/v2/relationships.json` are committed to
+the repository, so a **missing** file is treated as a configuration or
+repository problem, not an empty dataset: `loadNativeEntities`/
+`loadNativeRelationships` throw a clear, explicit error identifying the
+expected path rather than silently falling back to `[]`. This deliberately
+mirrors "fails loudly" from "Local real-data v2 runtime" above — a broken
+local editorial runtime must be obvious at startup, never a silent empty
+result that looks the same as "no content authored yet".
+
+### Relationship API
+
+Two new read-only endpoints (no write path exists for either):
+
+- **`GET /api/v2/relationships`** — paginated list of relationship edges,
+  optionally filtered by a controlled `type` (one of `RELATIONSHIP_TYPES`).
+  Uses its own small query parser (`parseRelationshipListRequest` in
+  `backend/v2/routes/v2Routes.js`), not `validators/filters.js`, since that
+  module's filter surface is entity-oriented.
+- **`GET /api/v2/entities/:id/related`** — see "Related entity API" below.
+
+### Related entity API
+
+Returns each related entity paired with the relationship edge that connects
+it to `:id`, rather than a bare entity array:
+
+```json
+{
+  "success": true,
+  "data": [
+    { "relationship": { "id": "...", "type": "hasSite", "sourceId": "...", "targetId": "..." }, "entity": { "id": "...", "entityType": "structure", ... } }
+  ],
+  "meta": { "version": "v2", "count": 1, "limit": 20, "cursor": null, "nextCursor": null }
+}
+```
+
+Both `relationship` and `entity` are passed through the same allowlist
+serializers as every other public response (`serializePublicRelationship`,
+`serializePublicEntity`) — never a raw internal record. Entity pagination
+reuses the store's existing `getRelatedEntities(id, { limit, cursor })`
+cursor contract unchanged. Relationship pairing is a **documented, bounded
+best-effort enrichment**: it separately fetches at most one page
+(`MAX_PAGE_LIMIT` = 100) of relationship edges touching `:id` and matches
+them client-side in the route handler, rather than extending the `V2Store`
+interface itself (out of scope for an infrastructure-only step). In a
+future deployment with more than 100 relationship edges on a single entity,
+a small number of pairs could show `relationship: null` while the related
+entity is still returned correctly — an accepted tradeoff for this local/dev
+step, in the same spirit as `FirestoreV2Store`'s already-documented
+two-direction-query tradeoff for `getRelatedEntities` (see "Relationship
+reads" above).
+
+### Publication visibility
+
+Every public list endpoint and single-record lookup (`/api/v2/entities`,
+every per-type list, `/api/v2/entities/:id`, `/api/v2/relationships`,
+`/api/v2/entities/:id/related`) now filters to records whose `status` is
+**exactly** `"published"` before serializing a response — `draft`,
+`inReview`, `archived`, and a missing/absent `status` are all treated as
+*not yet public*. A direct lookup of a non-public id returns the same
+`{ success: false, error: "Entity not found." }` 404 as a truly unknown id,
+never a different status code that would let a client distinguish "doesn't
+exist" from "exists but isn't published yet".
+
+This filtering happens **only at the route layer**
+(`backend/v2/routes/v2Routes.js`), never inside `MemoryV2Store` or
+`LocalMappedV2Store` itself — store-level code (and the tests that exercise
+it directly, e.g. `backend/test/v2/stores/localMappedV2StoreMerge.test.js`)
+can still read every record regardless of status, which is what a future
+editorial/admin path will need.
+
+**`media` and `source` entities are exempt from this rule**: neither schema
+defines a `status`/`PUBLICATION_STATUS` field at all (`media.js` and
+`source.js` both deliberately skip `validateBaseEntity`), matching how v1's
+gallery/source content was already always public. They remain visible
+exactly as before this step.
+
+All 23 mapped v1 entities already carry `status: "published"` (set
+explicitly by every mapper function except the gallery/media one, which is
+covered by the exemption above), so this new filtering changes no existing
+count or response.
+
+### Editorial workflow
+
+This step establishes the intended standard workflow for every future
+cultural record, from research to (eventual) production:
+
+```
+researched content
+  -> source review (reviewed citations, per "Source requirement" below)
+  -> authored as a native v2 entity (data/v2/entities.json, status: "draft" while in progress)
+  -> relationship authored/reviewed if it connects to other entities (data/v2/relationships.json)
+  -> validated (validateEntity() / validateRelationship(), collision + referential integrity checks)
+  -> local preview (V2_DATA_STORE=local, /api/v2, status flipped to "published" when ready)
+  -> eventual Firestore migration (a separate, explicit, reviewed step — see
+     "Future Firestore v2 strategy" below; still unimplemented)
+```
+
+Nothing in this step performs the last step (Firestore migration) — it only
+makes the earlier steps possible to exercise locally, end to end, before
+that decision is made.
+
+### Source requirement (documented, not yet enforced)
+
+No current v2 schema requires a `source`/`sourceIds` reference on
+`community`/`belief` entities, and this step does not add such a
+requirement to the validators. It documents the **future editorial rule**
+this workflow is meant to support: historical claims and community/belief
+descriptions should carry a reviewed `source` reference (or `sourceIds`,
+per the existing `structure`/`story`/`music`/`proverb` convention) before
+being marked `status: "published"`. Enforcing this in the schema layer is
+left to the future content task that actually authors sourced records — it
+is not implemented here, and no source is fabricated to satisfy it.
+
+### No cultural content authored in this task
+
+`data/v2/entities.json` and `data/v2/relationships.json` remain exactly
+`{ "entities": [] }` and `{ "relationships": [] }` — verified by
+`backend/test/v2/localData/nativeV2DataSource.test.js` and by the content
+safety review in this step's validation pass. Every fixture used to exercise
+the merge/collision/referential-integrity/API code paths
+(`community-test-1`, `belief-test-1`, `place-test-1`, and similar) is
+obviously fictional, lives only inside test files or temporary files created
+and destroyed by a single test run, and is never written to the committed
+`data/v2/*.json` files. No Arab Alawite, Sunni, Orthodox, Jewish, Armenian,
+Arab Christian, Turkish, Kurdish, or any other real community/belief/place
+record is introduced anywhere by this step.
+
 ## What is deliberately NOT implemented
 
 - No real v2 Firestore document has been written (`FirestoreV2Store` is
@@ -670,16 +987,22 @@ deployment default changes.
 - No Cloud Storage bucket, upload, or media-serving path.
 - No write/create/update/delete endpoints under `/api/v2`.
 - No actual community, belief, place, or proverb records anywhere — not in
-  Firestore, not in the local mapped runtime, not in any datastore. The one
-  exception to "nothing is written or migrated" is `LocalMappedV2Store`
-  itself (`V2_DATA_STORE=local`), which holds real `structure`/`story`/
-  `music`/`historicalContext`/`media` records **in an in-process, local-only
-  memory store**, rebuilt from `data/archive.json` on every startup — never
-  persisted to Firestore, a file, or any other datastore. See "Local
-  real-data v2 runtime" above.
-- No actual relationships between entities (`v2Relationships` is an empty,
-  documented collection shape; `LocalMappedV2Store` also holds zero
-  relationships).
+  Firestore, not in the local mapped runtime, not in any datastore.
+  `data/v2/entities.json` is committed and readable, and the *capability* to
+  merge such records in exists as of this step (see "Local editorial entity
+  + relationship data infrastructure" above), but the file itself stays
+  `{ "entities": [] }`. The one exception to "nothing is written or
+  migrated" is `LocalMappedV2Store` itself (`V2_DATA_STORE=local`), which
+  holds real `structure`/`story`/`music`/`historicalContext`/`media`
+  records **in an in-process, local-only memory store**, rebuilt from
+  `data/archive.json` on every startup — never persisted to Firestore, a
+  file, or any other datastore. See "Local real-data v2 runtime" above.
+- No actual relationships between entities — `v2Relationships` (Firestore)
+  remains an empty, documented collection shape, and `data/v2/relationships.json`
+  (local) is committed but stays `{ "relationships": [] }`. The *capability*
+  to validate and merge relationship edges — including referential integrity
+  and the explicit no-auto-inverse rule — exists as of this step; no edge is
+  actually authored.
 - No real consent records — `consent.js` is validation only; `v2Consents`
   and `v2Editorial` are documented, unused collection names.
 - No admin/editorial UI for v2.

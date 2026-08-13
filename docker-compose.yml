@@ -87,6 +87,11 @@ services:
       #   V2_DATA_STORE=local docker compose up antiochia-archive-web antiochia-archive-backend
       # See V2-ARCHITECTURE.md "Local real-data v2 runtime". Never set in production.
       - V2_DATA_STORE=${V2_DATA_STORE:-empty}
+      # Only read when V2_DATA_STORE=local; mirrors ARCHIVE_JSON_PATH above so the
+      # container's mounted ./data volume (not the image's /app/data, which doesn't
+      # exist) is where the local v2 native data files are read from.
+      - V2_ENTITIES_JSON_PATH=/appdata/private/v2/entities.json
+      - V2_RELATIONSHIPS_JSON_PATH=/appdata/private/v2/relationships.json
     volumes:
       # Temporary local/development persistence only. Cloud Run uses Firestore.
       - ./data:/appdata/private

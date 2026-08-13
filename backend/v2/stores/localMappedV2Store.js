@@ -1,15 +1,23 @@
-// LOCAL DEVELOPMENT ONLY: maps the current reviewed data/archive.json into
-// the v2 shape at startup using the existing validated v1 -> v2 mapper, then
-// serves the result from an in-process MemoryV2Store.
+// LOCAL DEVELOPMENT ONLY: builds the local v2 dataset at startup and serves
+// it from an in-process MemoryV2Store. Two sources are merged:
+//
+//   A. data/archive.json, mapped through the existing validated v1 -> v2
+//      mapper (23 records today).
+//   B. data/v2/entities.json + data/v2/relationships.json, hand-authored
+//      v2-native records validated against the same v2 schemas and checked
+//      for id/slug collisions and relationship referential integrity
+//      against the merged entity set. See ../localData/nativeV2DataSource.js.
 //
 // Safety properties:
-//   - reads data/archive.json only; never writes it.
+//   - reads data/archive.json, data/v2/entities.json, and
+//     data/v2/relationships.json only; never writes any of them.
 //   - never contacts Firestore or Cloud Storage.
-//   - creates zero community/belief/place/proverb/source entities — the
-//     mapper (../migration/v1ToV2Mapping.js) already enforces this; this
-//     store adds no invented data of its own.
-//   - fails loudly at startup if any mapped record does not validate
-//     against the real v2 schemas; it never silently drops a record.
+//   - authors zero cultural content itself — both the mapper and the native
+//     data source only validate/merge what is already committed to those
+//     files; this step's committed data/v2/*.json start empty.
+//   - fails loudly at startup on any invalid mapped/native record, any id/
+//     slug collision, or any orphan/type-mismatched relationship; it never
+//     silently drops a record or a relationship.
 //
 // Selected via V2_DATA_STORE=local (see ./v2Store.js). The production-safe
 // default remains V2_DATA_STORE=empty; this store is never constructed or
@@ -21,6 +29,7 @@ import { fileURLToPath } from "url";
 import { assertValidArchive } from "../../dataModel.js";
 import { mapV1ArchiveToV2Entities } from "../migration/v1ToV2Mapping.js";
 import { validateEntity } from "../schemas/index.js";
+import { loadNativeEntities, loadNativeRelationships } from "../localData/nativeV2DataSource.js";
 import { createMemoryV2Store } from "./memoryV2Store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -66,10 +75,15 @@ export function mapAndValidateArchive(archive) {
 }
 
 /**
- * Factory so tests can inject a fixture archive loader instead of reading
- * the real data/archive.json from disk.
+ * Factory so tests can inject fixture loaders instead of reading the real
+ * data/archive.json / data/v2/entities.json / data/v2/relationships.json
+ * from disk. Defaults are the real, disk-backed loaders.
  */
-export function createLocalMappedV2Store({ loadArchive = readV1Archive } = {}) {
+export function createLocalMappedV2Store({
+  loadArchive = readV1Archive,
+  loadEntities = loadNativeEntities,
+  loadRelationships = loadNativeRelationships,
+} = {}) {
   let delegate = null;
 
   function requireDelegate() {
@@ -81,9 +95,23 @@ export function createLocalMappedV2Store({ loadArchive = readV1Archive } = {}) {
 
   return {
     async initialize() {
+      // 1-2. Read + validate the v1 archive, then map its 23 records.
       const archive = await loadArchive();
-      const entities = mapAndValidateArchive(archive);
-      delegate = createMemoryV2Store({ entities, relationships: [] });
+      const mappedEntities = mapAndValidateArchive(archive);
+
+      // 3-6. Read native v2 entities, validate them, detect id/slug
+      // collisions against the mapped set (and against each other), then
+      // merge.
+      const nativeEntities = await loadEntities({ mappedEntities });
+      const entities = [...mappedEntities, ...nativeEntities];
+
+      // 7-9. Read native relationships, validate shape, then validate
+      // referential integrity (sourceId/targetId exist, sourceType/
+      // targetType match) against the full merged entity set.
+      const relationships = await loadRelationships({ entities });
+
+      // 10. Load everything into an in-process MemoryV2Store.
+      delegate = createMemoryV2Store({ entities, relationships });
     },
 
     async listEntities(options) {

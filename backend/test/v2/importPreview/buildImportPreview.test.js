@@ -191,6 +191,21 @@ const PART4 = [
   "type: associatedWith",
   "targetEntityId: does-not-exist",
   "targetType: place",
+  "",
+  "---",
+  // Targets the same fixture candidate the collision tests below use
+  // (structure-test-collide). By default (no injected loadReplacements) this
+  // stays excluded as an orphan, exactly like relationship-test-orphan,
+  // since structure-test-collide is normally excluded as a collision. Tests
+  // that inject a confirmed replacement for structure-test-collide prove it
+  // resolves once that candidate is included instead.
+  "relationshipId: relationship-test-collide-target",
+  "sourceEntityId: story-test-1",
+  "sourceType: story",
+  "type: associatedWith",
+  "targetEntityId: structure-test-collide",
+  "targetType: structure",
+  "evidenceSourceIds: [source-test-1]",
 ].join("\n");
 
 const PART5 = [
@@ -288,6 +303,68 @@ test("buildImportPreview excludes a record whose slug collides with a real mappe
   assert.ok(excluded);
   assert.equal(excluded.reason, "slugCollision");
   assert.match(excluded.detail, /habib-i-neccar-camii/);
+});
+
+test("a confirmed legacy replacement lets a colliding candidate be included instead of excluded, and unblocks its relationship", async (context) => {
+  const dir = await withTempDir(context);
+  await writeFixtureFiles(dir);
+
+  const loadReplacements = async () => [
+    { legacyMappedEntityId: "st1", canonicalNativeEntityId: "structure-test-collide", reason: "test: confirmed supersession" },
+  ];
+
+  const result = await buildImportPreview({ researchDir: dir, loadReplacements });
+
+  assert.equal(result.entities.some((e) => e.id === "structure-test-collide"), true);
+  assert.equal(result.report.excludedEntities.some((e) => e.id === "structure-test-collide"), false);
+
+  const applied = result.report.legacyReplacementAudit.appliedInThisBatch.find((a) => a.canonicalId === "structure-test-collide");
+  assert.ok(applied);
+  assert.deepEqual(applied.supersedesLegacyIds, ["st1"]);
+  assert.equal(applied.resolvedViaCollision, true);
+
+  // The relationship that used to be an orphan (because its target was
+  // excluded) now resolves, with no relationship id rewrite.
+  assert.equal(result.relationships.some((r) => r.id === "relationship-test-collide-target"), true);
+  assert.equal(result.report.excludedRelationships.some((r) => r.id === "relationship-test-collide-target"), false);
+});
+
+test("an id/slug collision with NO confirmed replacement still hard-excludes, even when the replacement map is non-empty", async (context) => {
+  const dir = await withTempDir(context);
+  await writeFixtureFiles(dir);
+
+  // Non-empty, but names a completely different legacy id/target pair —
+  // must not loosen the unrelated structure-test-collide vs st1 collision.
+  const loadReplacements = async () => [
+    { legacyMappedEntityId: "m1", canonicalNativeEntityId: "music-test-unrelated", reason: "test: unrelated entry" },
+  ];
+
+  const result = await buildImportPreview({ researchDir: dir, loadReplacements });
+
+  assert.equal(result.entities.some((e) => e.id === "structure-test-collide"), false);
+  const excluded = result.report.excludedEntities.find((e) => e.id === "structure-test-collide");
+  assert.ok(excluded);
+  assert.equal(excluded.reason, "slugCollision");
+});
+
+test("a confirmed replacement with no raw id/slug collision is still surfaced as informational (structure-0020-vs-st4-style case)", async (context) => {
+  const dir = await withTempDir(context);
+  await writeFixtureFiles(dir);
+
+  // music-test-1 has no id/slug collision with any mapped v1 entity at all —
+  // mirrors the real structure-0020-vs-legacy-st4 gap the slug-only
+  // collision detector used to miss entirely.
+  const loadReplacements = async () => [
+    { legacyMappedEntityId: "m1", canonicalNativeEntityId: "music-test-1", reason: "test: no-collision supersession" },
+  ];
+
+  const result = await buildImportPreview({ researchDir: dir, loadReplacements });
+
+  assert.equal(result.entities.some((e) => e.id === "music-test-1"), true);
+  const applied = result.report.legacyReplacementAudit.appliedInThisBatch.find((a) => a.canonicalId === "music-test-1");
+  assert.ok(applied);
+  assert.deepEqual(applied.supersedesLegacyIds, ["m1"]);
+  assert.equal(applied.resolvedViaCollision, false);
 });
 
 test("buildImportPreview's sourceReferenceAudit never conflates distinct referenced sourceIds with source registry record count", async (context) => {

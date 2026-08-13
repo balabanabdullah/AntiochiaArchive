@@ -70,6 +70,11 @@ function formatSummary(result) {
   lines.push(`Publication-status downgrades (published -> inReview, unresolved citation): ${report.publicationStatus.downgradedCount}`);
   lines.push(`Oral history leads (forced status=draft, never public): ${report.storyClassification.oralHistoryLeadCount}`);
   lines.push("");
+  lines.push("Legacy replacement map (data/v2/legacyReplacements.json — confirmed, human-reviewed only):");
+  lines.push(`  confirmed replacement mappings: ${report.legacyReplacementAudit.confirmedReplacementsInMap}`);
+  lines.push(`  applied in this batch (candidate included in place of an excluded mapped-v1 collision, or annotated): ${report.legacyReplacementAudit.appliedInThisBatch.length}`);
+  lines.push(`  confirmed but not present in this batch: ${report.legacyReplacementAudit.notPresentInThisBatch.length}`);
+  lines.push("");
   const totalExcluded = Object.values(report.excludedCounts).reduce((a, b) => a + b, 0);
   const invalidCount = [
     ...report.excludedEntities, ...report.excludedSources, ...report.excludedMedia, ...report.excludedRelationships,

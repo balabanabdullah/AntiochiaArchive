@@ -26,6 +26,7 @@ import { assertValidArchive } from "../../dataModel.js";
 import { mapAndValidateArchive } from "../stores/localMappedV2Store.js";
 import { validateEntity } from "../schemas/index.js";
 import { validateRelationship } from "../schemas/relationship.js";
+import { loadLegacyReplacements } from "../localData/legacyReplacements.js";
 import {
   parsePart1, parsePart2, parsePart3, parsePart4, parsePart5, parseRegistryRecovery,
 } from "./researchParser.js";
@@ -111,17 +112,37 @@ function applyRelationshipCorrections(relationships, corrections) {
   });
 }
 
-function collisionDetail(kind, value, mappedSet, batchSet) {
-  if (mappedSet.has(value)) return `${kind} '${value}' collides with an existing mapped v1 entity.`;
+function batchCollisionDetail(kind, value, batchSet) {
   if (batchSet.has(value)) return `${kind} '${value}' collides with another record already included from this research batch.`;
   return null;
 }
 
-export async function buildImportPreview({ researchDir }) {
+export async function buildImportPreview({ researchDir, loadReplacements = loadLegacyReplacements }) {
   const archive = await readV1Archive();
   const mappedEntities = mapAndValidateArchive(archive);
   const mappedIds = new Set(mappedEntities.map((entity) => entity.id));
-  const mappedSlugs = new Set(mappedEntities.filter((entity) => entity.slug).map((entity) => entity.slug));
+  const mappedSlugToId = new Map(mappedEntities.filter((entity) => entity.slug).map((entity) => [entity.slug, entity.id]));
+
+  // Confirmed, human-reviewed legacy replacement mappings (see
+  // ../localData/legacyReplacements.js and V2-ARCHITECTURE.md "Legacy
+  // replacement layer"). A research candidate whose id/slug collides with a
+  // mapped v1 entity is excluded UNLESS an explicit reviewed entry names
+  // that exact mapped entity as superseded by this exact candidate —
+  // semantic replacement is never inferred from title/name similarity, only
+  // from this reviewed map. This preview never itself suppresses a mapped
+  // v1 entity (it doesn't include the 23 mapped entities in its output at
+  // all) — the map is used here only to decide whether a *research*
+  // candidate's collision with the mapped baseline is expected, so the
+  // preview accurately reflects what the real LocalMappedV2Store merge will
+  // eventually produce once these candidates and this same map are promoted.
+  const replacements = await loadReplacements({ mappedEntities });
+  const replacementsByLegacyId = new Map(replacements.map((entry) => [entry.legacyMappedEntityId, entry.canonicalNativeEntityId]));
+  const replacementsByCanonicalId = new Map();
+  for (const entry of replacements) {
+    const list = replacementsByCanonicalId.get(entry.canonicalNativeEntityId) || [];
+    list.push(entry.legacyMappedEntityId);
+    replacementsByCanonicalId.set(entry.canonicalNativeEntityId, list);
+  }
 
   const files = await readResearchFiles(researchDir);
   const p1 = parsePart1(files.part1);
@@ -150,6 +171,7 @@ export async function buildImportPreview({ researchDir }) {
   const seenIds = new Set();
   const seenSlugs = new Set();
   const resolvedSourceIdSet = new Set(IDENTITY_RESOLVED_SOURCE_IDS);
+  const legacyReplacementsApplied = [];
 
   for (const record of inputEntityRecords) {
     let normalized;
@@ -165,15 +187,42 @@ export async function buildImportPreview({ researchDir }) {
     const statusPolicy = applyPublicationStatusPolicy(record, resolvedSourceIdSet);
     normalized.status = statusPolicy.status;
 
-    const idCollision = collisionDetail("id", normalized.id, mappedIds, seenIds);
-    if (idCollision) {
-      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "idCollision", detail: idCollision });
+    // Batch-internal collisions (two research candidates in the same batch
+    // sharing an id/slug) always hard-fail — the legacy replacement map only
+    // ever concerns the mapped v1 baseline, never candidates against each
+    // other.
+    const idBatchCollision = batchCollisionDetail("id", normalized.id, seenIds);
+    if (idBatchCollision) {
+      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "idCollision", detail: idBatchCollision });
       continue;
     }
-    const slugCollision = normalized.slug ? collisionDetail("slug", normalized.slug, mappedSlugs, seenSlugs) : null;
-    if (slugCollision) {
-      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "slugCollision", detail: slugCollision });
+    const slugBatchCollision = normalized.slug ? batchCollisionDetail("slug", normalized.slug, seenSlugs) : null;
+    if (slugBatchCollision) {
+      excludedEntities.push({ id: normalized.id, entityType: normalized.entityType, reason: "slugCollision", detail: slugBatchCollision });
       continue;
+    }
+
+    // Mapped-v1 collisions: excluded UNLESS a confirmed, reviewed
+    // legacyReplacements entry names the exact colliding mapped entity as
+    // superseded by this exact candidate.
+    const collidingMappedIdByEntityId = mappedIds.has(normalized.id) ? normalized.id : null;
+    const collidingMappedIdBySlug = normalized.slug ? mappedSlugToId.get(normalized.slug) : null;
+    const collidingMappedId = collidingMappedIdByEntityId || collidingMappedIdBySlug;
+
+    if (collidingMappedId) {
+      const confirmedTarget = replacementsByLegacyId.get(collidingMappedId);
+      if (confirmedTarget !== normalized.id) {
+        const reason = collidingMappedIdByEntityId ? "idCollision" : "slugCollision";
+        const matchedOn = collidingMappedIdByEntityId ? `id '${normalized.id}'` : `slug '${normalized.slug}'`;
+        excludedEntities.push({
+          id: normalized.id,
+          entityType: normalized.entityType,
+          reason,
+          detail: `${matchedOn} collides with mapped v1 entity '${collidingMappedId}', and no confirmed `
+            + "legacyReplacements.json entry names it as superseded by this candidate.",
+        });
+        continue;
+      }
     }
 
     const validation = validateEntity(normalized);
@@ -184,11 +233,22 @@ export async function buildImportPreview({ researchDir }) {
 
     seenIds.add(normalized.id);
     if (normalized.slug) seenSlugs.add(normalized.slug);
+
+    // Attach legacy-replacement provenance whenever this candidate is a
+    // confirmed canonicalNativeEntityId target — whether or not a raw id/
+    // slug collision was what surfaced it (structure-0020 vs legacy st4 has
+    // no slug/id collision at all, yet is still a confirmed replacement).
+    const supersedesLegacyIds = replacementsByCanonicalId.get(normalized.id) || null;
+    if (supersedesLegacyIds) {
+      legacyReplacementsApplied.push({ canonicalId: normalized.id, supersedesLegacyIds, resolvedViaCollision: Boolean(collidingMappedId) });
+    }
+
     includedEntities.push({
       entity: normalized,
       sourceRecordId: record.id,
       statusDowngraded: statusPolicy.downgraded,
       downgradeReason: statusPolicy.reason,
+      legacyReplacement: supersedesLegacyIds ? { supersedesLegacyIds } : undefined,
     });
   }
 
@@ -323,6 +383,7 @@ export async function buildImportPreview({ researchDir }) {
     includedMedia, excludedMedia,
     includedRelationships, excludedRelationships,
     p1, p2, p3, registryRecovery,
+    replacements, legacyReplacementsApplied,
   });
 
   return {
@@ -364,6 +425,7 @@ function buildReport(ctx) {
     includedMedia, excludedMedia,
     includedRelationships, excludedRelationships,
     p1, p2, p3, registryRecovery,
+    replacements, legacyReplacementsApplied,
   } = ctx;
 
   const includedByType = countByEntityType(includedEntities.map((item) => item.entity));
@@ -504,6 +566,28 @@ function buildReport(ctx) {
       note: "publicStoryCandidate means status is not 'draft' and storyRecordType is not "
         + "'oralHistoryLead' — it does not mean already public: nothing in this preview has "
         + "status 'published' unless its full source citation was identity-resolved.",
+    },
+    // Confirmed legacyReplacements.json entries this preview resolved a
+    // mapped-v1 collision through (or, for entries with no raw id/slug
+    // collision at all — e.g. structure-0020 vs legacy st4 — simply
+    // annotated). This preview never itself suppresses the mapped v1
+    // entity: it doesn't include the 23 mapped v1 records in its output to
+    // begin with. Suppression only happens for real, at LocalMappedV2Store
+    // startup, once the named canonicalNativeEntityId is actually promoted
+    // into data/v2/entities.json — see V2-ARCHITECTURE.md "Legacy
+    // replacement layer".
+    legacyReplacementAudit: {
+      confirmedReplacementsInMap: replacements.length,
+      appliedInThisBatch: legacyReplacementsApplied,
+      notPresentInThisBatch: replacements
+        .filter((entry) => !legacyReplacementsApplied.some((applied) => applied.canonicalId === entry.canonicalNativeEntityId))
+        .map((entry) => ({ legacyMappedEntityId: entry.legacyMappedEntityId, canonicalNativeEntityId: entry.canonicalNativeEntityId })),
+      note: "'appliedInThisBatch' entries are candidates from this research batch that a confirmed "
+        + "legacyReplacements.json entry named as the canonical replacement for a mapped v1 entity — "
+        + "'resolvedViaCollision: true' means the candidate's id/slug actually collided with the mapped "
+        + "entity and the replacement map is what let it be included instead of excluded; "
+        + "'resolvedViaCollision: false' means there was no raw collision at all (e.g. structure-0020 vs "
+        + "legacy st4, whose slugs differ entirely) and the entry is purely informational here.",
     },
     specialCases,
   };

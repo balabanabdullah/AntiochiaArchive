@@ -1,5 +1,5 @@
 // LOCAL DEVELOPMENT ONLY: builds the local v2 dataset at startup and serves
-// it from an in-process MemoryV2Store. Two sources are merged:
+// it from an in-process MemoryV2Store. Three sources are merged:
 //
 //   A. data/archive.json, mapped through the existing validated v1 -> v2
 //      mapper (23 records today).
@@ -7,17 +7,31 @@
 //      v2-native records validated against the same v2 schemas and checked
 //      for id/slug collisions and relationship referential integrity
 //      against the merged entity set. See ../localData/nativeV2DataSource.js.
+//   C. data/v2/legacyReplacements.json, the reviewed record of which mapped
+//      v1 entities (A) a native entity (B) is confirmed to supersede. A
+//      mapped entity is suppressed from the merged set ONLY when its
+//      replacement is "active" — i.e. the native/canonical entity it names
+//      actually exists in (B) today. Until the canonical entity is promoted,
+//      the mapping is "pending" and the legacy mapped record stays fully
+//      visible — see ../localData/legacyReplacements.js and
+//      V2-ARCHITECTURE.md "Legacy replacement layer".
 //
 // Safety properties:
-//   - reads data/archive.json, data/v2/entities.json, and
-//     data/v2/relationships.json only; never writes any of them.
+//   - reads data/archive.json, data/v2/entities.json,
+//     data/v2/relationships.json, and data/v2/legacyReplacements.json only;
+//     never writes any of them.
 //   - never contacts Firestore or Cloud Storage.
-//   - authors zero cultural content itself — both the mapper and the native
-//     data source only validate/merge what is already committed to those
-//     files; this step's committed data/v2/*.json start empty.
-//   - fails loudly at startup on any invalid mapped/native record, any id/
-//     slug collision, or any orphan/type-mismatched relationship; it never
-//     silently drops a record or a relationship.
+//   - authors zero cultural content itself — the mapper, the native data
+//     source, and the legacy replacement layer only validate/merge/suppress
+//     what is already committed to those files; this step's committed
+//     data/v2/*.json start empty (legacyReplacements.json starts populated
+//     only with already human-reviewed supersession decisions, all pending
+//     until their canonical target is promoted).
+//   - fails loudly at startup on any invalid mapped/native/replacement
+//     record, any id/slug collision, any orphan/type-mismatched
+//     relationship, or any malformed replacement entry; it never silently
+//     drops a record or a relationship, and a pending replacement never
+//     hides the legacy record it will eventually supersede.
 //
 // Selected via V2_DATA_STORE=local (see ./v2Store.js). The production-safe
 // default remains V2_DATA_STORE=empty; this store is never constructed or
@@ -30,6 +44,7 @@ import { assertValidArchive } from "../../dataModel.js";
 import { mapV1ArchiveToV2Entities } from "../migration/v1ToV2Mapping.js";
 import { validateEntity } from "../schemas/index.js";
 import { loadNativeEntities, loadNativeRelationships } from "../localData/nativeV2DataSource.js";
+import { loadLegacyReplacements, classifyLegacyReplacements } from "../localData/legacyReplacements.js";
 import { createMemoryV2Store } from "./memoryV2Store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -83,8 +98,10 @@ export function createLocalMappedV2Store({
   loadArchive = readV1Archive,
   loadEntities = loadNativeEntities,
   loadRelationships = loadNativeRelationships,
+  loadReplacements = loadLegacyReplacements,
 } = {}) {
   let delegate = null;
+  let lastReplacementClassification = null;
 
   function requireDelegate() {
     if (!delegate) {
@@ -103,15 +120,44 @@ export function createLocalMappedV2Store({
       // collisions against the mapped set (and against each other), then
       // merge.
       const nativeEntities = await loadEntities({ mappedEntities });
-      const entities = [...mappedEntities, ...nativeEntities];
+
+      // 6a. Read and validate the legacy replacement map, then classify each
+      // entry as active (canonical target exists in nativeEntities -> the
+      // named mapped entity must be suppressed) or pending (canonical target
+      // not promoted yet -> the mapped entity stays fully visible). Applied
+      // BEFORE merging so a suppressed mapped entity never reaches the
+      // served entity set, the relationship pool, or MemoryV2Store at all.
+      const replacements = await loadReplacements({ mappedEntities });
+      const classification = classifyLegacyReplacements(replacements, nativeEntities);
+      lastReplacementClassification = classification;
+
+      const survivingMappedEntities = mappedEntities.filter(
+        (entity) => !classification.activeLegacyIdsToSuppress.has(entity.id),
+      );
+      const entities = [...survivingMappedEntities, ...nativeEntities];
 
       // 7-9. Read native relationships, validate shape, then validate
       // referential integrity (sourceId/targetId exist, sourceType/
-      // targetType match) against the full merged entity set.
+      // targetType match) against the full merged entity set. A relationship
+      // that targeted a now-suppressed legacy entity would correctly fail
+      // here as an orphan — exactly as if that id had never existed.
       const relationships = await loadRelationships({ entities });
 
       // 10. Load everything into an in-process MemoryV2Store.
       delegate = createMemoryV2Store({ entities, relationships });
+    },
+
+    /**
+     * Exposes the most recent legacy-replacement classification (active /
+     * pending entries) for introspection and tests. Never suppresses
+     * anything itself — initialize() already applied the suppression before
+     * building the served entity set.
+     */
+    getLegacyReplacementClassification() {
+      if (!lastReplacementClassification) {
+        throw new Error("LocalMappedV2Store has not been initialized. Call initialize() first.");
+      }
+      return lastReplacementClassification;
     },
 
     async listEntities(options) {

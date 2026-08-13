@@ -830,11 +830,228 @@ model's philosophy (see "Relationship model" above: relationships are
 explicit edge records, never inferred) and keeps the merge pipeline a pure
 function of its committed inputs.
 
+## Legacy replacement layer
+
+The v1 -> v2 migration mapper (see "V1 category mapping" above) maps all 23
+`data/archive.json` records into v2 entities exactly once each, with no
+attempt at deduplication against future canonical research content — that
+was deliberate at the time (a pure, stateless mapper), but it means that once
+a *canonical*, source-reviewed v2-native record is authored for a
+real-world site a mapped v1 record already covers (e.g. a mosque, a shrine),
+naively adding the canonical record to `data/v2/entities.json` would either:
+
+- **fail startup outright**, if the canonical record's `id`/`slug` happens to
+  equal the mapped record's (`loadNativeEntities`'s existing collision check,
+  "Collision handling" above) — or, worse,
+- **silently succeed with two representations of the same real-world entity**
+  side by side, if the id/slug happen to differ (they often do: v1 slugs and
+  canonical research slugs were authored independently, at different times,
+  by different processes).
+
+Neither outcome is acceptable, and slug/id equality alone is not a reliable
+signal either way: two *different* real-world sites can coincidentally share
+no words, and the *same* real-world site can be described by a mapped v1
+record and a canonical research record with completely unrelated slugs. This
+was proven concretely during the pre-promotion identity reconciliation of the
+first real canonical research batch (see
+`tmp/v2-import-preview/legacy-reconciliation.json`, gitignored — not
+committed): of the 7 mapped v1 records the reconciliation confirmed a
+canonical replacement for, the existing slug-only collision detector caught
+only 5. It silently missed two real semantic duplicates:
+
+- **`structure-0020` vs. legacy `st4`** ("Traditional Antioch Houses"): v1's
+  slug is `antakya-evleri`; the canonical research record's slug is
+  `geleneksel-antakya-evleri` — completely different strings, zero collision,
+  yet an explicit PART 2 research editorial note ("v1 st4 maps here.")
+  confirms they are the same real-world subject. Before this layer existed,
+  promoting `structure-0020` as-is would have silently produced two
+  representations of the same houses with no warning at all.
+- **The St. Pierre case, `structure-0003` vs. legacy `st2`**: v1's structure
+  record `st2` has slug `st-pierre-kilisesi`; the canonical structure's slug
+  is `st-pierre-magara-kilisesi`. These also don't collide. (v1's *belief*
+  record `b2` happens to share the canonical slug exactly and was already
+  blocked — but that was luck, not detection of `st2`'s duplication. PART 5's
+  duplicate/entity-resolution log — resolution-0003 — explicitly unifies both
+  v1 records, structure `st2` and belief `b2`, into the one canonical
+  `structure-0003`, a documented many-to-one supersession.)
+
+### Design: native-over-mapped overlay
+
+`data/v2/legacyReplacements.json` is a small, git-tracked, human-reviewed
+list of confirmed supersession decisions — migration/identity-control
+metadata, not cultural content:
+
+```json
+{
+  "replacements": [
+    {
+      "legacyMappedEntityId": "st1",
+      "canonicalNativeEntityId": "structure-0001",
+      "reason": "..."
+    }
+  ]
+}
+```
+
+Every entry requires all three fields (`backend/v2/localData/legacyReplacements.js`
+rejects unknown fields outright — deliberately stricter than the general v2
+entity schemas, since this is small hand-curated metadata where an unknown
+field is far more likely an authoring mistake than a forward-compatible
+extension). `reason` is mandatory and non-empty specifically so that a
+many-to-one mapping (two legacy ids superseded by the same canonical id, like
+the St. Pierre `st2`+`b2` -> `structure-0003` case) is a *documented*
+decision by construction, not an accidental duplicate slipping through
+unnoticed.
+
+**A replacement entry never suppresses anything by itself.** It only takes
+effect once classified:
+
+| Classification | Condition | Effect |
+| --- | --- | --- |
+| **Active** | `canonicalNativeEntityId` is present in the currently loaded native `data/v2/entities.json` | The named `legacyMappedEntityId` is suppressed from the merged v2 view. |
+| **Pending** | `canonicalNativeEntityId` is *not yet* present | No suppression — the legacy mapped record stays exactly as visible as before. |
+| **Invalid** | malformed shape, unknown field, missing/empty `reason`, malformed canonical id, `legacyMappedEntityId` not in the real 23-record mapped baseline, self-replacement, or a `legacyMappedEntityId` listed more than once (contradictory) | `loadLegacyReplacements()` throws at startup — never silently dropped or downgraded to pending. |
+
+This lets the replacement map be authored and reviewed *ahead of* the
+canonical entity's own promotion into `data/v2/entities.json`, without ever
+making v2 content disappear early. Today, `data/v2/entities.json` is still
+`{ "entities": [] }`, so **all 7 committed replacement entries currently
+classify as pending** — the merged v2 view is unchanged: the same 23 mapped
+v1 records as before, with `structure-0001`..`structure-0005` and
+`structure-0020` still absent.
+
+### Where suppression happens (`LocalMappedV2Store.initialize()`)
+
+```
+data/archive.json --> v1 mapper --> 23 mapped entities ---------+
+                                                                  |
+data/v2/legacyReplacements.json --> loadLegacyReplacements()     |
+        |                                  |                     |
+        v                                  v                     |
+  (validated: shape, mapped-baseline    classifyLegacyReplacements(
+   membership, no dupes/self-refs)       replacements, nativeEntities)
+                                                |
+                                    active / pending split
+                                                |
+                                                v
+                          survivingMappedEntities = mappedEntities
+                            minus {active[].legacyMappedEntityId}
+                                                |
+data/v2/entities.json --> native entities  ----+--> merged entity set
+                                                |
+                                                v
+                                    data/v2/relationships.json
+                                    (referential integrity checked
+                                     against the merged set above,
+                                     exactly as before)
+                                                |
+                                                v
+                                          MemoryV2Store --> /api/v2
+```
+
+Suppression is applied *before* the entity merge and *before* relationship
+loading — a suppressed legacy entity never reaches the served entity set,
+the relationship-resolution pool, or `MemoryV2Store` at all. A relationship
+that targeted a now-suppressed legacy id would correctly fail referential
+integrity as an orphan, exactly as if that id had never existed — this is
+why relationships must be re-authored (or already authored) against the
+*canonical* id once a replacement goes active, never left pointing at the
+suppressed legacy id.
+
+`LocalMappedV2Store` exposes `getLegacyReplacementClassification()` after
+`initialize()` for introspection/tests: `{ active, pending,
+activeLegacyIdsToSuppress }`.
+
+### Canonical IDs always win
+
+When a replacement is active:
+
+- the canonical research id (e.g. `structure-0001`) is exposed, never
+  renamed or renumbered;
+- only the *specific* mapped-v1 entity(ies) an entry names as superseded are
+  suppressed — every other mapped record, related-but-distinct or otherwise,
+  stays exactly as before, side by side;
+- the old v1 id is never copied onto the canonical record as its primary
+  id — if a future audit trail is wanted, it belongs in an optional alias
+  field on the native entity (e.g. `tags`/`migrationNote`, both already
+  free-form — see `v1ToV2Mapping.js`'s `mapBeliefSiteRecord`), never as a
+  substitute for the canonical primary id.
+
+Once every one of the 7 committed replacements eventually goes active, final
+v2 will expose exactly one representation of each of the 7 real-world sites
+(Habib-i Neccar Mosque, Habib-i Neccar Shrine, St. Pierre, Antakya Synagogue,
+Samandağ Khidr Shrine, and the traditional Antakya houses ensemble) — never
+two.
+
+### v1 API isolation
+
+The legacy replacement mechanism applies **only** to the in-memory v2 merged
+view built by `LocalMappedV2Store.initialize()`. It never touches, and
+cannot touch:
+
+- `data/archive.json` — read-only input, same as always;
+- `GET /api/archive` (v1) — served entirely by `backend/stores/fileStore.js`
+  and `backend/routes/*`, which import nothing from `backend/v2/*` and have
+  no awareness that `legacyReplacements.json` exists;
+- v1 record ids, slugs, or content — never deleted, mutated, or renumbered.
+
+`GET /api/archive` continues to return the same 23 records regardless of how
+many legacy replacements are active in v2 — proven by
+`backend/test/v2/v1Compatibility.test.js`'s existing "contract is unchanged"
+assertion, which this step's tests (`localMappedV2StoreMerge.test.js`) keep
+passing alongside new active-suppression coverage.
+
+### Import-preview collision detection
+
+`backend/v2/importPreview/buildImportPreview.js` (the whole-research-batch
+dry-run tool, separate from real promotion into `data/v2/entities.json`) now
+also loads `data/v2/legacyReplacements.json` and consults it during its own
+id/slug collision checks against the mapped v1 baseline:
+
+- a research candidate colliding with a mapped v1 entity is **excluded**
+  (`idCollision`/`slugCollision`, exactly as before) *unless* a confirmed
+  replacement entry names that exact mapped entity as superseded by that
+  exact candidate — in which case the candidate is **included** instead, and
+  annotated in `report.legacyReplacementAudit`;
+- collisions **between two candidates in the same research batch** always
+  hard-fail regardless of the replacement map — the map only ever concerns
+  the mapped v1 baseline, never batch-internal duplicates;
+- a candidate that is a confirmed replacement target but has **no raw id/slug
+  collision at all** (the `structure-0020`-vs-`st4` case) is still surfaced
+  in `report.legacyReplacementAudit.appliedInThisBatch` with
+  `resolvedViaCollision: false`, so it's never silently indistinguishable
+  from an unrelated brand-new record;
+- **semantic replacement is never inferred from title/name similarity** —
+  only an explicit, reviewed `legacyReplacements.json` entry can bypass a
+  mapped-v1 collision, at any point in this pipeline.
+
+Because this preview never includes the 23 mapped v1 records in its own
+output to begin with (they exist only as its collision baseline), it never
+itself suppresses anything — the audit exists purely so the preview
+accurately foreshadows what the real `LocalMappedV2Store` merge will produce
+once these same research candidates and this same replacement map are
+promoted together.
+
+### Human review is mandatory
+
+`legacyReplacements.json` is never machine-generated from name/slug
+similarity, and no code path in this repository writes to it. Every entry
+that exists today was populated *only* from decisions already reviewed and
+recorded in `tmp/v2-import-preview/legacy-reconciliation.json`'s
+`supersededByCanonical` classification (itself grounded in explicit PART 2
+editorial cross-references and the PART 5 duplicate/entity-resolution log —
+never inferred from name similarity alone, per that reconciliation's own
+methodology). Adding a new entry always means a person reviewed the specific
+evidence for that specific real-world entity and recorded why — the mandatory
+`reason` field exists to make that review visible and auditable in the
+committed file itself, not just in a separate report.
+
 ### Config paths
 
 ```
-V2_ENTITIES_JSON_PATH       # default: data/v2/entities.json
-V2_RELATIONSHIPS_JSON_PATH  # default: data/v2/relationships.json
+V2_ENTITIES_JSON_PATH            # default: data/v2/entities.json
+V2_RELATIONSHIPS_JSON_PATH       # default: data/v2/relationships.json
+V2_LEGACY_REPLACEMENTS_JSON_PATH # default: data/v2/legacyReplacements.json
 ```
 
 These mirror v1's existing `ARCHIVE_JSON_PATH` override pattern
@@ -854,18 +1071,21 @@ directory into the image (`/app`), not the repository's top-level `data/`
 — exactly the same reason `ARCHIVE_JSON_PATH` is explicitly overridden in
 `docker-compose.yml` today. So `docker-compose.yml`'s
 `antiochia-archive-backend` service also always sets
-`V2_ENTITIES_JSON_PATH=/appdata/private/v2/entities.json` and
-`V2_RELATIONSHIPS_JSON_PATH=/appdata/private/v2/relationships.json`,
+`V2_ENTITIES_JSON_PATH=/appdata/private/v2/entities.json`,
+`V2_RELATIONSHIPS_JSON_PATH=/appdata/private/v2/relationships.json`, and
+`V2_LEGACY_REPLACEMENTS_JSON_PATH=/appdata/private/v2/legacyReplacements.json`,
 pointing at the same `./data:/appdata/private` bind mount `ARCHIVE_JSON_PATH`
-already uses — both variables are only ever *read* when `V2_DATA_STORE=local`
-is explicitly set, so they are inert at the default `V2_DATA_STORE=empty`.
+already uses — all three variables are only ever *read* when
+`V2_DATA_STORE=local` is explicitly set, so they are inert at the default
+`V2_DATA_STORE=empty`.
 
 ### Missing file behavior
 
-`data/v2/entities.json` and `data/v2/relationships.json` are committed to
-the repository, so a **missing** file is treated as a configuration or
-repository problem, not an empty dataset: `loadNativeEntities`/
-`loadNativeRelationships` throw a clear, explicit error identifying the
+`data/v2/entities.json`, `data/v2/relationships.json`, and
+`data/v2/legacyReplacements.json` are all committed to the repository, so a
+**missing** file is treated as a configuration or repository problem, not an
+empty dataset: `loadNativeEntities`/`loadNativeRelationships`/
+`loadLegacyReplacements` throw a clear, explicit error identifying the
 expected path rather than silently falling back to `[]`. This deliberately
 mirrors "fails loudly" from "Local real-data v2 runtime" above — a broken
 local editorial runtime must be obvious at startup, never a silent empty

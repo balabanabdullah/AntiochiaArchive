@@ -92,6 +92,7 @@ services:
       # exist) is where the local v2 native data files are read from.
       - V2_ENTITIES_JSON_PATH=/appdata/private/v2/entities.json
       - V2_RELATIONSHIPS_JSON_PATH=/appdata/private/v2/relationships.json
+      - V2_LEGACY_REPLACEMENTS_JSON_PATH=/appdata/private/v2/legacyReplacements.json
     volumes:
       # Temporary local/development persistence only. Cloud Run uses Firestore.
       - ./data:/appdata/private

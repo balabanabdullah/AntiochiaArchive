@@ -1,0 +1,39 @@
+{
+  "replacements": [
+    {
+      "legacyMappedEntityId": "st1",
+      "canonicalNativeEntityId": "structure-0001",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. Identical slug 'habib-i-neccar-camii'. PART 2 structure-0001.editorialNotes: \"v1 st1 maps here.\""
+    },
+    {
+      "legacyMappedEntityId": "b1",
+      "canonicalNativeEntityId": "structure-0002",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. Identical slug 'habib-i-neccar-turbesi'. PART 2 structure-0002.editorialNotes: \"v1 belief b1 is retyped as structure.\""
+    },
+    {
+      "legacyMappedEntityId": "st2",
+      "canonicalNativeEntityId": "structure-0003",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. NOT caught by slug-collision detection alone (v1 st2's slug 'st-pierre-kilisesi' differs from structure-0003's slug 'st-pierre-magara-kilisesi'). PART 2 structure-0003.editorialNotes: \"v1 st2 and v1 belief b2 are likelySameEntity and merge here.\" PART 5 resolution-0003: St. Pierre v1 structure + St. Pierre v1 belief -> likelySameEntity -> canonicalEntityId structure-0003 (physical St. Pierre record is unified as the structure; Early Christianity / Greek Orthodox / Catholic remain separate belief entities). Many-to-one with b2 below is intentional and evidence-backed by this same PART 5 resolution-0003 entry."
+    },
+    {
+      "legacyMappedEntityId": "b2",
+      "canonicalNativeEntityId": "structure-0003",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. Identical slug 'st-pierre-magara-kilisesi' to structure-0003. Same PART 5 resolution-0003 unification as st2 above (v1's structure record st2 and belief record b2 are the same physical St. Pierre site, unified as one canonical structure)."
+    },
+    {
+      "legacyMappedEntityId": "b3",
+      "canonicalNativeEntityId": "structure-0004",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. Identical slug 'antakya-sinagogu'. PART 2 structure-0004.editorialNotes: \"v1 belief b3 retyped as structure.\" PART 5 resolution-0004: Antakya Sinagogu / Yahudilik -> relatedButDistinct: structure-0004, belief-0007."
+    },
+    {
+      "legacyMappedEntityId": "b4",
+      "canonicalNativeEntityId": "structure-0005",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. Identical slug 'hz-hizir-ziyareti-samandag'. PART 2 structure-0005.editorialNotes: \"v1 b4 retyped as structure/sacredSite.\" PART 5 resolution-0005: Hz. Hizir Ziyareti - Samandag / Arap Alevi-Nusayri inanc gelenegi -> relatedButDistinct: structure-0005, belief-0001; relatedBelief belief-0010."
+    },
+    {
+      "legacyMappedEntityId": "st4",
+      "canonicalNativeEntityId": "structure-0020",
+      "reason": "supersededByCanonical per tmp/v2-import-preview/legacy-reconciliation.json. NOT caught by slug-collision detection at all (v1 st4's slug 'antakya-evleri' differs entirely from structure-0020's slug 'geleneksel-antakya-evleri') — previously silently allowed alongside its legacy record with zero warning. PART 2 structure-0020.editorialNotes: \"v1 st4 maps here.\" (structureType: heritageEnsemble)."
+    }
+  ]
+}

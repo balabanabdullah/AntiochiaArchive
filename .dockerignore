@@ -5,9 +5,18 @@ node_modules
 .vite
 
 # ── Backend source (served separately) ─────────────────────────────────────
+# backend/v2 and backend/dataModel.js are the exception: they are pure,
+# no-secrets mapping/schema/serializer logic (no node_modules, no .env, no
+# server/auth code) that scripts/v2-archive-release.js imports at frontend
+# build time to compute the static v2 detail pages. See Dockerfile.
 backend
+!backend/dataModel.js
+!backend/v2
+!backend/v2/**
 data/*
 !data/archive.json
+!data/v2
+!data/v2/**
 
 # ── Git metadata ───────────────────────────────────────────────────────────
 .git

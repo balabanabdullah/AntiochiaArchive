@@ -37,6 +37,15 @@ COPY vite.config.js ./vite.config.js
 COPY pages/         ./pages/
 COPY scripts/       ./scripts/
 COPY data/archive.json ./data/archive.json
+# scripts/v2-archive-release.js (invoked by postbuild's generate-v2-detail-pages.js)
+# imports the pure, no-secrets v2 mapping/serialization logic straight out of
+# backend/ to compute the canonical public v2 entity list for static page
+# generation — same read-only, no-Firestore code path documented in
+# V2-ARCHITECTURE.md "Production v2 data path". Only source + committed JSON
+# data is copied here: no backend/node_modules, no .env, no server/auth code.
+COPY backend/dataModel.js ./backend/dataModel.js
+COPY backend/v2/           ./backend/v2/
+COPY data/v2/               ./data/v2/
 # 3. Copy public/ assets (lang.js lives here)
 #    Vite will copy everything in public/ verbatim to dist/
 COPY public/        ./public/

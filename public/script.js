@@ -531,6 +531,79 @@ function v2CardCategory(entityType, item) {
   return tags[0] || "all";
 }
 
+/**
+ * Display labels for free-text v2 tag/category slugs shown on filter chips.
+ * The slug itself (data-filter value, filtering logic in applyCombinedFilters)
+ * is never changed by this map — only what the user reads. Slugs are
+ * research-authored free text (see v2CardCategory), so most values pass
+ * through tagDisplayLabel()'s humanizing fallback rather than living here;
+ * this map only covers slugs whose humanized form would stay opaque
+ * (period/era names, historical-event shorthand) and gives them a plain
+ * Turkish label instead.
+ */
+const TAG_DISPLAY_LABELS = {
+  "2023-earthquake": "2023 Depremi",
+  "earthquake": "Deprem",
+  "Byzantine": "Bizans",
+  "conquest": "Fetih",
+  "courtyard": "Avlu Yaşamı",
+  "Crusader": "Haçlılar",
+  "early-Christianity": "Erken Hristiyanlık",
+  "French-Mandate": "Fransız Mandası",
+  "Hatay-State": "Hatay Devleti",
+  "Hellenistic": "Helenistik",
+  "late-antique": "Geç Antik Çağ",
+  "late-Ottoman": "Geç Osmanlı",
+  "Mamluk": "Memlük",
+  "Ottoman": "Osmanlı",
+  "Republican": "Cumhuriyet Dönemi",
+  "Roman": "Roma",
+  "Sasanian": "Sasani",
+  "Seleucid": "Seleukos",
+  "Umayyad": "Emevi",
+  "World-War-I": "I. Dünya Savaşı",
+};
+
+/**
+ * Logical section a tag slug belongs to, used only to group the history
+ * page's period/event/belief/place tags into labeled sections. A slug with
+ * no entry here has no group; if NONE of a filter bar's categories have a
+ * group, the bar renders as the original flat list (structureType/genre/
+ * storyCategory filters on other pages are never grouped).
+ */
+const TAG_GROUPS = {
+  "Byzantine": "periods",
+  "French-Mandate": "periods",
+  "Hatay-State": "periods",
+  "Hellenistic": "periods",
+  "late-antique": "periods",
+  "late-Ottoman": "periods",
+  "Mamluk": "periods",
+  "Ottoman": "periods",
+  "Republican": "periods",
+  "Roman": "periods",
+  "Sasanian": "periods",
+  "Seleucid": "periods",
+  "Umayyad": "periods",
+  "2023-earthquake": "events",
+  "earthquake": "events",
+  "conquest": "events",
+  "Crusader": "events",
+  "World-War-I": "events",
+  "early-Christianity": "belief",
+  "courtyard": "life",
+};
+
+const TAG_GROUP_ORDER = ["periods", "events", "belief", "life", "other"];
+
+/** Plain-language label for a filter chip: mapped Turkish label, else a humanized slug. */
+function tagDisplayLabel(slug) {
+  if (Object.hasOwn(TAG_DISPLAY_LABELS, slug)) return TAG_DISPLAY_LABELS[slug];
+  return String(slug)
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function v2SearchText(item, ...extra) {
   return multilingualSearchText(item.title, item.summary, item.tags || [], ...extra);
 }
@@ -902,6 +975,9 @@ function renderHomepageSectionCounts() {
  * taxonomy (communities, places) simply omit the attribute and keep no
  * filter bar at all.
  */
+/** Chips beyond this count (excluding "All") collapse behind a show all/less toggle. */
+const FILTER_COLLAPSE_THRESHOLD = 10;
+
 function renderDynamicFilterBars(lang) {
   if (!archiveDataV2) return;
   document.querySelectorAll(".filter-bar-wrap[data-dynamic-filter]").forEach((wrap) => {
@@ -916,18 +992,108 @@ function renderDynamicFilterBars(lang) {
     )).sort((a, b) => a.localeCompare(b));
 
     const allLabel = resolveKey(lang, "filters.all") || "All";
-    const options = [{ value: "all", label: allLabel }, ...categories.map((cat) => ({ value: cat, label: cat }))];
+    // Group only when at least one category is a known period/event/belief/
+    // place tag (currently just the history page) — every other dynamic
+    // filter (structureType, genre, storyCategory) stays a flat chip list.
+    const hasGroups = categories.some((cat) => TAG_GROUPS[cat]);
 
-    btnGroup.innerHTML = options.map(({ value, label }, idx) => (
-      `<button class="filter-btn${idx === 0 ? " is-active" : ""}" type="button" data-filter="${escapeHtml(value)}">${escapeHtml(label)}</button>`
-    )).join("");
-    select.innerHTML = options.map(({ value, label }) => (
-      `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`
-    )).join("");
+    btnGroup.innerHTML = buildFilterChipsHtml(categories, allLabel, lang, hasGroups);
+    select.innerHTML = buildFilterOptionsHtml(categories, allLabel, lang, hasGroups);
+
+    wrap.classList.toggle("filter-bar-wrap--grouped", hasGroups);
+
+    const isCollapsible = categories.length > FILTER_COLLAPSE_THRESHOLD;
+    wrap.classList.toggle("filter-bar-wrap--collapsible", isCollapsible);
+    wrap.classList.remove("is-expanded");
+    let toggle = wrap.querySelector(".filter-expand-toggle");
+    if (isCollapsible) {
+      if (!toggle) {
+        toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "filter-expand-toggle";
+        wrap.appendChild(toggle);
+      }
+      toggle.textContent = resolveKey(lang, "filters.showAll") || "Show all";
+      toggle.setAttribute("aria-expanded", "false");
+    } else if (toggle) {
+      toggle.remove();
+    }
   });
 
   currentActiveFilter = "all";
   initFilterListeners();
+  initFilterExpandToggles(lang);
+}
+
+/** Renders the desktop pill/chip button group, grouped into sections when hasGroups is true. */
+function buildFilterChipsHtml(categories, allLabel, lang, hasGroups) {
+  const allBtn = `<button class="filter-btn is-active" type="button" data-filter="all">${escapeHtml(allLabel)}</button>`;
+  if (!hasGroups) {
+    const chips = categories.map((cat) => (
+      `<button class="filter-btn" type="button" data-filter="${escapeHtml(cat)}">${escapeHtml(tagDisplayLabel(cat))}</button>`
+    )).join("");
+    return allBtn + chips;
+  }
+
+  const buckets = new Map();
+  categories.forEach((cat) => {
+    const key = TAG_GROUPS[cat] || "other";
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(cat);
+  });
+
+  const sections = TAG_GROUP_ORDER.filter((key) => buckets.has(key)).map((key) => {
+    const groupLabel = resolveKey(lang, `filters.group.${key}`) || key;
+    const chips = buckets.get(key).map((cat) => (
+      `<button class="filter-btn" type="button" data-filter="${escapeHtml(cat)}" data-group="${escapeHtml(key)}">${escapeHtml(tagDisplayLabel(cat))}</button>`
+    )).join("");
+    return `<div class="filter-group" data-filter-group="${escapeHtml(key)}">
+      <span class="filter-group-label">${escapeHtml(groupLabel)}</span>
+      <div class="filter-group-chips">${chips}</div>
+    </div>`;
+  }).join("");
+
+  return `<div class="filter-group filter-group--all"><div class="filter-group-chips">${allBtn}</div></div>${sections}`;
+}
+
+/** Renders the mobile <select> fallback, using <optgroup> when hasGroups is true. */
+function buildFilterOptionsHtml(categories, allLabel, lang, hasGroups) {
+  const allOpt = `<option value="all">${escapeHtml(allLabel)}</option>`;
+  if (!hasGroups) {
+    return allOpt + categories.map((cat) => (
+      `<option value="${escapeHtml(cat)}">${escapeHtml(tagDisplayLabel(cat))}</option>`
+    )).join("");
+  }
+
+  const buckets = new Map();
+  categories.forEach((cat) => {
+    const key = TAG_GROUPS[cat] || "other";
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(cat);
+  });
+
+  const groups = TAG_GROUP_ORDER.filter((key) => buckets.has(key)).map((key) => {
+    const groupLabel = resolveKey(lang, `filters.group.${key}`) || key;
+    const opts = buckets.get(key).map((cat) => (
+      `<option value="${escapeHtml(cat)}">${escapeHtml(tagDisplayLabel(cat))}</option>`
+    )).join("");
+    return `<optgroup label="${escapeHtml(groupLabel)}">${opts}</optgroup>`;
+  }).join("");
+
+  return allOpt + groups;
+}
+
+/** Wire each filter bar's "Show all / Show less" toggle (re-created on every render). */
+function initFilterExpandToggles(lang) {
+  document.querySelectorAll(".filter-bar-wrap--collapsible .filter-expand-toggle").forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const wrap = toggle.closest(".filter-bar-wrap");
+      const expanded = wrap.classList.toggle("is-expanded");
+      toggle.textContent = resolveKey(lang, expanded ? "filters.showLess" : "filters.showAll")
+        || (expanded ? "Show less" : "Show all");
+      toggle.setAttribute("aria-expanded", String(expanded));
+    });
+  });
 }
 
 function initArchiveImageFallbacks(root = document) {

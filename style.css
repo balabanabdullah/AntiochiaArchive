@@ -26,6 +26,12 @@
   --clr-line:        rgba(28, 24, 20, 0.14);
   --clr-line-strong: rgba(28, 24, 20, 0.25);
 
+  /* Filter-chip accent family (warmer, more vivid — see section 18) */
+  --clr-amber:       #b6791a;
+  --clr-amber-light: #d99a33;
+  --clr-plum:        #7c4368;
+  --clr-plum-light:  #9c5c86;
+
   /* Typography */
   --font-serif: "Libre Caslon Display", "Georgia", serif;
   --font-sans:  "DM Sans", "Arial", sans-serif;
@@ -2336,7 +2342,8 @@ html[dir="rtl"] .back-to-top {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
+  position: relative;
 }
 
 .filter-bar {
@@ -2345,37 +2352,159 @@ html[dir="rtl"] .back-to-top {
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
+  width: 100%;
   background: var(--clr-paper-deep);
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 10px 16px;
+  border-radius: 22px;
   border: 1px solid var(--clr-line-strong);
 }
 
+/* Plain (ungrouped) filter bars — structureType/genre/storyCategory — keep
+   the original single-row pill layout, just livelier chip styling. */
+.filter-bar-wrap:not(.filter-bar-wrap--grouped) .filter-bar {
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
 .filter-btn {
-  padding: 8px 18px;
+  padding: 9px 20px;
   border-radius: 999px;
   font-family: var(--font-sans);
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--clr-ink-muted);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.55);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 
 .filter-btn:hover {
   color: var(--clr-ink);
-  background: rgba(255, 255, 255, 0.7);
+  background: #ffffff;
+  border-color: var(--clr-line-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(28, 24, 20, 0.1);
+}
+
+.filter-btn:active {
+  transform: translateY(0);
 }
 
 .filter-btn.is-active {
   background: var(--clr-red);
   color: #ffffff;
   border-color: var(--clr-red);
-  box-shadow: 0 3px 10px rgba(144, 54, 40, 0.25);
+  box-shadow: 0 3px 12px rgba(144, 54, 40, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Per-group accent — same warm archive palette, distinct enough to scan at
+   a glance. "periods" keeps the brand red (no [data-group] override). */
+.filter-btn[data-group="events"].is-active {
+  background: var(--clr-amber);
+  border-color: var(--clr-amber);
+  box-shadow: 0 3px 12px rgba(182, 121, 26, 0.3);
+}
+
+.filter-btn[data-group="belief"].is-active {
+  background: var(--clr-plum);
+  border-color: var(--clr-plum);
+  box-shadow: 0 3px 12px rgba(124, 67, 104, 0.3);
+}
+
+.filter-btn[data-group="life"].is-active {
+  background: var(--clr-olive);
+  border-color: var(--clr-olive);
+  box-shadow: 0 3px 12px rgba(94, 97, 66, 0.3);
+}
+
+.filter-btn[data-group="events"]:hover {
+  border-color: var(--clr-amber-light);
+}
+.filter-btn[data-group="belief"]:hover {
+  border-color: var(--clr-plum-light);
+}
+.filter-btn[data-group="life"]:hover {
+  border-color: var(--clr-olive-light);
+}
+
+/* Grouped layout (history page): stacked labeled sections, each wrapping
+   its own row of chips. */
+.filter-bar-wrap--grouped .filter-bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-2);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.filter-group--all {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--clr-line);
+  margin-bottom: 2px;
+}
+
+.filter-group-label {
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clr-ink-muted);
+  min-width: 108px;
+}
+
+.filter-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Show all / Show less — collapses long chip lists (e.g. history's 15+
+   period/event tags) behind a fade instead of a wall of pills. */
+.filter-bar-wrap--collapsible .filter-bar {
+  max-height: 108px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  transition: max-height var(--dur-slow) var(--ease);
+}
+
+.filter-bar-wrap--collapsible.is-expanded .filter-bar {
+  max-height: 600px;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.filter-expand-toggle {
+  align-self: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--clr-line-strong);
+  background: var(--clr-paper-light);
+  color: var(--clr-red);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.filter-expand-toggle:hover {
+  background: var(--clr-red);
+  color: #ffffff;
 }
 
 .filter-select {
@@ -2401,11 +2530,23 @@ html[dir="rtl"] .back-to-top {
 }
 
 @media (max-width: 767px) {
-  .filter-bar {
+  .filter-bar,
+  .filter-expand-toggle {
     display: none;
   }
   .filter-select {
     display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .filter-group {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .filter-group-label {
+    min-width: 0;
   }
 }
 

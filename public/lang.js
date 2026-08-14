@@ -70,7 +70,16 @@ const TRANSLATIONS = {
       hymn: "Sacred Hymns",
       courtyard: "Courtyard Homes",
       mosaic: "Roman Mosaics",
-      infrastructure: "Water & Engineering"
+      infrastructure: "Water & Engineering",
+      showAll: "Show all",
+      showLess: "Show less",
+      group: {
+        periods: "Historical Periods",
+        events: "Events",
+        belief: "Belief & Culture",
+        life: "Life & Place",
+        other: "Other",
+      },
     },
     hero: {
       eyebrow: "A living digital memory",
@@ -446,7 +455,16 @@ const TRANSLATIONS = {
       hymn: "İlahiler",
       courtyard: "Avlulu Evler",
       mosaic: "Roma Mozaikleri",
-      infrastructure: "Su & Roma Mühendisliği"
+      infrastructure: "Su & Roma Mühendisliği",
+      showAll: "Tümünü Göster",
+      showLess: "Daha Az Göster",
+      group: {
+        periods: "Tarihî Dönemler",
+        events: "Olaylar",
+        belief: "İnanç / Kültür",
+        life: "Yaşam / Mekân",
+        other: "Diğer",
+      },
     },
     hero: {
       eyebrow: "Yaşayan bir dijital hafıza",
@@ -822,7 +840,16 @@ const TRANSLATIONS = {
       hymn: "الترانيم المقدسة",
       courtyard: "منازل الفناء",
       mosaic: "الفسيفساء الرومانية",
-      infrastructure: "الهندسة المائية"
+      infrastructure: "الهندسة المائية",
+      showAll: "عرض الكل",
+      showLess: "عرض أقل",
+      group: {
+        periods: "العصور التاريخية",
+        events: "الأحداث",
+        belief: "العقيدة والثقافة",
+        life: "الحياة والمكان",
+        other: "أخرى",
+      },
     },
     hero: {
       eyebrow: "ذاكرة رقمية حيّة",

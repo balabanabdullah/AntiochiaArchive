@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Places of Antioch — Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.">
+  <meta name="description" content="Interactive map of Antioch — documented places and structures of Antakya and Hatay, plotted wherever a reviewed coordinate has been published.">
   <meta name="theme-color" content="#f2ead8">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Places of Antioch — AntiochiaArchive">
-  <meta property="og:description" content="Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.">
-  <meta property="og:url" content="https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html">
+  <meta property="og:title" content="Map of Antioch — AntiochiaArchive">
+  <meta property="og:description" content="Interactive map of Antioch — documented places and structures of Antakya and Hatay, plotted wherever a reviewed coordinate has been published.">
+  <meta property="og:url" content="https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html">
 
-  <title data-i18n="pages.places.title">Places of Antioch — AntiochiaArchive</title>
+  <title data-i18n="pages.map.title">Map of Antioch — AntiochiaArchive</title>
 
-  <link rel="canonical" href="https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html">
+  <link rel="canonical" href="https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="/style.css">
 
   <script type="application/ld+json">
@@ -22,20 +23,20 @@
     "@graph": [
       {
         "@type": "CollectionPage",
-        "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html#collection",
-        "name": "Places of Antioch",
-        "description": "Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.",
-        "url": "https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html",
+        "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html#collection",
+        "name": "Map of Antioch",
+        "description": "Interactive map of documented places and structures of Antakya and Hatay.",
+        "url": "https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html",
         "inLanguage": ["tr", "en", "ar"],
         "isPartOf": { "@id": "https://antiochia-app-6939593871.europe-west1.run.app/#website" },
-        "breadcrumb": { "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html#breadcrumb" }
+        "breadcrumb": { "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html#breadcrumb" }
       },
       {
         "@type": "BreadcrumbList",
-        "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html#breadcrumb",
+        "@id": "https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html#breadcrumb",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://antiochia-app-6939593871.europe-west1.run.app/" },
-          { "@type": "ListItem", "position": 2, "name": "Places", "item": "https://antiochia-app-6939593871.europe-west1.run.app/pages/places.html" }
+          { "@type": "ListItem", "position": 2, "name": "Map", "item": "https://antiochia-app-6939593871.europe-west1.run.app/pages/map.html" }
         ]
       }
     ]
@@ -44,43 +45,36 @@
 </head>
 <body>
 
-  <!-- Skip link -->
   <a class="skip-link" href="#main-content" data-i18n="a11y.skipLink">Skip to content</a>
 
-  <!-- Site Header -->
   <header class="site-header" role="banner">
     <div class="container header-inner">
-
-      <!-- Brand -->
       <a class="brand" href="../index.html" aria-label="AntiochiaArchive home">
         <span class="brand-mark" aria-hidden="true">A</span>
         <span>AntiochiaArchive</span>
       </a>
 
-      <!-- Primary Navigation -->
       <nav class="nav-primary" aria-label="Primary navigation">
-        <a href="/index.html"        data-i18n="nav.home">Home</a>
-        <a href="/pages/history.html"         data-i18n="nav.history">History</a>
-        <a href="/pages/stories.html"         data-i18n="nav.stories">Stories</a>
-        <a href="/pages/structures.html"      data-i18n="nav.structures">Structures</a>
-        <a href="/pages/beliefs.html"         data-i18n="nav.beliefs">Beliefs</a>
-        <a href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
-        <a href="/pages/places.html" data-i18n="nav.places" class="is-active">Places</a>
-        <a href="/pages/music.html"           data-i18n="nav.music">Music</a>
-        <a href="/pages/gallery.html"         data-i18n="nav.gallery">Gallery</a>
+        <a href="../index.html"        data-i18n="nav.home">Home</a>
+        <a href="history.html"         data-i18n="nav.history">History</a>
+        <a href="stories.html"         data-i18n="nav.stories">Stories</a>
+        <a href="structures.html"      data-i18n="nav.structures">Structures</a>
+        <a href="beliefs.html"         data-i18n="nav.beliefs">Beliefs</a>
+        <a href="communities.html"     data-i18n="nav.communities">Communities</a>
+        <a href="places.html"          data-i18n="nav.places">Places</a>
+        <a href="music.html"           data-i18n="nav.music">Music</a>
+        <a href="gallery.html"         data-i18n="nav.gallery">Gallery</a>
         <div class="nav-discover" data-nav-discover>
           <button type="button" class="nav-discover-trigger" aria-expanded="false" aria-controls="nav-discover-menu" data-i18n="nav.discover">Discover</button>
           <div class="nav-discover-menu" id="nav-discover-menu">
-            <a href="/pages/map.html" data-i18n="nav.map">Map</a>
-            <a href="/index.html#timeline" data-i18n="nav.timeline">Timeline</a>
-            <a href="/pages/collections.html" data-i18n="nav.collections">Collections</a>
+            <a href="map.html" class="is-active" data-i18n="nav.map">Map</a>
+            <a href="../index.html#timeline" data-i18n="nav.timeline">Timeline</a>
+            <a href="collections.html" data-i18n="nav.collections">Collections</a>
           </div>
         </div>
       </nav>
 
-      <!-- Header actions -->
       <div class="header-actions">
-        <!-- Search box -->
         <div class="search-box">
           <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/>
@@ -107,60 +101,69 @@
       </div>
     </div>
 
-    <!-- Mobile nav -->
     <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
       <div class="container mobile-nav-inner">
         <div class="mobile-nav-search">
           <input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="search.placeholder" data-i18n-aria="a11y.searchArchive">
         </div>
-        <a href="../index.html"   data-i18n="nav.home">Home</a>
-        <a href="history.html"    data-i18n="nav.history">History</a>
-        <a href="stories.html"    data-i18n="nav.stories">Stories</a>
-        <a href="structures.html" data-i18n="nav.structures">Structures</a>
-        <a href="beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
-        <a href="communities.html" data-i18n="nav.communities">Communities</a>
-        <a href="places.html" data-i18n="nav.places" class="is-active">Places</a>
-        <a href="music.html"      data-i18n="nav.music">Music</a>
-        <a href="gallery.html"    data-i18n="nav.gallery">Gallery</a>
-        <a href="/pages/map.html" data-i18n="nav.map">Map</a>
+        <a href="/index.html"        data-i18n="nav.home">Home</a>
+        <a href="/pages/history.html"         data-i18n="nav.history">History</a>
+        <a href="/pages/stories.html"         data-i18n="nav.stories">Stories</a>
+        <a href="/pages/structures.html"      data-i18n="nav.structures">Structures</a>
+        <a href="/pages/beliefs.html"         data-i18n="nav.beliefs">Beliefs</a>
+        <a href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
+        <a href="/pages/places.html" data-i18n="nav.places">Places</a>
+        <a href="/pages/music.html"           data-i18n="nav.music">Music</a>
+        <a href="/pages/gallery.html"         data-i18n="nav.gallery">Gallery</a>
+        <a href="/pages/map.html" class="is-active" data-i18n="nav.map">Map</a>
         <a href="/index.html#timeline" data-i18n="nav.timeline">Timeline</a>
         <a href="/pages/collections.html" data-i18n="nav.collections">Collections</a>
-        <a href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
+        <a href="/index.html#contribute"      data-i18n="actions.contribute">Contribute</a>
       </div>
     </nav>
   </header>
 
-  <!-- Main Content -->
   <main id="main-content">
 
-    <!-- Page Hero Banner -->
-    <section class="page-hero" aria-labelledby="places-page-title">
+    <section class="page-hero" aria-labelledby="map-page-title">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
           <a href="/index.html" data-i18n="nav.home">Home</a>
           <span class="breadcrumb-separator">/</span>
-          <span data-i18n="nav.places">Places</span>
+          <span data-i18n="nav.map">Map</span>
         </nav>
         <div class="page-hero-header">
-          <div class="page-badge-wrap" data-i18n="pages.places.badge">Geographic Archive</div>
-          <h1 class="page-hero-title" id="places-page-title" data-i18n="pages.places.title">Places of Antioch</h1>
-          <p class="page-hero-desc" data-i18n="pages.places.subtitle">
-            Documented towns, districts, and landmarks of Antakya and Hatay province, their toponymy, and their place in the region's memory.
+          <div class="page-badge-wrap" data-i18n="pages.map.badge">Interactive Map</div>
+          <h1 class="page-hero-title" id="map-page-title" data-i18n="pages.map.title">Map of Antioch</h1>
+          <p class="page-hero-desc" data-i18n="pages.map.subtitle">
+            Documented places and structures of Antakya, plotted wherever a reviewed coordinate has been published.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- Dynamic Places Content -->
-    <section class="section-places subpage-container" id="places">
+    <section class="section-map subpage-container" id="map">
       <div class="container">
-        <div class="places-grid" id="places-grid-container" aria-live="polite">
-          <!-- dynamically populated from /api/v2/places -->
+
+        <div class="map-filter-bar" role="group" aria-label="Filter map markers" data-map-filters>
+          <button class="filter-btn is-active" type="button" data-map-filter="all" data-i18n="map.filterAll">All</button>
+          <button class="filter-btn" type="button" data-map-filter="place" data-i18n="map.filterPlaces">Places</button>
+          <button class="filter-btn" type="button" data-map-filter="structure" data-i18n="map.filterStructures">Structures</button>
         </div>
+
+        <div class="map-layout">
+          <div id="map-explore-container" class="map-explore-container" data-map-container></div>
+          <aside class="map-list-panel" aria-label="Places on the map">
+            <h2 data-i18n="map.listHeading">Places on the Map</h2>
+            <div id="map-list-container" data-map-list aria-live="polite"></div>
+          </aside>
+        </div>
+
+        <p class="map-attribution-note" data-i18n="map.attribution">Map data</p>
+
       </div>
     </section>
 
-    <!-- Page CTA Banner -->
     <section class="page-cta">
       <div class="container page-cta-inner">
         <span class="eyebrow" data-i18n="pages.cta.eyebrow">Preserve the Memory</span>
@@ -175,7 +178,6 @@
 
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer" role="contentinfo">
     <div class="container">
       <div class="footer-top">
@@ -200,9 +202,11 @@
             <a href="structures.html" data-i18n="nav.structures">Structures</a>
             <a href="beliefs.html"    data-i18n="nav.beliefs">Beliefs</a>
             <a href="communities.html" data-i18n="nav.communities">Communities</a>
-            <a href="places.html" data-i18n="nav.places" class="is-active">Places</a>
+            <a href="places.html" data-i18n="nav.places">Places</a>
             <a href="music.html"      data-i18n="nav.music">Music</a>
             <a href="gallery.html"    data-i18n="nav.gallery">Gallery</a>
+            <a href="map.html" class="is-active" data-i18n="nav.map">Map</a>
+            <a href="collections.html" data-i18n="nav.collections">Collections</a>
             <a href="methodology.html" data-i18n="nav.methodology">Methodology</a>
           </nav>
         </div>
@@ -223,20 +227,20 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script src="/lang.js"></script>
+  <script src="/archive-api.js"></script>
   <script src="/archive-v2-api.js"></script>
   <script src="/js/archive-store.js"></script>
   <script src="/js/search.js"></script>
-  <script src="/js/timeline.js"></script>
+  <script src="/vendor/leaflet/leaflet.js"></script>
   <script src="/js/map.js"></script>
+  <script src="/js/timeline.js"></script>
   <script src="/js/collections.js"></script>
   <script src="/script.js"></script>
   <script>
     document.getElementById("footer-year").textContent = new Date().getFullYear();
   </script>
 
-  <!-- Back to Top Button -->
   <button id="back-to-top" class="back-to-top" type="button" data-i18n-aria="backToTop" aria-label="Back to Top">
     <span class="back-to-top-icon" aria-hidden="true">↑</span>
     <span class="back-to-top-text" data-i18n="backToTop">Back to Top</span>

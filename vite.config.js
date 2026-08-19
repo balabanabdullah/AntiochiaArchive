@@ -11,6 +11,16 @@ const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "script.js",
   "admin-api.js",
   "admin-archive.js",
+  // Discovery-feature modules (search/timeline/map/collections), kept as
+  // small standalone files under public/js/ rather than growing script.js
+  // further. Same versioning treatment as the flat files above — see
+  // buildStart()/generateBundle() below, which key the src="/js/x.js" ->
+  // hashed-asset replacement off this list's exact path.
+  "js/archive-store.js",
+  "js/search.js",
+  "js/timeline.js",
+  "js/map.js",
+  "js/collections.js",
 ]);
 
 /**
@@ -29,9 +39,14 @@ function versionPublicScripts() {
     async buildStart() {
       for (const filename of VERSIONED_PUBLIC_SCRIPTS) {
         const source = await readFile(new URL(`./public/${filename}`, import.meta.url), "utf8");
+        // `name` is only the emitted-asset's display name (Rollup does not
+        // preserve directory structure from it) — basename only, so
+        // "js/timeline.js" still lands as dist/assets/timeline-<hash>.js.
+        // The `/${filename}` key (kept in full, subpath included) is what
+        // generateBundle() matches against src="/js/timeline.js" in HTML.
         emittedScripts.set(`/${filename}`, this.emitFile({
           type: "asset",
-          name: filename,
+          name: filename.split("/").pop(),
           source,
         }));
       }
@@ -108,6 +123,9 @@ export default defineConfig({
         submissions:   "pages/submissions.html",
         contributions: "pages/contributions.html",
         methodology:    "pages/methodology.html",
+        map:            "pages/map.html",
+        collections:    "pages/collections.html",
+        search:         "pages/search.html",
         notFound:       "404.html",
       },
     },

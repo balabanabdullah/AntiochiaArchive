@@ -140,6 +140,8 @@ function pageNavigation(activeNavKey) {
     { navKey: "places", href: "/pages/places.html", label: "Places" },
     { navKey: "music", href: "/pages/music.html", label: "Music" },
     { navKey: "gallery", href: "/pages/gallery.html", label: "Gallery" },
+    { navKey: "map", href: "/pages/map.html", label: "Map" },
+    { navKey: "collections", href: "/pages/collections.html", label: "Collections" },
   ];
   return base.map(({ navKey, href, label }) => (
     `<a href="${href}" data-i18n="nav.${navKey}"${navKey === activeNavKey ? ' class="is-active"' : ""}>${label}</a>`
@@ -150,9 +152,138 @@ function jsonForScript(value) {
   return JSON.stringify(value).replaceAll("<", "\\u003c");
 }
 
-export function generateV2DetailDocument({ entity, stylesheet, langScript, v2ApiScript, appScript }) {
+// Mirrors public/lang.js's en.detail.evidenceType.* fallback text exactly —
+// this generator has no access to lang.js's TRANSLATIONS at build time (that
+// object is a browser-global, not an export), so the static English label is
+// baked in here and the data-i18n attribute lets the client swap languages
+// after load, same pattern as every other data-i18n string on this page.
+const EVIDENCE_TYPE_LABELS = Object.freeze({
+  verifiedHistorical: "Verified Historical Source",
+  scholarlyInterpretation: "Scholarly Interpretation",
+  oralHistory: "Oral History",
+  localTradition: "Local Tradition",
+  religiousTradition: "Religious Tradition",
+  legend: "Legend",
+  mythologicalNarrative: "Mythological Narrative",
+});
+
+function evidenceBadgeMarkup(entity) {
+  const label = EVIDENCE_TYPE_LABELS[entity.evidenceType];
+  if (!label) return "";
+  return `<span class="record-evidence-badge" data-i18n="detail.evidenceType.${entity.evidenceType}">${escapeHtml(label)}</span>`;
+}
+
+/** place.localNames / place.historicalNames: [{ name, transliteration? }] -> "Name1, Name2". Name-only, not multilingual per entry. */
+function nameListText(values) {
+  if (!Array.isArray(values)) return "";
+  return values.map((item) => item?.name).filter(Boolean).join(", ");
+}
+
+/** { tr: [...], en: [...], ar: [...] } -> the current language's list, joined — falls back like every other multilingual field. */
+function alternateNamesText(value, language) {
+  if (!value || typeof value !== "object") return "";
+  const list = value[language] || value.en || value.tr || value.ar;
+  return Array.isArray(list) ? list.filter(Boolean).join(", ") : "";
+}
+
+/**
+ * "Also known as / Historical names / Local names" — only for the fields
+ * that exist on this entity's public shape (today, only `place` carries
+ * any of these). Renders nothing when none are present.
+ */
+function namesSectionMarkup(entity, language) {
+  const rows = [
+    ["detail.alternateNames", "Also known as", alternateNamesText(entity.alternateNames, language)],
+    ["detail.historicalNames", "Historical names", nameListText(entity.historicalNames)],
+    ["detail.localNames", "Local names", nameListText(entity.localNames)],
+  ].filter(([, , value]) => value);
+  if (!rows.length) return "";
+  return `<section class="record-detail-section record-names-section" aria-labelledby="record-names-heading">
+              <h2 id="record-names-heading" data-i18n="detail.alternateNames">Also known as</h2>
+              <dl class="record-names-list">
+                ${rows.map(([key, fallback, value]) => `<div><dt data-i18n="${key}">${escapeHtml(fallback)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("\n                ")}
+              </dl>
+            </section>`;
+}
+
+/**
+ * Type-specific metadata rows, drawn only from fields the public serializer
+ * allowlists for this entityType (see backend/v2/serializers/publicSerializer.js)
+ * — a field simply isn't pushed when the entity doesn't carry it, so this
+ * never renders an empty or "unknown" row. `placeById` (slug -> public place
+ * entity) lets a story's storyPlaceId resolve to a real, linkable place
+ * title — still 100% public-to-public data, no relationship record involved.
+ */
+function metadataPanelMarkup(entity, language, placeById) {
+  const rows = [];
+  const period = localized(entity.period?.label, language);
+  if (period) rows.push(["detail.period", "Period", escapeHtml(period)]);
+
+  const typeValue = entity.structureType || entity.genre || entity.storyCategory;
+  if (typeValue) rows.push(["detail.typeLabel", "Type", escapeHtml(typeValue)]);
+
+  if (entity.storyPlaceId && placeById?.has(entity.storyPlaceId)) {
+    const place = placeById.get(entity.storyPlaceId);
+    const placeTitle = escapeHtml(localized(place.title, language, place.slug));
+    rows.push(["nav.places", "Place", `<a href="${escapeHtml(v2DetailPath(place))}">${placeTitle}</a>`]);
+  }
+
+  if (Array.isArray(entity.languages) && entity.languages.length) {
+    rows.push(["detail.languagesLabel", "Languages", escapeHtml(entity.languages.join(", ").toUpperCase())]);
+  }
+
+  if (!rows.length && !entity.evidenceType) return "";
+  return `<section class="record-detail-section record-metadata-section" aria-labelledby="record-metadata-heading">
+              <h2 id="record-metadata-heading" data-i18n="detail.metadataHeading">Record Metadata</h2>
+              ${evidenceBadgeMarkup(entity)}
+              ${rows.length ? `<dl class="record-metadata-list">
+                ${rows.map(([key, fallback, value]) => `<div><dt data-i18n="${key}">${escapeHtml(fallback)}</dt><dd>${value}</dd></div>`).join("\n                ")}
+              </dl>` : ""}
+            </section>`;
+}
+
+function shareControlsMarkup(canonicalUrl, title) {
+  const encodedUrl = encodeURIComponent(canonicalUrl);
+  const encodedTitle = encodeURIComponent(title);
+  return `<section class="record-share" aria-labelledby="record-share-heading" data-share-url="${escapeHtml(canonicalUrl)}" data-share-title="${escapeHtml(title)}">
+              <h2 id="record-share-heading" data-i18n="detail.share.heading">Share this record</h2>
+              <div class="record-share-buttons">
+                <button type="button" class="record-share-btn record-share-copy" data-i18n="detail.share.copyLink">Copy link</button>
+                <a class="record-share-btn record-share-whatsapp" href="https://wa.me/?text=${encodedTitle}%20${encodedUrl}" target="_blank" rel="noopener noreferrer" data-i18n="detail.share.whatsapp">WhatsApp</a>
+                <a class="record-share-btn record-share-x" href="https://twitter.com/intent/tweet?text=${encodedTitle}&amp;url=${encodedUrl}" target="_blank" rel="noopener noreferrer" data-i18n="detail.share.x">X</a>
+                <button type="button" class="record-share-btn record-share-native" data-i18n="detail.share.nativeShare" hidden>Share</button>
+              </div>
+            </section>`;
+}
+
+/**
+ * A small "view on the map" link — only when this entity itself carries a
+ * real published coordinate (today, that's zero entities; see
+ * backend/v2/schemas/place.js and the FRONTEND round report). Never renders
+ * a map for an entity without one, and never estimates a coordinate.
+ */
+function locationPreviewMarkup(entity) {
+  if (!entity.coordinates || typeof entity.coordinates.latitude !== "number") return "";
+  return `<section class="record-detail-section record-location-section" aria-labelledby="record-location-heading">
+              <h2 id="record-location-heading" data-i18n="nav.map">Map</h2>
+              <a class="record-location-link" href="/pages/map.html?focus=${escapeHtml(entity.slug)}" data-i18n="map.previewCta">Open the full map</a>
+            </section>`;
+}
+
+/** Populated client-side (see initExploreMore() in public/script.js) — never bakes another entity's link into the static page, so nothing here can go stale between deploys. */
+function exploreMoreMarkup(entity) {
+  return `<section class="record-explore-more" data-explore-more data-entity-id="${escapeHtml(entity.id)}" data-entity-type="${escapeHtml(entity.entityType)}" aria-labelledby="record-explore-more-heading">
+              <h2 id="record-explore-more-heading" data-i18n="detail.exploreMore">Explore more</h2>
+              <div class="record-explore-more-grid" data-explore-more-grid></div>
+              <button type="button" class="btn-discover-another" data-discover-another data-i18n="discover.another" hidden>Another record</button>
+            </section>`;
+}
+
+export function generateV2DetailDocument({ entity, stylesheet, langScript, v2ApiScript, archiveStoreScript, searchScript, appScript, entities = [] }) {
   const typeInfo = V2_TYPE_INFO[entity.entityType];
   if (!typeInfo) throw new TypeError(`Unknown v2 entity type: ${entity.entityType}.`);
+
+  const placeById = new Map(entities.filter((item) => item.entityType === "place").map((place) => [place.id, place]));
 
   const title = localized(entity.title, "en", entity.slug);
   const description = localized(entity.summary, "en");
@@ -199,6 +330,10 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
         ${pageNavigation(typeInfo.navKey)}
       </nav>
       <div class="header-actions">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="search.placeholder" placeholder="Search the AntiochiaArchive…">
+        </div>
         <div class="lang-switcher" role="group" aria-label="Choose language">
           <button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button>
           <button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button>
@@ -208,6 +343,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
       </div>
     </div>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true"><div class="container mobile-nav-inner">
+      <div class="mobile-nav-search"><input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="search.placeholder" data-i18n-aria="a11y.searchArchive"></div>
       <a href="/index.html" data-i18n="nav.home">Home</a>
       ${pageNavigation(typeInfo.navKey)}
       <a href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
@@ -222,7 +358,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
           <span data-detail-title>${escapeHtml(title)}</span>
         </nav>
         <header class="record-detail-header">
-          <p class="page-badge-wrap"><span data-detail-category>${escapeHtml(typeInfo.label)}</span>${fact ? ` · <span data-detail-taxonomy>${escapeHtml(fact)}</span>` : '<span data-detail-taxonomy hidden></span>'}</p>
+          <p class="page-badge-wrap"><span data-detail-category>${escapeHtml(typeInfo.label)}</span><span class="badge-sep" data-detail-taxonomy-sep aria-hidden="true"${fact ? "" : " hidden"}> · </span><span data-detail-taxonomy${fact ? "" : " hidden"}>${escapeHtml(fact)}</span></p>
           <h1 data-detail-title>${escapeHtml(title)}</h1>
           <p class="record-detail-summary" data-detail-description>${escapeHtml(description)}</p>
         </header>
@@ -233,6 +369,10 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
               <h2 id="record-about-heading" data-i18n="detail.aboutRecord">About this record</h2>
               <p data-detail-description>${escapeHtml(description)}</p>
             </section>
+            ${namesSectionMarkup(entity, "en")}
+            ${metadataPanelMarkup(entity, "en", placeById)}
+            ${locationPreviewMarkup(entity)}
+            ${shareControlsMarkup(canonical, title)}
           </div>
         </div>
         <nav class="record-detail-actions" aria-label="Record navigation">
@@ -243,6 +383,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
           <h2 id="related-entities-heading" data-i18n="detail.relatedEntities">Related records</h2>
           <div class="related-entities-grid" id="related-entities-container" aria-live="polite"></div>
         </section>
+        ${exploreMoreMarkup(entity)}
       </div>
     </article>
   </main>
@@ -253,6 +394,8 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
   <script id="v2-record-data" type="application/json">${jsonForScript({ entity })}</script>
   <script src="${escapeHtml(langScript)}"></script>
   <script src="${escapeHtml(v2ApiScript)}"></script>
+  ${archiveStoreScript ? `<script src="${escapeHtml(archiveStoreScript)}"></script>` : ""}
+  ${searchScript ? `<script src="${escapeHtml(searchScript)}"></script>` : ""}
   <script src="${escapeHtml(appScript)}"></script>
   <button id="back-to-top" class="back-to-top" type="button" data-i18n-aria="backToTop" aria-label="Back to Top"><span class="back-to-top-icon" aria-hidden="true">↑</span><span class="back-to-top-text" data-i18n="backToTop">Back to Top</span></button>
 </body>

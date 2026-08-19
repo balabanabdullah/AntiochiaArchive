@@ -16,7 +16,9 @@ const validation = validateReleaseArchive(archive);
 if (validation.count !== 23) throw new Error(`Expected 23 v1.0 records, found ${validation.count}.`);
 
 const builtIndex = await readFile(resolve(distRoot, "index.html"), "utf8");
-const stylesheet = builtIndex.match(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/i)?.[1];
+const stylesheet = [...builtIndex.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/gi)]
+  .map((match) => match[1])
+  .find((href) => /\/assets\/style-[^/]+\.css$/.test(href));
 const scripts = [...builtIndex.matchAll(/<script\b[^>]*src=["']([^"']+)["']/gi)].map((match) => match[1]);
 const langScript = scripts.find((source) => /\/assets\/lang-[^/]+\.js$/.test(source));
 const appScript = scripts.find((source) => /\/assets\/script-[^/]+\.js$/.test(source));

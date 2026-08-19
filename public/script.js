@@ -137,6 +137,7 @@ function applyLanguage(lang) {
   renderV2DetailPage(lang);
   if (relatedEntitiesItems !== null) renderRelatedEntities(relatedEntitiesItems, lang);
   if (archiveLoadState === "error") renderArchiveErrorState(lang);
+  renderDiscoveryFeatures();
   if (typeof window.updateContributionsLang === "function") {
     window.updateContributionsLang();
   }
@@ -1198,7 +1199,8 @@ function renderV2DetailPage(lang) {
 
   document.querySelectorAll("[data-detail-title]").forEach((element) => { element.textContent = title; });
   document.querySelectorAll("[data-detail-description]").forEach((element) => { element.textContent = description; });
-  document.querySelectorAll("[data-detail-taxonomy]").forEach((element) => { element.textContent = fact; });
+  document.querySelectorAll("[data-detail-taxonomy]").forEach((element) => { element.textContent = fact; element.hidden = !fact; });
+  document.querySelectorAll("[data-detail-taxonomy-sep]").forEach((element) => { element.hidden = !fact; });
   document.querySelectorAll("[data-detail-category]").forEach((element) => {
     const typeKey = V2_ENTITY_TYPE_NAV_KEY[entity.entityType];
     element.textContent = (typeKey && resolveKey(lang, `nav.${typeKey}`)) || entity.entityType;
@@ -1309,6 +1311,474 @@ async function initArchive({ force = false } = {}) {
 }
 
 /* ==========================================================================
+   Discovery Features (search / timeline / map / collections / discover)
+   ========================================================================== */
+
+/**
+ * A second, page-independent public v2 dataset: every discovery feature
+ * needs the WHOLE archive (a story page's "more from this type" needs every
+ * story; the map needs every place) rather than just the types the current
+ * page's own card grid fetches (see fetchV2ArchiveData()/archiveDataV2
+ * above). Loaded once via AntiochiaArchiveStore's own cache, so even with
+ * five features on one page (homepage) this is a single network request.
+ */
+let discoveryEntities = null;
+let discoverySearchIndex = null;
+let discoveryLoadPromise = null;
+
+function ensureDiscoveryEntities() {
+  if (discoveryEntities) return Promise.resolve(discoveryEntities);
+  if (discoveryLoadPromise) return discoveryLoadPromise;
+  if (!window.AntiochiaArchiveStore) return Promise.resolve(null);
+  discoveryLoadPromise = window.AntiochiaArchiveStore.loadAllPublicEntities()
+    .then((entities) => {
+      discoveryEntities = entities;
+      discoverySearchIndex = window.AntiochiaArchiveSearch ? window.AntiochiaArchiveSearch.buildSearchIndex(entities) : null;
+      return entities;
+    })
+    .catch((err) => {
+      console.error("[AntiochiaArchive] Discovery data unavailable:", err);
+      discoveryLoadPromise = null;
+      return null;
+    });
+  return discoveryLoadPromise;
+}
+
+/** entityType -> localized plural label, reusing the same nav.* strings the related-entity cards already use. */
+function v2TypeLabels(lang) {
+  const labels = {};
+  for (const [type, navKey] of Object.entries(V2_ENTITY_TYPE_NAV_KEY)) {
+    labels[type] = resolveKey(lang, `nav.${navKey}`) || type;
+  }
+  return labels;
+}
+
+/** One shared compact card markup for any public entity — used by search results, collections, explore-more, and random discover alike. */
+function genericEntityCardHtml(entity, lang, typeLabels) {
+  const title = escapeHtml(window.AntiochiaArchiveSearch ? window.AntiochiaArchiveSearch.displayTitle(entity, lang) : localizedMetadataValue(entity.title, lang, entity.slug));
+  const summary = escapeHtml(localizedMetadataValue(entity.summary, lang, ""));
+  const typeLabel = escapeHtml(typeLabels?.[entity.entityType] || entity.entityType);
+  const period = escapeHtml(localizedMetadataValue(entity.period?.label, lang, ""));
+  const imagePath = entity.media?.path ? escapeHtml(entity.media.path) : "";
+  const href = archiveV2DetailHref(entity);
+  const inner = `
+      <span class="generic-card-type">${typeLabel}</span>
+      ${imagePath ? `<img class="generic-card-image" src="${imagePath}" alt="" loading="lazy">` : ""}
+      <h3 class="generic-card-title">${title}</h3>
+      ${summary ? `<p class="generic-card-summary">${summary}</p>` : ""}
+      ${period ? `<span class="generic-card-period">${period}</span>` : ""}`;
+  return href
+    ? `<a class="generic-entity-card" href="${escapeHtml(href)}">${inner}</a>`
+    : `<div class="generic-entity-card">${inner}</div>`;
+}
+
+/* -------------------------------------------------------------------------
+   Nav "Discover" dropdown (Map / Timeline / Collections)
+   ------------------------------------------------------------------------- */
+function initNavDiscoverMenus() {
+  document.querySelectorAll("[data-nav-discover]").forEach((wrap) => {
+    const trigger = wrap.querySelector(".nav-discover-trigger");
+    const menu = wrap.querySelector(".nav-discover-menu");
+    if (!trigger || !menu || trigger.dataset.wired) return;
+    trigger.dataset.wired = "true";
+
+    const close = () => { wrap.classList.remove("is-open"); trigger.setAttribute("aria-expanded", "false"); };
+    const open = () => { wrap.classList.add("is-open"); trigger.setAttribute("aria-expanded", "true"); };
+
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (wrap.classList.contains("is-open")) close(); else open();
+    });
+    document.addEventListener("click", (event) => { if (!wrap.contains(event.target)) close(); });
+    wrap.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { close(); trigger.focus(); }
+    });
+    menu.querySelectorAll("a").forEach((link) => link.addEventListener("click", close));
+  });
+}
+
+/* -------------------------------------------------------------------------
+   Header search autocomplete (every page)
+   ------------------------------------------------------------------------- */
+function initHeaderSearchAutocomplete() {
+  if (!window.AntiochiaArchiveSearchBox) return;
+  ensureDiscoveryEntities();
+  document.querySelectorAll("#search-input, .search-input-field").forEach((input) => {
+    window.AntiochiaArchiveSearchBox.initSearchAutocomplete(input, {
+      getIndex: () => discoverySearchIndex,
+      getLang: () => currentLang,
+      getTypeLabels: () => v2TypeLabels(currentLang),
+      resultsHref: "/pages/search.html",
+    });
+  });
+}
+
+/* -------------------------------------------------------------------------
+   Timeline ("Antioch Through Time") — homepage compact preview
+   ------------------------------------------------------------------------- */
+function initHomepageTimeline() {
+  if (!document.getElementById("timeline-preview-container")) return;
+  ensureDiscoveryEntities().then(() => renderHomepageTimeline());
+}
+
+function renderHomepageTimeline() {
+  const container = document.getElementById("timeline-preview-container");
+  if (!container || !discoveryEntities || !window.AntiochiaArchiveTimeline) return;
+  const entries = window.AntiochiaArchiveTimeline.getTimelineEntries(discoveryEntities);
+  window.AntiochiaArchiveTimeline.renderTimeline(container, entries, currentLang, {
+    limit: 12,
+    emptyLabel: resolveKey(currentLang, "timeline.empty") || "",
+  });
+}
+
+/* -------------------------------------------------------------------------
+   Interactive map — full /pages/map.html and the homepage mini preview
+   ------------------------------------------------------------------------- */
+const mapInstances = {}; // containerId -> { map, group, listContainerId, filter, limit }
+
+function initOneMapInstance(containerId, listContainerId, { limit = null, mapOptions = {} } = {}) {
+  const container = document.getElementById(containerId);
+  if (!container || mapInstances[containerId] || !window.AntiochiaArchiveMapDom) return;
+  let map;
+  try {
+    map = window.AntiochiaArchiveMapDom.createLeafletMap(containerId, mapOptions);
+  } catch (err) {
+    console.error("[AntiochiaArchive] Map init failed:", err);
+    container.innerHTML = "";
+    const notice = document.createElement("p");
+    notice.className = "map-init-error";
+    notice.textContent = resolveKey(currentLang, "map.empty") || "";
+    container.appendChild(notice);
+    return;
+  }
+  mapInstances[containerId] = { map, group: null, listContainerId, filter: "all", limit };
+}
+
+function renderMapInstance(containerId) {
+  const state = mapInstances[containerId];
+  if (!state || !discoveryEntities || !window.AntiochiaArchiveMapCore) return;
+  const mappable = window.AntiochiaArchiveMapCore.getMappableEntities(discoveryEntities);
+  const filtered = window.AntiochiaArchiveMapCore.filterByType(mappable, state.filter);
+  const limited = state.limit ? filtered.slice(0, state.limit) : filtered;
+
+  if (state.group) state.map.removeLayer(state.group);
+  const typeLabels = v2TypeLabels(currentLang);
+  const labels = { typeLabels, detailLabel: resolveKey(currentLang, "map.viewDetail") || "", emptyLabel: resolveKey(currentLang, "map.empty") || "" };
+  state.group = window.AntiochiaArchiveMapDom.renderMarkers(state.map, limited, currentLang, labels);
+  window.AntiochiaArchiveMapDom.fitToMarkers(state.map, limited);
+
+  const listContainer = document.getElementById(state.listContainerId);
+  if (listContainer) window.AntiochiaArchiveMapDom.renderMapList(listContainer, limited, currentLang, labels);
+}
+
+function initMapFilterButtons() {
+  const bar = document.querySelector("[data-map-filters]");
+  if (!bar || bar.dataset.wired) return;
+  bar.dataset.wired = "true";
+  bar.querySelectorAll("[data-map-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      bar.querySelectorAll("[data-map-filter]").forEach((other) => other.classList.toggle("is-active", other === btn));
+      const state = mapInstances["map-explore-container"];
+      if (state) { state.filter = btn.dataset.mapFilter; renderMapInstance("map-explore-container"); }
+    });
+  });
+}
+
+/**
+ * A place detail page's "Open the full map" link points at
+ * /pages/map.html?focus={slug} (see locationPreviewMarkup() in
+ * scripts/v2-archive-release.js). Pans/zooms to that record on first load
+ * only — deliberately not re-applied on later filter-button re-renders, so
+ * switching the Places/Structures filter re-fits to the filtered set
+ * (fitToMarkers, already called inside renderMapInstance) instead of
+ * snapping back to the original deep-linked record every time.
+ */
+function focusMapOnQueryParam(entities) {
+  const state = mapInstances["map-explore-container"];
+  if (!state || !window.AntiochiaArchiveStore || !window.AntiochiaArchiveMapCore) return;
+  const focusSlug = new URLSearchParams(window.location.search).get("focus");
+  if (!focusSlug) return;
+  const entity = window.AntiochiaArchiveStore.bySlug(entities, focusSlug);
+  if (entity && window.AntiochiaArchiveMapCore.hasValidCoordinates(entity)) {
+    state.map.setView([entity.coordinates.latitude, entity.coordinates.longitude], 15);
+  }
+}
+
+function initMapFeature() {
+  const fullContainer = document.querySelector("[data-map-container]");
+  const previewContainer = document.getElementById("map-preview-container");
+  if (!fullContainer && !previewContainer) return;
+
+  if (fullContainer) {
+    initOneMapInstance("map-explore-container", "map-list-container");
+    initMapFilterButtons();
+  }
+  if (previewContainer) {
+    initOneMapInstance("map-preview-container", "map-preview-list", { limit: 24, mapOptions: { zoom: 8, scrollWheelZoom: false } });
+  }
+
+  ensureDiscoveryEntities().then((entities) => {
+    if (!entities) return;
+    if (fullContainer) {
+      renderMapInstance("map-explore-container");
+      focusMapOnQueryParam(entities);
+    }
+    if (previewContainer) renderMapInstance("map-preview-container");
+  });
+}
+
+function rerenderMapFeature() {
+  Object.keys(mapInstances).forEach((containerId) => renderMapInstance(containerId));
+}
+
+/* -------------------------------------------------------------------------
+   Collections — homepage preview cards + the full /pages/collections.html
+   ------------------------------------------------------------------------- */
+function collectionCountText(count, lang) {
+  const template = resolveKey(lang, count === 1 ? "collections.recordCountOne" : "collections.recordCount") || "{count}";
+  return template.replace("{count}", String(count));
+}
+
+function collectionPreviewCardHtml(collection, lang) {
+  const title = escapeHtml(resolveKey(lang, `collections.items.${collection.id}.title`) || collection.id);
+  const desc = escapeHtml(resolveKey(lang, `collections.items.${collection.id}.desc`) || "");
+  const previewTitles = collection.members.slice(0, 4)
+    .map((entity) => escapeHtml(window.AntiochiaArchiveSearch.displayTitle(entity, lang)))
+    .join(" · ");
+  return `<article class="collection-preview-card">
+      <span class="collection-card-icon" aria-hidden="true">${collection.icon}</span>
+      <h3 class="collection-card-title">${title}</h3>
+      <p class="collection-card-desc">${desc}</p>
+      ${previewTitles ? `<p class="collection-card-preview">${previewTitles}</p>` : ""}
+      <div class="collection-card-footer">
+        <span class="collection-card-count">${escapeHtml(collectionCountText(collection.members.length, lang))}</span>
+        <a class="collection-card-cta" href="/pages/collections.html#collection-${escapeHtml(collection.id)}">${escapeHtml(resolveKey(lang, "collections.openCollection") || "Open collection")}</a>
+      </div>
+    </article>`;
+}
+
+function collectionFullSectionHtml(collection, lang, typeLabels) {
+  const title = escapeHtml(resolveKey(lang, `collections.items.${collection.id}.title`) || collection.id);
+  const desc = escapeHtml(resolveKey(lang, `collections.items.${collection.id}.desc`) || "");
+  return `<section class="collection-full-section" id="collection-${escapeHtml(collection.id)}" aria-labelledby="collection-${escapeHtml(collection.id)}-heading">
+      <header class="collection-full-header">
+        <span class="collection-card-icon" aria-hidden="true">${collection.icon}</span>
+        <div>
+          <h2 id="collection-${escapeHtml(collection.id)}-heading">${title}</h2>
+          <p class="collection-card-desc">${desc}</p>
+          <span class="collection-card-count">${escapeHtml(collectionCountText(collection.members.length, lang))}</span>
+        </div>
+      </header>
+      <div class="collection-full-grid">
+        ${collection.members.map((entity) => genericEntityCardHtml(entity, lang, typeLabels)).join("")}
+      </div>
+    </section>`;
+}
+
+function initCollectionsFeature() {
+  const previewContainer = document.getElementById("collections-preview-container");
+  const fullContainer = document.getElementById("collections-grid-container");
+  if (!previewContainer && !fullContainer) return;
+  ensureDiscoveryEntities().then(() => {
+    renderCollectionsFeature();
+    // A homepage preview card links to collections.html#collection-{id}; that
+    // section only exists once this render runs, so a browser navigating
+    // straight to the hash from another page attempts its native anchor
+    // scroll before the target exists and silently lands at the top instead.
+    // Do it manually, once, the first time this page's collections render.
+    if (fullContainer && window.location.hash) {
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+    }
+  });
+}
+
+function renderCollectionsFeature() {
+  if (!discoveryEntities || !window.AntiochiaArchiveCollections) return;
+  const resolved = window.AntiochiaArchiveCollections.resolveCollections(discoveryEntities);
+  const lang = currentLang;
+  const typeLabels = v2TypeLabels(lang);
+
+  const previewContainer = document.getElementById("collections-preview-container");
+  if (previewContainer) previewContainer.innerHTML = resolved.slice(0, 4).map((c) => collectionPreviewCardHtml(c, lang)).join("");
+
+  const fullContainer = document.getElementById("collections-grid-container");
+  if (fullContainer) fullContainer.innerHTML = resolved.map((c) => collectionFullSectionHtml(c, lang, typeLabels)).join("");
+}
+
+/* -------------------------------------------------------------------------
+   Search results page (/pages/search.html)
+   ------------------------------------------------------------------------- */
+let searchResultsTypeFilter = "all";
+
+function initSearchResultsPage() {
+  const grid = document.querySelector("[data-search-results-grid]");
+  if (!grid) return;
+  ensureDiscoveryEntities().then(() => renderSearchResultsPage());
+
+  const filterBar = document.querySelector("[data-search-filters]");
+  if (filterBar && !filterBar.dataset.wired) {
+    filterBar.dataset.wired = "true";
+    filterBar.querySelectorAll(".filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        filterBar.querySelectorAll(".filter-btn").forEach((other) => other.classList.toggle("is-active", other === btn));
+        searchResultsTypeFilter = btn.dataset.filter;
+        renderSearchResultsPage();
+      });
+    });
+  }
+}
+
+function renderSearchResultsPage() {
+  const grid = document.querySelector("[data-search-results-grid]");
+  if (!grid || !discoverySearchIndex || !window.AntiochiaArchiveSearch) return;
+
+  const query = new URLSearchParams(window.location.search).get("q") || "";
+  const summaryEl = document.querySelector("[data-search-results-summary]");
+  const results = window.AntiochiaArchiveSearch.searchEntities(discoverySearchIndex, query, { typeFilter: searchResultsTypeFilter });
+
+  if (summaryEl) {
+    if (!query.trim()) {
+      summaryEl.textContent = resolveKey(currentLang, "search.noQuery") || "";
+    } else {
+      const countTemplate = resolveKey(currentLang, results.length === 1 ? "search.resultsCountOne" : "search.resultsCount") || "{count}";
+      const forText = (resolveKey(currentLang, "search.resultsFor") || "{query}").replace("{query}", query);
+      summaryEl.textContent = `${forText} — ${countTemplate.replace("{count}", String(results.length))}`;
+    }
+  }
+
+  if (!query.trim()) { grid.innerHTML = ""; return; }
+  if (!results.length) {
+    grid.innerHTML = `<p class="search-results-empty">${escapeHtml(resolveKey(currentLang, "search.empty") || "")}</p>`;
+    return;
+  }
+  const typeLabels = v2TypeLabels(currentLang);
+  grid.innerHTML = results.map((entity) => genericEntityCardHtml(entity, currentLang, typeLabels)).join("");
+}
+
+/* -------------------------------------------------------------------------
+   Detail page: "Explore more" (same-type picks + discover-another)
+   ------------------------------------------------------------------------- */
+function initExploreMore() {
+  if (!document.querySelector("[data-explore-more]")) return;
+  ensureDiscoveryEntities().then(() => renderExploreMore());
+}
+
+function renderExploreMore() {
+  const container = document.querySelector("[data-explore-more]");
+  if (!container || !discoveryEntities || !window.AntiochiaArchiveStore) return;
+  const entityId = container.dataset.entityId;
+  const entityType = container.dataset.entityType;
+  const grid = container.querySelector("[data-explore-more-grid]");
+  const picks = window.AntiochiaArchiveStore.byType(discoveryEntities, entityType)
+    .filter((entity) => entity.id !== entityId)
+    .slice(0, 3);
+  if (grid) grid.innerHTML = picks.map((entity) => genericEntityCardHtml(entity, currentLang, v2TypeLabels(currentLang))).join("");
+
+  const discoverBtn = container.querySelector("[data-discover-another]");
+  if (discoverBtn) {
+    discoverBtn.hidden = picks.length === 0;
+    if (!discoverBtn.dataset.wired) {
+      discoverBtn.dataset.wired = "true";
+      discoverBtn.addEventListener("click", () => {
+        const picked = window.AntiochiaArchiveStore.pickRandomEntity(discoveryEntities, { excludeId: entityId });
+        const href = picked && archiveV2DetailHref(picked);
+        if (href) window.location.href = href;
+      });
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Detail page share controls (copy link / WhatsApp / X / native share)
+   ------------------------------------------------------------------------- */
+function initShareControls() {
+  document.querySelectorAll(".record-share").forEach((section) => {
+    if (section.dataset.wired) return;
+    section.dataset.wired = "true";
+    const url = section.dataset.shareUrl;
+    const copyBtn = section.querySelector(".record-share-copy");
+    const nativeBtn = section.querySelector(".record-share-native");
+
+    copyBtn?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = resolveKey(currentLang, "detail.share.linkCopied") || original;
+        window.setTimeout(() => { copyBtn.textContent = resolveKey(currentLang, "detail.share.copyLink") || original; }, 2000);
+      } catch (_) { /* Clipboard API unavailable/denied — WhatsApp/X links still work. */ }
+    });
+
+    if (typeof navigator.share === "function" && nativeBtn) {
+      nativeBtn.hidden = false;
+      nativeBtn.addEventListener("click", () => {
+        navigator.share({ title: section.dataset.shareTitle, url }).catch(() => {});
+      });
+    }
+  });
+}
+
+/* -------------------------------------------------------------------------
+   "Discover a Record" — homepage random-entity button
+   ------------------------------------------------------------------------- */
+let hasDiscoveredOnce = false;
+
+function renderDiscoverButtonLabel() {
+  const button = document.querySelector("[data-discover-button]");
+  if (!button) return;
+  button.textContent = resolveKey(currentLang, hasDiscoveredOnce ? "discover.another" : "discover.button") || button.textContent;
+}
+
+function initRandomDiscover() {
+  const button = document.querySelector("[data-discover-button]");
+  const panel = document.querySelector("[data-discover-panel]");
+  if (!button || !panel) return;
+  ensureDiscoveryEntities();
+  button.addEventListener("click", () => {
+    if (!discoveryEntities || !window.AntiochiaArchiveStore) return;
+    const entity = window.AntiochiaArchiveStore.pickRandomEntity(discoveryEntities);
+    if (!entity) return;
+    panel.hidden = false;
+    panel.innerHTML = genericEntityCardHtml(entity, currentLang, v2TypeLabels(currentLang));
+    hasDiscoveredOnce = true;
+    renderDiscoverButtonLabel();
+  });
+}
+
+/* -------------------------------------------------------------------------
+   Archive summary — homepage live counts by type (never hardcoded)
+   ------------------------------------------------------------------------- */
+function initArchiveSummary() {
+  if (!document.getElementById("archive-summary-container")) return;
+  ensureDiscoveryEntities().then(() => renderArchiveSummary());
+}
+
+function renderArchiveSummary() {
+  const container = document.getElementById("archive-summary-container");
+  if (!container || !discoveryEntities || !window.AntiochiaArchiveStore) return;
+  const typeLabels = v2TypeLabels(currentLang);
+  const rows = window.AntiochiaArchiveStore.DETAIL_TYPES.map((type) => ({
+    label: typeLabels[type],
+    count: window.AntiochiaArchiveStore.byType(discoveryEntities, type).length,
+  }));
+  container.innerHTML = rows.map((row) => `
+      <div class="archive-stat">
+        <span class="archive-stat-count">${row.count}</span>
+        <span class="archive-stat-label">${escapeHtml(row.label)}</span>
+      </div>`).join("");
+}
+
+/** Re-renders every discovery feature already present on this page in the new language. Each renderer is itself a safe no-op when its container or data isn't there — same idiom as renderArchiveSections(). */
+function renderDiscoveryFeatures() {
+  renderHomepageTimeline();
+  rerenderMapFeature();
+  renderCollectionsFeature();
+  renderSearchResultsPage();
+  renderExploreMore();
+  renderArchiveSummary();
+  renderDiscoverButtonLabel();
+}
+
+/* ==========================================================================
    Init
    ========================================================================== */
 document.addEventListener("DOMContentLoaded", () => {
@@ -1380,6 +1850,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Lightbox modal init --- */
   initLightbox();
+
+  /* --- Discovery features: nav dropdown, search autocomplete, timeline, map, collections, search results, explore-more, share, random discover, archive summary --- */
+  initNavDiscoverMenus();
+  initHeaderSearchAutocomplete();
+  initHomepageTimeline();
+  initMapFeature();
+  initCollectionsFeature();
+  initSearchResultsPage();
+  initExploreMore();
+  initShareControls();
+  initRandomDiscover();
+  initArchiveSummary();
 
   /* Contribution map intentionally disabled until submissions have location data. */
 });

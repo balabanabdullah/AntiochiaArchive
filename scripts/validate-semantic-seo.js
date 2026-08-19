@@ -24,6 +24,11 @@ const publicPages = [
   { file: "pages/gallery.html", url: `${productionOrigin}/pages/gallery.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/contributions.html", url: `${productionOrigin}/pages/contributions.html`, types: [] },
   { file: "pages/methodology.html", url: `${productionOrigin}/pages/methodology.html`, types: ["WebPage"] },
+  { file: "pages/map.html", url: `${productionOrigin}/pages/map.html`, types: ["CollectionPage", "BreadcrumbList"] },
+  { file: "pages/collections.html", url: `${productionOrigin}/pages/collections.html`, types: ["CollectionPage", "BreadcrumbList"] },
+  // Results vary by query string, so this is registered like contributions.html:
+  // a real public page with no stable structured-data claim to make about it.
+  { file: "pages/search.html", url: `${productionOrigin}/pages/search.html`, types: [] },
 ];
 
 const privatePages = ["pages/admin.html", "pages/submissions.html"];

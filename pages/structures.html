@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Architectural Heritage of Antioch — Courtyard houses, ancient sanctuaries, historic mosques, aqueducts, and stone bridges.">
   <meta name="theme-color" content="#f2ead8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Stones of Time &amp; Faith — AntiochiaArchive">
   <meta property="og:description" content="Courtyard houses, ancient sanctuaries, historic mosques, aqueducts, and stone bridges of Antioch.">
@@ -67,6 +68,14 @@
         <a href="/pages/places.html" data-i18n="nav.places">Places</a>
         <a href="/pages/music.html"           data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"         data-i18n="nav.gallery">Gallery</a>
+        <div class="nav-discover" data-nav-discover>
+          <button type="button" class="nav-discover-trigger" aria-expanded="false" aria-controls="nav-discover-menu" data-i18n="nav.discover">Discover</button>
+          <div class="nav-discover-menu" id="nav-discover-menu">
+            <a href="/pages/map.html" data-i18n="nav.map">Map</a>
+            <a href="/index.html#timeline" data-i18n="nav.timeline">Timeline</a>
+            <a href="/pages/collections.html" data-i18n="nav.collections">Collections</a>
+          </div>
+        </div>
       </nav>
 
       <!-- Header actions -->
@@ -77,7 +86,7 @@
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="searchPlaceholder" placeholder="Bir şey ara...">
+          <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="search.placeholder" placeholder="Search the AntiochiaArchive…">
         </div>
         <div class="lang-switcher" role="group" aria-label="Choose language">
           <button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button>
@@ -102,7 +111,7 @@
     <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
       <div class="container mobile-nav-inner">
         <div class="mobile-nav-search">
-          <input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="searchPlaceholder" data-i18n-aria="a11y.searchArchive">
+          <input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="search.placeholder" data-i18n-aria="a11y.searchArchive">
         </div>
         <a href="../index.html"   data-i18n="nav.home">Home</a>
         <a href="history.html"    data-i18n="nav.history">History</a>
@@ -113,6 +122,9 @@
         <a href="places.html" data-i18n="nav.places">Places</a>
         <a href="music.html"      data-i18n="nav.music">Music</a>
         <a href="gallery.html"    data-i18n="nav.gallery">Gallery</a>
+        <a href="/pages/map.html" data-i18n="nav.map">Map</a>
+        <a href="/index.html#timeline" data-i18n="nav.timeline">Timeline</a>
+        <a href="/pages/collections.html" data-i18n="nav.collections">Collections</a>
         <a href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
       </div>
     </nav>
@@ -229,6 +241,11 @@
   <script src="/lang.js"></script>
   <script src="/archive-api.js"></script>
   <script src="/archive-v2-api.js"></script>
+  <script src="/js/archive-store.js"></script>
+  <script src="/js/search.js"></script>
+  <script src="/js/timeline.js"></script>
+  <script src="/js/map.js"></script>
+  <script src="/js/collections.js"></script>
   <script src="/script.js"></script>
   <script>
     document.getElementById("footer-year").textContent = new Date().getFullYear();

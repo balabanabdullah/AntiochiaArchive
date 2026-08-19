@@ -14,14 +14,22 @@ const entities = await collectPublicV2Entities();
 const validation = validatePublicV2Entities(entities);
 
 const builtIndex = await readFile(resolve(distRoot, "index.html"), "utf8");
-const stylesheet = builtIndex.match(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/i)?.[1];
+const stylesheet = [...builtIndex.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/gi)]
+  .map((match) => match[1])
+  .find((href) => /\/assets\/style-[^/]+\.css$/.test(href));
 const scripts = [...builtIndex.matchAll(/<script\b[^>]*src=["']([^"']+)["']/gi)].map((match) => match[1]);
 const langScript = scripts.find((source) => /\/assets\/lang-[^/]+\.js$/.test(source));
 const v2ApiScript = scripts.find((source) => /\/assets\/archive-v2-api-[^/]+\.js$/.test(source));
 const appScript = scripts.find((source) => /\/assets\/script-[^/]+\.js$/.test(source));
+// The discovery-feature modules (see public/js/): a detail page's header
+// search box and its "explore more" section both need AntiochiaArchiveStore
+// and AntiochiaArchiveSearch — the same versioned-asset resolution used for
+// lang/v2-api/script above.
+const archiveStoreScript = scripts.find((source) => /\/assets\/archive-store-[^/]+\.js$/.test(source));
+const searchScript = scripts.find((source) => /\/assets\/search-[^/]+\.js$/.test(source));
 
-if (!stylesheet || !langScript || !v2ApiScript || !appScript) {
-  throw new Error("Could not resolve versioned stylesheet, language script, v2 API script, and application script from dist/index.html.");
+if (!stylesheet || !langScript || !v2ApiScript || !appScript || !archiveStoreScript || !searchScript) {
+  throw new Error("Could not resolve versioned stylesheet, language script, v2 API script, discovery-feature scripts, and application script from dist/index.html.");
 }
 
 for (const entity of entities) {
@@ -33,7 +41,10 @@ for (const entity of entities) {
     stylesheet,
     langScript,
     v2ApiScript,
+    archiveStoreScript,
+    searchScript,
     appScript,
+    entities,
   }), "utf8");
 }
 

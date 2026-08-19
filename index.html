@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AntiochiaArchive is a living digital memory of Antioch, preserving its stories, places, beliefs, and music for generations to come.">
   <meta name="theme-color" content="#f2ead8">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
   <!-- Open Graph -->
   <meta property="og:type"        content="website">
@@ -17,6 +18,7 @@
 
   <link rel="canonical" href="https://antiochia-app-6939593871.europe-west1.run.app/">
   <link rel="preload" as="image" href="/images/hero/antakya-silpius-panorama-1900.webp" type="image/webp">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="style.css">
 
   <script type="application/ld+json">
@@ -61,6 +63,14 @@
         <a href="/pages/places.html" data-i18n="nav.places">Places</a>
         <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
+        <div class="nav-discover" data-nav-discover>
+          <button type="button" class="nav-discover-trigger" aria-expanded="false" aria-controls="nav-discover-menu" data-i18n="nav.discover">Discover</button>
+          <div class="nav-discover-menu" id="nav-discover-menu">
+            <a href="/pages/map.html" data-i18n="nav.map">Map</a>
+            <a href="#timeline" data-i18n="nav.timeline">Timeline</a>
+            <a href="/pages/collections.html" data-i18n="nav.collections">Collections</a>
+          </div>
+        </div>
       </nav>
 
       <!-- Header actions -->
@@ -72,7 +82,7 @@
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="searchPlaceholder" placeholder="Bir şey ara...">
+          <input type="search" id="search-input" aria-label="Search archive" data-i18n-placeholder="search.placeholder" placeholder="Search the AntiochiaArchive…">
         </div>
 
         <!-- Language switcher -->
@@ -114,7 +124,7 @@
     >
       <div class="container mobile-nav-inner">
         <div class="mobile-nav-search">
-          <input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="searchPlaceholder" data-i18n-aria="a11y.searchArchive">
+          <input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="search.placeholder" data-i18n-aria="a11y.searchArchive">
         </div>
         <a href="/index.html"           data-i18n="nav.home">Home</a>
         <a href="/pages/history.html"    data-i18n="nav.history">History</a>
@@ -125,6 +135,9 @@
         <a href="/pages/places.html" data-i18n="nav.places">Places</a>
         <a href="/pages/music.html"      data-i18n="nav.music">Music</a>
         <a href="/pages/gallery.html"    data-i18n="nav.gallery">Gallery</a>
+        <a href="/pages/map.html" data-i18n="nav.map">Map</a>
+        <a href="#timeline" data-i18n="nav.timeline">Timeline</a>
+        <a href="/pages/collections.html" data-i18n="nav.collections">Collections</a>
         <a href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
       </div>
     </nav>
@@ -231,9 +244,19 @@
               A multilingual archive preserving the voices, images, songs,
               and shared places of Antioch — for generations to come.
             </p>
-            <a class="btn-explore" href="#history">
-              <span data-i18n="actions.explore">Explore the archive</span>
-              <span class="btn-explore-arrow" aria-hidden="true">→</span>
+            <div class="hero-cta-row">
+              <a class="btn-explore" href="#featured">
+                <span data-i18n="actions.explore">Explore the archive</span>
+                <span class="btn-explore-arrow" aria-hidden="true">→</span>
+              </a>
+              <a class="btn-explore btn-explore-secondary" href="/pages/map.html">
+                <span data-i18n="actions.exploreMap">Explore the map</span>
+                <span class="btn-explore-arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
+            <a class="hero-timeline-link" href="#timeline">
+              <span data-i18n="nav.timeline">Timeline</span>
+              <span aria-hidden="true">↓</span>
             </a>
             <p class="hero-coords" style="margin-top:var(--sp-5)">
               <span class="line" aria-hidden="true"></span>
@@ -275,9 +298,105 @@
     </section>
 
     <!-- -------------------------------------------------------------------
+         B. Archive Summary — live counts, never hardcoded
+         ------------------------------------------------------------------- -->
+    <section class="section-archive-summary" aria-labelledby="archive-summary-heading">
+      <div class="container">
+        <div class="archive-summary-header" data-reveal>
+          <h2 id="archive-summary-heading" data-i18n="archiveSummary.title">The Archive, in Numbers</h2>
+          <p data-i18n="archiveSummary.subtitle">Live counts from the public archive.</p>
+        </div>
+        <div class="archive-summary-stats" id="archive-summary-container" aria-live="polite">
+          <!-- dynamically populated with live per-type counts -->
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         C. Explore Antiochia — quick-access grid into the discovery features
+         ------------------------------------------------------------------- -->
+    <section class="section-explore-grid" aria-labelledby="explore-grid-heading">
+      <div class="container">
+        <div class="section-header-row">
+          <div data-reveal>
+            <span class="eyebrow" data-i18n="hero.mapLabel">Antioch &amp; the Orontes Valley</span>
+            <h2 id="explore-grid-heading" data-i18n="discover.title">Discover the Archive</h2>
+          </div>
+        </div>
+        <div class="explore-grid">
+          <a class="explore-grid-card" href="#timeline">
+            <span class="explore-grid-icon" aria-hidden="true">◷</span>
+            <h3 data-i18n="nav.timeline">Timeline</h3>
+            <p data-i18n="timeline.subtitle">Twenty-five centuries of the city's public record, era by era.</p>
+          </a>
+          <a class="explore-grid-card" href="/pages/map.html">
+            <span class="explore-grid-icon" aria-hidden="true">◎</span>
+            <h3 data-i18n="nav.map">Map</h3>
+            <p data-i18n="pages.map.subtitle">Documented places and structures of Antakya, plotted wherever a reviewed coordinate has been published.</p>
+          </a>
+          <a class="explore-grid-card" href="/pages/collections.html">
+            <span class="explore-grid-icon" aria-hidden="true">◈</span>
+            <h3 data-i18n="nav.collections">Collections</h3>
+            <p data-i18n="pages.collections.subtitle">Cross-sections of the archive drawn from its existing public records.</p>
+          </a>
+          <a class="explore-grid-card" href="/pages/search.html">
+            <span class="explore-grid-icon" aria-hidden="true">◍</span>
+            <h3 data-i18n="pages.search.badge">Search</h3>
+            <p data-i18n="search.placeholder">Search the AntiochiaArchive…</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         D. Timeline — "Antioch Through Time"
+         ------------------------------------------------------------------- -->
+    <section class="section-timeline" id="timeline" aria-labelledby="timeline-heading">
+      <div class="container">
+        <div class="section-header-row">
+          <div data-reveal>
+            <span class="eyebrow" data-i18n="historySection.eyebrow">Chronicle of a City</span>
+            <h2 id="timeline-heading" data-i18n="timeline.title">Antioch Through Time</h2>
+            <p data-i18n="timeline.subtitle">Twenty-five centuries of the city's public record, era by era.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/history.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div class="timeline-rail" id="timeline-preview-container" aria-live="polite">
+          <!-- dynamically populated from public historicalContext entities -->
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         E. Explore the Map — mini preview
+         ------------------------------------------------------------------- -->
+    <section class="section-map-preview" aria-labelledby="map-preview-heading">
+      <div class="container">
+        <div class="section-header-row">
+          <div data-reveal>
+            <span class="eyebrow" data-i18n="placesSection.eyebrow">Geography of Memory</span>
+            <h2 id="map-preview-heading" data-i18n="map.title">Explore the Map</h2>
+            <p data-i18n="map.subtitle">Documented places of Antakya and Hatay, plotted wherever a reviewed coordinate has been published.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/map.html">
+            <span data-i18n="map.previewCta">Open the full map</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div id="map-preview-container" class="map-preview-container"></div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         F. Featured Records — existing per-type previews
+         ------------------------------------------------------------------- -->
+    <!-- -------------------------------------------------------------------
          History Section (#history)
          ------------------------------------------------------------------- -->
-    <section class="section-history" id="history" aria-labelledby="history-heading" data-homepage-limit="6" data-homepage-entity-type="historicalContext">
+    <section class="section-history" id="featured" aria-labelledby="history-heading" data-homepage-limit="6" data-homepage-entity-type="historicalContext">
       <div class="container">
         <div class="section-header-row">
           <div class="history-header" data-reveal>
@@ -432,6 +551,82 @@
         <div class="music-list" id="music-list-container" aria-live="polite">
           <!-- dynamically populated from /api/v2/music (preview only — full list at /pages/music.html) -->
         </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         G. Collections — preview cards
+         ------------------------------------------------------------------- -->
+    <section class="section-collections-preview" aria-labelledby="collections-preview-heading">
+      <div class="container">
+        <div class="section-header-row">
+          <div data-reveal>
+            <span class="eyebrow" data-i18n="pages.collections.eyebrow">Curated Views</span>
+            <h2 id="collections-preview-heading" data-i18n="collections.title">Collections</h2>
+            <p data-i18n="collections.subtitle">Curated cross-sections of the archive, drawn from its existing records.</p>
+          </div>
+          <a class="section-view-all-link" href="/pages/collections.html">
+            <span data-i18n="actions.viewAll">View all</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div class="collections-preview-grid" id="collections-preview-container" aria-live="polite">
+          <!-- dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         H. Categories — quick links to every archive category
+         ------------------------------------------------------------------- -->
+    <section class="section-categories" aria-labelledby="categories-heading">
+      <div class="container">
+        <div class="section-header-row">
+          <div data-reveal>
+            <span class="eyebrow" data-i18n="footer.links.about">Navigation</span>
+            <h2 id="categories-heading" data-i18n="nav.discover">Discover</h2>
+          </div>
+        </div>
+        <div class="categories-grid">
+          <a class="category-chip" href="/pages/history.html" data-i18n="nav.history">History</a>
+          <a class="category-chip" href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
+          <a class="category-chip" href="/pages/beliefs.html" data-i18n="nav.beliefs">Beliefs</a>
+          <a class="category-chip" href="/pages/places.html" data-i18n="nav.places">Places</a>
+          <a class="category-chip" href="/pages/structures.html" data-i18n="nav.structures">Structures</a>
+          <a class="category-chip" href="/pages/stories.html" data-i18n="nav.stories">Stories</a>
+          <a class="category-chip" href="/pages/music.html" data-i18n="nav.music">Music</a>
+          <a class="category-chip" href="/pages/gallery.html" data-i18n="nav.gallery">Gallery</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         I. Discover a Record — random public entity
+         ------------------------------------------------------------------- -->
+    <section class="section-discover" aria-labelledby="discover-heading">
+      <div class="container discover-inner">
+        <div data-reveal>
+          <span class="eyebrow" data-i18n="hero.eyebrow">A living digital memory</span>
+          <h2 id="discover-heading" data-i18n="discover.title">Discover the Archive</h2>
+          <p data-i18n="discover.subtitle">Surface one record at random from the public archive.</p>
+          <button type="button" class="btn-cta-primary" data-discover-button data-i18n="discover.button">Discover a Record</button>
+        </div>
+        <div class="discover-panel" data-discover-panel hidden aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------------
+         J. Methodology teaser
+         ------------------------------------------------------------------- -->
+    <section class="section-methodology-teaser" aria-labelledby="methodology-teaser-heading">
+      <div class="container methodology-teaser-inner">
+        <span class="eyebrow" data-i18n="pages.methodology.badge">Project Practice</span>
+        <h2 id="methodology-teaser-heading" data-i18n="pages.methodology.title">Editorial &amp; Media Methodology</h2>
+        <p data-i18n="pages.methodology.subtitle">How AntiochiaArchive qualifies cultural claims, reviews media provenance, and preserves uncertainty.</p>
+        <a class="archive-detail-link" href="/pages/methodology.html">
+          <span data-i18n="actions.learnMore">Learn more</span>
+          <span aria-hidden="true">→</span>
+        </a>
       </div>
     </section>
 
@@ -606,6 +801,12 @@
   <script src="/lang.js"></script>
   <script src="/archive-api.js"></script>
   <script src="/archive-v2-api.js"></script>
+  <script src="/js/archive-store.js"></script>
+  <script src="/js/search.js"></script>
+  <script src="/js/timeline.js"></script>
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/js/map.js"></script>
+  <script src="/js/collections.js"></script>
   <script src="/script.js"></script>
   <script>
     // Set footer year

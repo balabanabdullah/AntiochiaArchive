@@ -121,6 +121,11 @@ test("generateV2DetailDocument produces a canonical, single-H1, correctly-breadc
     assert.match(html, new RegExp(`data-entity-id="${entity.id}"`));
     assert.match(html, /data-related-entities-section/);
     assert.match(html, /related-entities-section[^>]* hidden /, "related-entities section must ship hidden by default");
+    // Every other page (index.html, pages/*.html) has a header search box —
+    // a detail page must too, or the site-wide search feature silently has
+    // no entry point on its 99 most-visited pages.
+    assert.match(html, /id="search-input"/, `${entity.id} is missing the header search box`);
+    assert.match(html, /class="search-input-field"/, `${entity.id} is missing the mobile-nav search box`);
   }
 });
 
@@ -153,6 +158,76 @@ test("generateV2DetailDocument never renders a literal sentinel placeholder valu
     entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
   });
   assert.doesNotMatch(html, /NEEDS VERIFICATION|UNRESOLVED|NOT YET RESEARCHED/);
+});
+
+test("metadata panel (period/type/evidence) is entirely omitted when the entity carries none of those fields", () => {
+  const entity = { id: "belief-0100", slug: "no-metadata", entityType: "belief", status: "published", title: { en: "T" }, summary: { en: "S" } };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(html, /record-metadata-section/);
+});
+
+test("metadata panel renders exactly the fields this entity's public shape carries — period for historicalContext, evidence badge only when evidenceType is set", () => {
+  const entity = {
+    id: "hist-0099", slug: "period-check", entityType: "historicalContext", status: "published",
+    title: { en: "T" }, summary: { en: "S" }, period: { label: { en: "Roman" } }, evidenceType: "verifiedHistorical",
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /record-metadata-section/);
+  assert.match(html, />Roman</);
+  assert.match(html, /data-i18n="detail\.evidenceType\.verifiedHistorical"/);
+  assert.doesNotMatch(html, /detail\.typeLabel/, "historicalContext has no structureType/genre/storyCategory to show as Type");
+});
+
+test("names section is omitted for an entity with no alternate/historical/local names, and renders historicalNames when present", () => {
+  const noNames = generateV2DetailDocument({
+    entity: { id: "place-0099", slug: "no-names", entityType: "place", status: "published", title: { en: "T" }, summary: { en: "S" } },
+    stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.doesNotMatch(noNames, /record-names-section/);
+
+  const withNames = generateV2DetailDocument({
+    entity: {
+      id: "place-0098", slug: "with-names", entityType: "place", status: "published", title: { en: "T" }, summary: { en: "S" },
+      historicalNames: [{ name: "Antiocheia" }, { name: "Antiochia" }],
+    },
+    stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.match(withNames, /record-names-section/);
+  assert.match(withNames, /Antiocheia, Antiochia/);
+});
+
+test("a story's storyPlaceId resolves to a real linkable place title when that place is passed in `entities`, and is safely omitted otherwise", () => {
+  const place = { id: "place-0001", slug: "antakya", entityType: "place", status: "published", title: { en: "Antakya" }, summary: {} };
+  const story = {
+    id: "story-0050", slug: "place-linked-story", entityType: "story", status: "published",
+    title: { en: "T" }, summary: { en: "S" }, storyPlaceId: "place-0001",
+  };
+  const withPlace = generateV2DetailDocument({
+    entity: story, entities: [place], stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.match(withPlace, /<a href="\/archive-v2\/antakya\/">Antakya<\/a>/);
+
+  const withoutEntities = generateV2DetailDocument({
+    entity: story, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.doesNotMatch(withoutEntities, /archive-v2\/antakya/);
+});
+
+test("share controls always render WhatsApp/X links and a hidden native-share button, never a tracking script", () => {
+  const html = generateV2DetailDocument({
+    entity: { id: "music-0099", slug: "share-check", entityType: "music", status: "published", title: { en: "A Song" }, summary: { en: "S" } },
+    stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js",
+  });
+  assert.match(html, /record-share-whatsapp" href="https:\/\/wa\.me\/\?text=/);
+  assert.match(html, /record-share-x" href="https:\/\/twitter\.com\/intent\/tweet\?/);
+  assert.match(html, /record-share-native"[^>]* hidden/);
+});
+
+test("explore-more ships as an empty, client-populated container — never a baked cross-entity link (which could go stale or self-link)", () => {
+  const entity = { id: "story-0051", slug: "explore-more-check", entityType: "story", status: "published", title: { en: "T" }, summary: { en: "S" } };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /data-explore-more data-entity-id="story-0051" data-entity-type="story"/);
+  assert.match(html, /<div class="record-explore-more-grid" data-explore-more-grid><\/div>/);
 });
 
 test("REAL DATA: collectPublicV2Entities against the canonical data/ files matches the reviewed per-type public counts", async () => {

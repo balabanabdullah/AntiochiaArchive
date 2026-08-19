@@ -2395,12 +2395,37 @@ html[dir="rtl"] .back-to-top {
   transform: translateY(0);
 }
 
+.filter-btn:focus-visible {
+  outline: 2px solid var(--clr-red);
+  outline-offset: 2px;
+}
+
 .filter-btn.is-active {
   background: var(--clr-red);
   color: #ffffff;
   border-color: var(--clr-red);
   box-shadow: 0 3px 12px rgba(144, 54, 40, 0.3);
   transform: translateY(-1px);
+}
+
+/* Selection is never color-only: an active chip also gets a check mark, and
+   "All" reads as a neutral reset rather than another category choice. */
+.filter-btn.is-active::before {
+  content: "✓";
+  display: inline-block;
+  margin-inline-end: 5px;
+  font-weight: 700;
+}
+
+.filter-btn[data-filter="all"].is-active {
+  background: var(--clr-ink);
+  color: var(--clr-paper-light);
+  border-color: var(--clr-ink);
+  box-shadow: 0 3px 12px rgba(28, 24, 20, 0.22);
+}
+
+.filter-btn[data-filter="all"].is-active::before {
+  content: none;
 }
 
 /* Per-group accent — same warm archive palette, distinct enough to scan at
@@ -2446,16 +2471,24 @@ html[dir="rtl"] .back-to-top {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 10px;
+  padding-block: 7px;
+}
+
+.filter-group:not(:last-child) {
+  border-bottom: 1px solid var(--clr-line);
 }
 
 .filter-group--all {
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--clr-line);
+  padding-top: 0;
+  padding-bottom: 9px;
   margin-bottom: 2px;
 }
 
 .filter-group-label {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-sans);
   font-size: 0.7rem;
   font-weight: 700;
@@ -2463,6 +2496,31 @@ html[dir="rtl"] .back-to-top {
   text-transform: uppercase;
   color: var(--clr-ink-muted);
   min-width: 108px;
+}
+
+/* Small accent dot ties each group's label to the fill color its active
+   chips use, without tinting the label text itself (kept neutral so the
+   palette stays on the chips, not the chrome). */
+.filter-group-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--clr-red);
+  flex: 0 0 auto;
+}
+
+.filter-group[data-filter-group="events"] .filter-group-label::before {
+  background: var(--clr-amber);
+}
+.filter-group[data-filter-group="belief"] .filter-group-label::before {
+  background: var(--clr-plum);
+}
+.filter-group[data-filter-group="life"] .filter-group-label::before {
+  background: var(--clr-olive);
+}
+.filter-group[data-filter-group="other"] .filter-group-label::before {
+  background: var(--clr-ink-muted);
 }
 
 .filter-group-chips {
@@ -2487,24 +2545,58 @@ html[dir="rtl"] .back-to-top {
   mask-image: none;
 }
 
+/* Deliberately not pill-shaped like a filter-btn — this is a disclosure
+   control, not another filter choice, so it reads as plain small text. */
 .filter-expand-toggle {
   align-self: center;
-  padding: 6px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--clr-line-strong);
-  background: var(--clr-paper-light);
+  margin-top: 4px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--clr-red);
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease);
 }
 
-.filter-expand-toggle:hover {
-  background: var(--clr-red);
-  color: #ffffff;
+.filter-expand-toggle::after {
+  content: "▾";
+  font-size: 0.65em;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.filter-expand-toggle[aria-expanded="true"]::after {
+  transform: rotate(180deg);
+}
+
+.filter-expand-toggle:hover,
+.filter-expand-toggle:focus-visible {
+  color: var(--clr-red-dark);
+}
+
+.filter-expand-toggle:focus-visible {
+  outline: 2px solid var(--clr-red);
+  outline-offset: 2px;
+}
+
+/* Plain result summary — deliberately unstyled beyond muted small text. */
+.filter-results-count {
+  width: 100%;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--clr-ink-muted);
+  text-align: center;
 }
 
 .filter-select {
@@ -2530,6 +2622,10 @@ html[dir="rtl"] .back-to-top {
 }
 
 @media (max-width: 767px) {
+  .filter-bar-wrap {
+    margin-bottom: var(--sp-4);
+    gap: var(--sp-1);
+  }
   .filter-bar,
   .filter-expand-toggle {
     display: none;

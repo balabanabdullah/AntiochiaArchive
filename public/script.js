@@ -1011,7 +1011,9 @@ function renderDynamicFilterBars(lang) {
         toggle = document.createElement("button");
         toggle.type = "button";
         toggle.className = "filter-expand-toggle";
-        wrap.appendChild(toggle);
+        // Keep the results-count line (appended after this in the render
+        // pipeline, but may already exist from a prior render) last in DOM.
+        wrap.insertBefore(toggle, wrap.querySelector(".filter-results-count"));
       }
       toggle.textContent = resolveKey(lang, "filters.showAll") || "Show all";
       toggle.setAttribute("aria-expanded", "false");
@@ -1592,6 +1594,7 @@ function applyCombinedFilters() {
   const cat = currentActiveFilter || "all";
 
   const allCards = document.querySelectorAll(ALL_CARD_SELECTORS);
+  let visibleCount = 0;
 
   allCards.forEach((card) => {
     const cardCategory = card.getAttribute("data-category") || "all";
@@ -1606,9 +1609,38 @@ function applyCombinedFilters() {
 
     if (matchesSearch && matchesCategory) {
       card.classList.remove("hidden");
+      visibleCount += 1;
     } else {
       card.classList.add("hidden");
     }
+  });
+
+  if (allCards.length) updateFilterResultsCount(visibleCount);
+}
+
+/**
+ * Show a plain "N records shown" line under each filter bar. Only pages with
+ * a filter bar (and cards already rendered) get one — applyCombinedFilters()
+ * skips this when the page has no cards yet (e.g. before the archive API
+ * response lands), so no "0 records" flash on first paint.
+ */
+function updateFilterResultsCount(count) {
+  const wraps = document.querySelectorAll(".filter-bar-wrap");
+  if (!wraps.length) return;
+
+  const key = count === 1 ? "filters.resultsCountOne" : "filters.resultsCount";
+  const fallback = count === 1 ? "{count} record shown" : "{count} records shown";
+  const text = (resolveKey(currentLang, key) || fallback).replace("{count}", String(count));
+
+  wraps.forEach((wrap) => {
+    let el = wrap.querySelector(".filter-results-count");
+    if (!el) {
+      el = document.createElement("p");
+      el.className = "filter-results-count";
+      el.setAttribute("aria-live", "polite");
+      wrap.appendChild(el);
+    }
+    el.textContent = text;
   });
 }
 

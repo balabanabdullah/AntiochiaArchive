@@ -73,6 +73,8 @@ const TRANSLATIONS = {
       infrastructure: "Water & Engineering",
       showAll: "Show all",
       showLess: "Show less",
+      resultsCount: "{count} records shown",
+      resultsCountOne: "{count} record shown",
       group: {
         periods: "Historical Periods",
         events: "Events",
@@ -458,6 +460,8 @@ const TRANSLATIONS = {
       infrastructure: "Su & Roma Mühendisliği",
       showAll: "Tümünü Göster",
       showLess: "Daha Az Göster",
+      resultsCount: "{count} kayıt gösteriliyor",
+      resultsCountOne: "{count} kayıt gösteriliyor",
       group: {
         periods: "Tarihî Dönemler",
         events: "Olaylar",
@@ -843,6 +847,8 @@ const TRANSLATIONS = {
       infrastructure: "الهندسة المائية",
       showAll: "عرض الكل",
       showLess: "عرض أقل",
+      resultsCount: "يتم عرض {count} سجل",
+      resultsCountOne: "يتم عرض سجل واحد",
       group: {
         periods: "العصور التاريخية",
         events: "الأحداث",

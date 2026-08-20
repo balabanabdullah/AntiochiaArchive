@@ -2,14 +2,15 @@
 // real-mapped-data runtime built on top of the validated v1 -> v2 mapper,
 // merged with the promoted canonical research batch (data/v2/entities.json,
 // 268 entities as of the Hatay local-toponym round — 168 cultural entities
-// plus 100 inReview `place` records for user-supplied local Hatay toponyms,
-// none of them public) and the active legacy replacement layer (7 mapped v1
-// records superseded), after the final canonical publication review (see
-// V2-ARCHITECTURE.md "Cultural entity publication review"). These exercise
-// the actual committed data files, not a fixture, so counts here double as
-// a regression check on the real, live system.
+// plus 100 `place` records for user-supplied local Hatay toponyms, all 100
+// published on explicit human review/instruction) and the active legacy
+// replacement layer (7 mapped v1 records superseded), after the final
+// canonical publication review (see V2-ARCHITECTURE.md "Cultural entity
+// publication review"). These exercise the actual committed data files, not
+// a fixture, so counts here double as a regression check on the real, live
+// system.
 //
-// 105 of 284 total entities in the store are currently PUBLIC. An initial
+// 205 of 284 total entities in the store are currently PUBLIC. An initial
 // publication review held back community/belief/place as whole categories;
 // a follow-up individual review (V2-ARCHITECTURE.md "Cultural entity
 // publication review — community/belief/place individual pass") published
@@ -73,10 +74,10 @@ async function paginateAll(baseUrl, path, limit = 100) {
   return seen;
 }
 
-test("GET /api/v2/entities, paginated across pages, returns exactly the 105 currently-public entities with no duplicates or gaps", async (context) => {
+test("GET /api/v2/entities, paginated across pages, returns exactly the 205 currently-public entities with no duplicates or gaps", async (context) => {
   const baseUrl = await startLocalTestServer(context);
   const all = await paginateAll(baseUrl, "/api/v2/entities");
-  assert.equal(all.length, 105);
+  assert.equal(all.length, 205);
   for (const item of all) {
     assert.equal(item.status === "published" || item.entityType === "media" || item.entityType === "source", true, `${item.id} must be public`);
   }
@@ -171,12 +172,11 @@ test("GET /api/v2/beliefs returns 8 of 12 — belief-0006/0011/0012 stay draft, 
   for (const item of body.data) assert.equal(item.entityType, "belief");
 });
 
-test("GET /api/v2/places returns 24 of 28 — place-0016/0019 (own identity depends on an explicitly UNRESOLVED toponym equation) and place-0020/0021 (draft) stay non-public; place-0017/0018 (likelySameEntity resolutions, not unresolved) are published", async (context) => {
+test("GET /api/v2/places returns 124 of 128 — place-0016/0019 (own identity depends on an explicitly UNRESOLVED toponym equation) and place-0020/0021 (draft) stay non-public; place-0017/0018 (likelySameEntity resolutions, not unresolved) are published; all 100 Hatay local-toponym places (place-0029..place-0128) are published", async (context) => {
   const baseUrl = await startLocalTestServer(context);
-  const response = await fetch(`${baseUrl}/api/v2/places?limit=100`);
-  const body = await response.json();
-  const ids = body.data.map((item) => item.id).sort();
-  assert.equal(ids.length, 24);
+  const all = await paginateAll(baseUrl, "/api/v2/places");
+  const ids = all.map((item) => item.id).sort();
+  assert.equal(ids.length, 124);
   for (const heldId of ["place-0016", "place-0019", "place-0020", "place-0021"]) {
     assert.equal(ids.includes(heldId), false, `${heldId} must stay non-public`);
   }

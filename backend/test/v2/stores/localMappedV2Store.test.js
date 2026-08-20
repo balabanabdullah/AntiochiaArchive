@@ -185,11 +185,15 @@ test("real merged store: total served entity count matches 23 mapped minus 7 act
   assert.equal(page.count, 284);
 });
 
-// --- 3. Hatay local-toponym round: 100 new inReview place entities ---
+// --- 3. Hatay local-toponym round: 100 new place entities ---
 // (place-0029..place-0128, added for user-supplied local Hatay-Arabic
-// village/neighborhood names — see tmp/hatay-toponym-research.json).
+// village/neighborhood names — see tmp/hatay-toponym-research.json). Created
+// inReview, then individually reviewed and published on explicit human
+// instruction in the same session (see conversation record) — this is the
+// human-editorial-review step the inReview status exists to gate, not an
+// automated publish.
 
-test("real merged store: exactly 100 new inReview place entities (place-0029..place-0128), none published", async () => {
+test("real merged store: exactly 100 Hatay local-toponym place entities (place-0029..place-0128), all published", async () => {
   const store = realStore();
   await store.initialize();
   const page = await store.listEntities({ limit: 500 });
@@ -199,16 +203,26 @@ test("real merged store: exactly 100 new inReview place entities (place-0029..pl
     return num >= 29 && num <= 128;
   });
   assert.equal(newPlaces.length, 100);
-  assert.ok(newPlaces.every((e) => e.status === "inReview"), "every new toponym place must be inReview, never published");
+  assert.ok(newPlaces.every((e) => e.status === "published"), "every Hatay local-toponym place is published as of the explicit human publish decision");
 });
 
-test("real merged store: a new inReview toponym place 404s from getEntityById the same way a nonexistent id does — no distinguishing signal", async () => {
+test("real merged store: a published Hatay local-toponym place passes the same publication-visibility gate as any other public place", async () => {
   const store = realStore();
   await store.initialize();
   const { isPublic } = await import("../../../v2/serializers/publicVisibility.js");
   const entity = await store.getEntityById("place-0029");
-  assert.ok(entity, "the record exists in the store (this is the store layer, not the public API)");
-  assert.equal(isPublic(entity), false, "but it must never pass the publication-visibility gate the routes/serializer rely on");
+  assert.ok(entity, "the record exists in the store");
+  assert.equal(isPublic(entity), true, "published toponym places must pass the publication-visibility gate the routes/serializer rely on");
+});
+
+test("real merged store: the 3 pre-existing draft places enriched with local names this round (Batıayaz/Tekebaşı/Mağaracık) were NOT part of the publish decision and remain draft", async () => {
+  const store = realStore();
+  await store.initialize();
+  for (const id of ["place-0019", "place-0020", "place-0021"]) {
+    // eslint-disable-next-line no-await-in-loop
+    const entity = await store.getEntityById(id);
+    assert.equal(entity.status, "draft", `${id} must stay draft — only the 100 new toponym entities were published, not these pre-existing enrichments`);
+  }
 });
 
 test("real merged store: every new place has a unique id and slug, no collision with the 28 pre-existing places or each other", async () => {

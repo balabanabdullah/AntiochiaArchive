@@ -260,19 +260,19 @@ test("REAL DATA: collectPublicV2Entities against the canonical data/ files match
     historicalContext: 22,
     community: 12,
     belief: 8,
-    place: 24,
+    place: 124,
     structure: 15,
     story: 11,
     music: 7,
   });
-  assert.equal(entities.length, 99);
+  assert.equal(entities.length, 199);
 
   // No oralHistoryLead-shaped story or non-detail-page type ever reaches this set.
   assert.ok(entities.every((entity) => V2_DETAIL_TYPES.includes(entity.entityType)));
   assert.ok(!entities.some((entity) => entity.storyRecordType === "oralHistoryLead"));
 
   const validation = validatePublicV2Entities(entities);
-  assert.equal(validation.count, 99);
+  assert.equal(validation.count, 199);
 });
 
 test("REAL DATA: every published place coordinate is a real, sane number pair — never guessed, never 0/0, never outside the Hatay region", async () => {
@@ -281,7 +281,8 @@ test("REAL DATA: every published place coordinate is a real, sane number pair �
 
   // Exactly the reviewed, source-verified set as of this round — a regression guard against a
   // coordinate silently appearing (or disappearing) without going through the same research process.
-  assert.equal(withCoords.length, 18);
+  // 18 from the prior verified-coordinates round + 100 published Hatay local-toponym places.
+  assert.equal(withCoords.length, 118);
   assert.ok(withCoords.every((entity) => entity.entityType === "place"));
 
   for (const entity of withCoords) {

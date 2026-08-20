@@ -122,6 +122,46 @@ test("place localNames validate language, name, and optional transliteration", (
   assert.match(result.error, /localNames\[0\]\.name is required/);
 });
 
+function validPlace(overrides = {}) {
+  return { id: "place-1", slug: "sample-place", entityType: "place", title: { en: "Sample" }, ...overrides };
+}
+
+test("place coordinates are optional — a place with no coordinates field is still valid", () => {
+  assert.deepEqual(validatePlace(validPlace()), { valid: true });
+  assert.deepEqual(validatePlace(validPlace({ coordinates: null })), { valid: true });
+});
+
+test("place accepts a real numeric latitude/longitude pair within range", () => {
+  const place = validPlace({ coordinates: { latitude: 36.2025, longitude: 36.160556 } });
+  assert.deepEqual(validatePlace(place), { valid: true });
+});
+
+test("place rejects an out-of-range latitude (never silently clamped or guessed)", () => {
+  const place = validPlace({ coordinates: { latitude: 91, longitude: 36.16 } });
+  const result = validatePlace(place);
+  assert.equal(result.valid, false);
+  assert.match(result.error, /latitude must be a number between -90 and 90/);
+});
+
+test("place rejects an out-of-range longitude", () => {
+  const place = validPlace({ coordinates: { latitude: 36.2, longitude: 181 } });
+  const result = validatePlace(place);
+  assert.equal(result.valid, false);
+  assert.match(result.error, /longitude must be a number between -180 and 180/);
+});
+
+test("place rejects a non-numeric latitude/longitude (e.g. a string coordinate)", () => {
+  const place = validPlace({ coordinates: { latitude: "36.2", longitude: 36.16 } });
+  const result = validatePlace(place);
+  assert.equal(result.valid, false);
+  assert.match(result.error, /latitude must be a number/);
+});
+
+test("structure has no coordinates field in its schema — writing one is inert, not validated or exposed", () => {
+  const structure = { id: "structure-1", slug: "sample-structure", entityType: "structure", title: { en: "Sample" }, coordinates: { latitude: 36.2, longitude: 36.16 } };
+  assert.deepEqual(validateStructure(structure), { valid: true });
+});
+
 test("media requires a controlled mediaRole", () => {
   const base = {
     id: "media-1",

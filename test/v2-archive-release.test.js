@@ -253,3 +253,94 @@ test("REAL DATA: collectPublicV2Entities against the canonical data/ files match
   const validation = validatePublicV2Entities(entities);
   assert.equal(validation.count, 99);
 });
+
+test("REAL DATA: every published place coordinate is a real, sane number pair — never guessed, never 0/0, never outside the Hatay region", async () => {
+  const entities = await collectPublicV2Entities();
+  const withCoords = entities.filter((entity) => entity.coordinates != null);
+
+  // Exactly the reviewed, source-verified set as of this round — a regression guard against a
+  // coordinate silently appearing (or disappearing) without going through the same research process.
+  assert.equal(withCoords.length, 18);
+  assert.ok(withCoords.every((entity) => entity.entityType === "place"));
+
+  for (const entity of withCoords) {
+    const { latitude, longitude } = entity.coordinates;
+    assert.equal(typeof latitude, "number");
+    assert.equal(typeof longitude, "number");
+    assert.ok(Number.isFinite(latitude) && Number.isFinite(longitude), `${entity.id} has a non-finite coordinate`);
+    assert.ok(!(latitude === 0 && longitude === 0), `${entity.id} has a null-island (0,0) placeholder coordinate`);
+    // Hatay province, Turkey — every real place/structure this archive covers falls in this box.
+    assert.ok(latitude >= 35.8 && latitude <= 36.7, `${entity.id} latitude ${latitude} falls outside the Hatay region`);
+    assert.ok(longitude >= 35.8 && longitude <= 36.6, `${entity.id} longitude ${longitude} falls outside the Hatay region`);
+  }
+});
+
+test("REAL DATA: no two published places carry a near-duplicate coordinate (each verified point is its own, not copy-pasted)", async () => {
+  const entities = await collectPublicV2Entities();
+  const withCoords = entities.filter((entity) => entity.coordinates != null);
+
+  for (let i = 0; i < withCoords.length; i++) {
+    for (let j = i + 1; j < withCoords.length; j++) {
+      const a = withCoords[i].coordinates;
+      const b = withCoords[j].coordinates;
+      // ~0.0005 degrees is roughly 50m at this latitude — the near-duplicate threshold this round's
+      // instructions called out ("50m içinde onlarca farklı yapı aynı coordinate'i almışsa uyar").
+      const isNearDuplicate = Math.abs(a.latitude - b.latitude) < 0.0005 && Math.abs(a.longitude - b.longitude) < 0.0005;
+      assert.ok(!isNearDuplicate, `${withCoords[i].id} and ${withCoords[j].id} carry near-duplicate coordinates`);
+    }
+  }
+});
+
+test("REAL DATA: no published structure carries a coordinates field — the schema/serializer don't support one yet, so nothing should silently leak through", async () => {
+  const entities = await collectPublicV2Entities();
+  const structures = entities.filter((entity) => entity.entityType === "structure");
+  assert.equal(structures.length, 15);
+  assert.ok(structures.every((entity) => entity.coordinates === undefined));
+});
+
+test("REAL DATA: public projection carries no internal sentinel placeholder text (UNKNOWN / NEEDS VERIFICATION / TODO / TBD / etc.)", async () => {
+  const entities = await collectPublicV2Entities();
+  const SENTINEL_RE = /(UNKNOWN|NEEDS(?: LOCAL)? VERIFICATION|NEEDS PRECISE[A-Z \-]*|NEEDS SOURCE-EXACT[A-Z \-]*|NO RELIABLE SOURCE FOUND|NOT YET RESEARCHED|UNRESOLVED|\bTODO\b|\bTBD\b)/i;
+
+  function collectStrings(value, out) {
+    if (typeof value === "string") { out.push(value); return; }
+    if (Array.isArray(value)) { value.forEach((v) => collectStrings(v, out)); return; }
+    if (value && typeof value === "object") { for (const v of Object.values(value)) collectStrings(v, out); }
+  }
+
+  for (const entity of entities) {
+    const strings = [];
+    collectStrings(entity, strings);
+    const leaks = strings.filter((s) => SENTINEL_RE.test(s));
+    assert.deepEqual(leaks, [], `${entity.id} leaks a sentinel placeholder into public output`);
+  }
+});
+
+test("REAL DATA: the fixed 'entity'-as-jargon artefacts (this round's content-quality pass) do not regress in public output", async () => {
+  const entities = await collectPublicV2Entities();
+  const ARTEFACT_RE = /\bentity(?:'\w+)?\b/; // bare English "entity", with or without a Turkish possessive suffix
+
+  // Field-level, not entity-level: several of these records still have a *separate*,
+  // known, not-yet-fixed English fragment left in the editorial review queue (e.g.
+  // belief-0007.summary.en) — this regression guard only covers the fields actually
+  // fixed this round, matching tmp/content-quality-audit.json's safeAutofixApplied list.
+  const knownFixedFields = [
+    ["belief-0001", "summary", "tr"],
+    ["belief-0003", "summary", "tr"],
+    ["belief-0007", "summary", "tr"],
+    ["belief-0009", "summary", "tr"],
+    ["comm-0010", "summary", "tr"],
+    ["comm-0010", "summary", "en"],
+    ["place-0001", "summary", "tr"],
+    ["place-0002", "summary", "tr"],
+    ["place-0011", "summary", "tr"],
+    ["story-0008", "summary", "en"],
+  ];
+  for (const [id, field, lang] of knownFixedFields) {
+    const entity = entities.find((e) => e.id === id);
+    if (!entity) continue; // not every fixed record is necessarily public under every future dataset state
+    const text = entity[field]?.[lang];
+    if (text === undefined) continue;
+    assert.ok(!ARTEFACT_RE.test(text), `${id}.${field}.${lang} regressed a fixed 'entity' authoring artefact back into public output`);
+  }
+});

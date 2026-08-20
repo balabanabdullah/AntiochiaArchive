@@ -1867,8 +1867,8 @@
         "ar": "الجماعة الكاثوليكية اللاتينية في أنطاكية"
       },
       "summary": {
-        "tr": "Antakya'da 19. yüzyıl ve sonrasında Kapuçin/Latin Katolik kurumsal varlığıyla bağlantılı topluluk kaydıdır. Katolik belief entity'si ve Latin Katolik Kilisesi structure entity'sinden ayrı tutulur.\n",
-        "en": "Community record associated with the Latin Catholic/Capuchin presence in Antakya from the nineteenth century onward. It remains separate from the Catholic belief entity and the church structure.\n",
+        "tr": "Antakya'da 19. yüzyıl ve sonrasında Kapuçin/Latin Katolik kurumsal varlığıyla bağlantılı topluluk kaydıdır. Katolik belief kaydı ve Latin Katolik Kilisesi structure kaydından ayrı tutulur.\n",
+        "en": "Community record associated with the Latin Catholic/Capuchin presence in Antakya from the nineteenth century onward. It remains separate from the Catholic belief and the church structure.\n",
         "ar": "سجل للجماعة المرتبطة بالحضور الكاثوليكي اللاتيني/الكبوشي في أنطاكية منذ القرن التاسع عشر.\n"
       },
       "tags": [
@@ -2307,7 +2307,7 @@
         "ar": "التقليد الديني العلوي العربي / النصيري"
       },
       "summary": {
-        "tr": "Hatay'daki Arap Alevi topluluğuyla güçlü biçimde ilişkili, tarihsel olarak Nusayri/Alawi adlandırmalarıyla da incelenmiş inanç geleneğidir. İnanç geleneği ile topluluğun etnik/dilsel kimliği aynı entity değildir.\n",
+        "tr": "Hatay'daki Arap Alevi topluluğuyla güçlü biçimde ilişkili, tarihsel olarak Nusayri/Alawi adlandırmalarıyla da incelenmiş inanç geleneğidir. İnanç geleneği ile topluluğun etnik/dilsel kimliği aynı kayıt değildir.\n",
         "en": "A religious tradition strongly associated with Hatay's Arab Alawite community and historically discussed under Nusayri/Alawi terminology. Religious tradition and community identity remain separate entities.\n",
         "ar": "تقليد ديني مرتبط بقوة بالمجتمع العلوي العربي في هاتاي، وقد تناولته المصادر أيضاً بتسميات نصيري وعلوي.\n"
       },
@@ -2444,7 +2444,7 @@
         "ar": "المسيحية الرومية الأرثوذكسية الأنطاكية"
       },
       "summary": {
-        "tr": "Antakya Patrikliği geleneğiyle bağlantılı Doğu Ortodoks Hristiyanlık geleneğidir. Hatay'daki Arapça konuşan Rum Ortodoks topluluklarla güçlü ilişkisi vardır; topluluk kimliği belief entity'sinden ayrı tutulur.\n",
+        "tr": "Antakya Patrikliği geleneğiyle bağlantılı Doğu Ortodoks Hristiyanlık geleneğidir. Hatay'daki Arapça konuşan Rum Ortodoks topluluklarla güçlü ilişkisi vardır; topluluk kimliği belief kaydından ayrı tutulur.\n",
         "en": "Eastern Orthodox Christian tradition associated with the Antiochian patriarchal heritage and strongly connected to Arabic-speaking Greek Orthodox communities in Hatay.\n",
         "ar": "تقليد مسيحي أرثوذكسي شرقي مرتبط بتراث بطريركية أنطاكية وبالجماعات الرومية الأرثوذكسية الناطقة بالعربية في هاتاي.\n"
       },
@@ -2680,7 +2680,7 @@
         "ar": "اليهودية في أنطاكية"
       },
       "summary": {
-        "tr": "Antakya'nın tarihsel Yahudi varlığıyla bağlantılı broad belief entity'sidir. Antakya Sinagogu bu geleneğe bağlı structure entity'sidir; sinagogun kendisi belief değildir.\n",
+        "tr": "Antakya'nın tarihsel Yahudi varlığıyla bağlantılı broad belief kaydıdır. Antakya Sinagogu bu geleneğe bağlı structure kaydıdır; sinagogun kendisi belief değildir.\n",
         "en": "Broad belief entity associated with Antioch's Jewish heritage. Antakya Synagogue is a related structure, not the belief itself.\n",
         "ar": "كيان ديني عام مرتبط بالتراث اليهودي في أنطاكية، بينما الكنيس مبنى مرتبط بهذا التقليد وليس المعتقد نفسه.\n"
       },
@@ -2802,7 +2802,7 @@
         "ar": "التقاليد الدينية اليونانية الرومانية في أنطاكية ودافني"
       },
       "summary": {
-        "tr": "Helenistik ve Roma Antioch/Daphne'sindeki çoktanrılı kültler ve mitolojik anlatılar için historical belief entity'sidir. Apollon-Daphne anlatısı bu bağlamda mythologicalNarrative olarak sınıflandırılır.\n",
+        "tr": "Helenistik ve Roma Antioch/Daphne'sindeki çoktanrılı kültler ve mitolojik anlatılar için historical belief kaydıdır. Apollon-Daphne anlatısı bu bağlamda mythologicalNarrative olarak sınıflandırılır.\n",
         "en": "Historical belief entity for the polytheistic cults and mythological traditions of Hellenistic and Roman Antioch/Daphne.\n",
         "ar": "كيان تاريخي للتقاليد الدينية المتعددة الآلهة في أنطاكية ودافني خلال العهدين الهلنستي والروماني.\n"
       },
@@ -3054,7 +3054,7 @@
         "ar": "أنطاكية"
       },
       "summary": {
-        "tr": "Modern Antakya ile tarihsel Antioch aynı uzun süreli kentsel geleneğin ad katmanlarıdır; ancak modern idari yerleşim ile antik kentin arkeolojik fiziksel yayılımı aynı mekânsal entity olarak değerlendirilmemelidir.",
+        "tr": "Modern Antakya ile tarihsel Antioch aynı uzun süreli kentsel geleneğin ad katmanlarıdır; ancak modern idari yerleşim ile antik kentin arkeolojik fiziksel yayılımı aynı mekânsal birim olarak değerlendirilmemelidir.",
         "en": "Modern Antakya and historical Antioch belong to the same long urban naming tradition, but the modern administrative settlement and the physical archaeological footprint of ancient Antioch should not be treated as spatially identical.",
         "ar": "تمثل أنطاكية الحديثة وAntioch التاريخية طبقات اسمية لمدينة ذات استمرارية طويلة، مع ضرورة الفصل بين المدينة الحديثة والنطاق الأثري للمدينة القديمة."
       },
@@ -3078,6 +3078,10 @@
       ],
       "etymology": {
         "en": "Historical name continuity is strong; detailed linguistic derivation is retained for source-level review."
+      },
+      "coordinates": {
+        "latitude": 36.2025,
+        "longitude": 36.160556
       },
       "researchExtensions": {
         "confidence": "high",
@@ -3147,7 +3151,7 @@
         "ar": "المنطقة الأثرية لمدينة أنطاكية القديمة"
       },
       "summary": {
-        "tr": "Antik Antioch'un Asi, dağ yamaçları ve çevredeki arkeolojik izlerle tanımlanan fiziksel kentsel yayılımını temsil eden place entity'sidir.",
+        "tr": "Antik Antioch'un Asi, dağ yamaçları ve çevredeki arkeolojik izlerle tanımlanan fiziksel kentsel yayılımını temsil eden place kaydıdır.",
         "en": "Place entity representing the physical archaeological footprint of ancient Antioch, distinct from the modern administrative city.",
         "ar": "كيان مكاني يمثل الامتداد الأثري لمدينة أنطاكية القديمة بصورة منفصلة عن المدينة الإدارية الحديثة."
       },
@@ -3286,6 +3290,10 @@
       ],
       "officialName": {
         "tr": "Zenginler Mahallesi"
+      },
+      "coordinates": {
+        "latitude": 36.200062,
+        "longitude": 36.162695
       },
       "researchExtensions": {
         "confidence": "medium",
@@ -3470,6 +3478,10 @@
       "etymology": {
         "en": "Historical and modern names represent different naming layers."
       },
+      "coordinates": {
+        "latitude": 36.19961,
+        "longitude": 36.1788
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "ancient-present",
@@ -3517,6 +3529,10 @@
       ],
       "etymology": {
         "en": "Modern district name evokes the older Daphne/Harbiye historical landscape, but entities are not spatially identical."
+      },
+      "coordinates": {
+        "latitude": 36.1952,
+        "longitude": 36.1477
       },
       "researchExtensions": {
         "confidence": "high",
@@ -3576,6 +3592,10 @@
       "etymology": {
         "en": "Ancient Daphne and modern Harbiye are strongly associated name/place layers; archaeological ensemble and modern settlement remain analytically distinct."
       },
+      "coordinates": {
+        "latitude": 36.1452,
+        "longitude": 36.1413
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "Hellenistic-present",
@@ -3618,7 +3638,7 @@
         "ar": "صمنداغ"
       },
       "summary": {
-        "tr": "Hatay'ın Akdeniz kıyısındaki, Arap Alevi, Arap Hristiyan ve Ermeni mirası bakımından merkezi önemde ilçelerinden biridir. Seleukeia Pieria yakınında olsa da onunla aynı entity değildir.",
+        "tr": "Hatay'ın Akdeniz kıyısındaki, Arap Alevi, Arap Hristiyan ve Ermeni mirası bakımından merkezi önemde ilçelerinden biridir. Seleukeia Pieria yakınında olsa da onunla aynı yer değildir.",
         "en": "A Mediterranean district central to Arab Alawite, Arab Christian and Armenian heritage in Hatay. It is near ancient Seleucia Pieria but is not the same entity.",
         "ar": "قضاء ساحلي مهم للتراث العلوي العربي والمسيحي العربي والأرمني في هاتاي، وهو قريب من سلوقية بييريا لكنه ليس المدينة القديمة نفسها."
       },
@@ -3640,6 +3660,10 @@
       ],
       "etymology": {
         "en": "Modern Samandağ and historical Süveydiye naming layers should be kept distinct from nearby Seleukeia Pieria."
+      },
+      "coordinates": {
+        "latitude": 36.0845,
+        "longitude": 35.9764
       },
       "researchExtensions": {
         "confidence": "high",
@@ -3750,6 +3774,10 @@
       "etymology": {
         "en": "Seleucid foundation-name context."
       },
+      "coordinates": {
+        "latitude": 36.1239,
+        "longitude": 35.9219
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "Hellenistic-Roman-Byzantine",
@@ -3812,6 +3840,10 @@
       "etymology": {
         "en": "Historical regional mountain name."
       },
+      "coordinates": {
+        "latitude": 36.1834,
+        "longitude": 35.9341
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "historical-present cultural landscape",
@@ -3865,6 +3897,10 @@
       ],
       "etymology": {
         "en": "Historical Armenian/modern Turkish name relation documented; local Arabic form not normalized."
+      },
+      "coordinates": {
+        "latitude": 36.114,
+        "longitude": 35.9761
       },
       "researchExtensions": {
         "confidence": "high",
@@ -3950,6 +3986,10 @@
           "name": "Yoghunoluk"
         }
       ],
+      "coordinates": {
+        "latitude": 36.1371,
+        "longitude": 35.9761
+      },
       "researchExtensions": {
         "confidence": "medium",
         "period": "historical-modern",
@@ -4000,6 +4040,10 @@
       ],
       "etymology": {
         "en": "Historical-name transition documented in Musa Dagh/Svedia literature."
+      },
+      "coordinates": {
+        "latitude": 36.129,
+        "longitude": 35.9401
       },
       "researchExtensions": {
         "confidence": "medium",
@@ -4161,6 +4205,10 @@
       "etymology": {
         "en": "Modern official name; Kuseyr relation must be treated regionally rather than as a simple former name."
       },
+      "coordinates": {
+        "latitude": 36.11553,
+        "longitude": 36.24826
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "historical-modern",
@@ -4209,6 +4257,10 @@
           "name": "Ordu: historical official/name layer identified in DR-4"
         }
       ],
+      "coordinates": {
+        "latitude": 35.9025,
+        "longitude": 36.0627
+      },
       "researchExtensions": {
         "confidence": "medium",
         "period": "historical-modern",
@@ -4250,6 +4302,10 @@
       ],
       "etymology": {
         "en": "Historical Reyhaniye/Reyhanlı naming layer."
+      },
+      "coordinates": {
+        "latitude": 36.267907,
+        "longitude": 36.567472
       },
       "researchExtensions": {
         "confidence": "high",
@@ -4300,6 +4356,10 @@
       ],
       "etymology": {
         "en": "Historical multilingual name layers associated with the port city."
+      },
+      "coordinates": {
+        "latitude": 36.587185,
+        "longitude": 36.173468
       },
       "researchExtensions": {
         "confidence": "high",
@@ -4357,6 +4417,10 @@
       "etymology": {
         "en": "Historical relation to Rhosus/Rhosos was noted but should not be treated as a fully resolved one-to-one identity without archaeological mapping."
       },
+      "coordinates": {
+        "latitude": 36.413055,
+        "longitude": 35.890329
+      },
       "researchExtensions": {
         "confidence": "medium",
         "period": "historical-modern",
@@ -4404,6 +4468,10 @@
           "name": "Darsūnī transcription in dialect research"
         }
       ],
+      "coordinates": {
+        "latitude": 36.167222,
+        "longitude": 36.157778
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "modern documented settlement",
@@ -4449,6 +4517,10 @@
           "name": "Historical/local name NEEDS VERIFICATION"
         }
       ],
+      "coordinates": {
+        "latitude": 36.100833,
+        "longitude": 36.260833
+      },
       "researchExtensions": {
         "confidence": "high",
         "period": "historical-modern",
@@ -5970,7 +6042,7 @@
       },
       "summary": {
         "tr": "Deprem sonrası hafıza çalışmaları, fiziksel olarak kaybolan ya da ağır hasar gören mekânların topluluk hafızasında belgelenmesini ayrı bir araştırma alanı olarak ortaya koydu. Bu kayıt bireysel bir tanıklık değildir.",
-        "en": "Post-earthquake memory work established the documentation of destroyed or heavily damaged places in community memory as a distinct research area. This record is not an individual testimony.",
+        "en": "Post-earthquake memory work established the documentation of destroyed or heavily damaged places in community memory as a distinct research area. This is not an individual testimony.",
         "ar": "أظهرت مشاريع الذاكرة بعد الزلزال أهمية توثيق الأماكن المفقودة أو المتضررة في الذاكرة الجماعية، وهذا السجل ليس شهادة فردية."
       },
       "evidenceType": "oralHistory",

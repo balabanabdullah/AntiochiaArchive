@@ -1,13 +1,15 @@
 // Route-level tests for /api/v2 backed by V2_DATA_STORE=local — the local,
 // real-mapped-data runtime built on top of the validated v1 -> v2 mapper,
 // merged with the promoted canonical research batch (data/v2/entities.json,
-// 168 entities) and the active legacy replacement layer (7 mapped v1
+// 268 entities as of the Hatay local-toponym round — 168 cultural entities
+// plus 100 inReview `place` records for user-supplied local Hatay toponyms,
+// none of them public) and the active legacy replacement layer (7 mapped v1
 // records superseded), after the final canonical publication review (see
 // V2-ARCHITECTURE.md "Cultural entity publication review"). These exercise
 // the actual committed data files, not a fixture, so counts here double as
 // a regression check on the real, live system.
 //
-// 105 of 184 total entities in the store are currently PUBLIC. An initial
+// 105 of 284 total entities in the store are currently PUBLIC. An initial
 // publication review held back community/belief/place as whole categories;
 // a follow-up individual review (V2-ARCHITECTURE.md "Cultural entity
 // publication review — community/belief/place individual pass") published

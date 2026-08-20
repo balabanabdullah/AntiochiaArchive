@@ -257,16 +257,31 @@ function shareControlsMarkup(canonicalUrl, title) {
 }
 
 /**
- * A small "view on the map" link — only when this entity itself carries a
- * real published coordinate (today, that's zero entities; see
- * backend/v2/schemas/place.js and the FRONTEND round report). Never renders
- * a map for an entity without one, and never estimates a coordinate.
+ * A "View on Map" link — only when this entity itself carries a real
+ * published coordinate (see backend/v2/schemas/place.js; structure has no
+ * coordinates field yet, so this never fires for one — see V2-ARCHITECTURE.md
+ * "Coordinate schema"). Never renders for an entity without one, and never
+ * estimates a coordinate.
+ *
+ * Links by canonical id (`?entity=<id>`), not slug — the map page resolves
+ * the id itself (public/js/map.js has no slug-to-id ambiguity to worry
+ * about). Text/aria-label are baked here as an English default (matching
+ * every other detail-page string) and re-localized client-side by
+ * renderV2DetailPage() in public/script.js on every language switch, the
+ * same pattern already used for the title/description/taxonomy fields.
  */
 function locationPreviewMarkup(entity) {
   if (!entity.coordinates || typeof entity.coordinates.latitude !== "number") return "";
+  const title = localized(entity.title, "en", entity.slug);
   return `<section class="record-detail-section record-location-section" aria-labelledby="record-location-heading">
-              <h2 id="record-location-heading" data-i18n="nav.map">Map</h2>
-              <a class="record-location-link" href="/pages/map.html?focus=${escapeHtml(entity.slug)}" data-i18n="map.previewCta">Open the full map</a>
+              <h2 id="record-location-heading" data-i18n="map.locationHeading">Location</h2>
+              <a class="record-location-link" data-map-cta href="/pages/map.html?entity=${escapeHtml(entity.id)}" aria-label="View ${escapeHtml(title)} on the map">
+                <svg class="location-pin-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 21s-7-7.58-7-12a7 7 0 0 1 14 0c0 4.42-7 12-7 12z"/>
+                  <circle cx="12" cy="9" r="2.5"/>
+                </svg>
+                <span data-i18n="map.viewOnMapCta">View on Map</span>
+              </a>
             </section>`;
 }
 

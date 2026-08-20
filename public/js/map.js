@@ -37,6 +37,29 @@
     return markers.filter((entity) => entity.entityType === typeFilter);
   }
 
+  /**
+   * Resolves a `?entity=<id>` (or legacy `?focus=<slug>`) deep-link target to
+   * a mappable entity, or null — never throws, never fabricates a result.
+   * Used by both the map deep-link handler and its tests; kept here (rather
+   * than duplicated in script.js) so the "is this id actually safe to focus
+   * on" rule lives in exactly one place. A non-public entity never reaches
+   * this function at all (the caller only ever has the public entity array
+   * to search), so an inReview/draft id simply resolves to null like any
+   * other unknown id — no separate leak-prevention check is needed here.
+   */
+  function findDeepLinkEntity(entities, { id, slug } = {}) {
+    const mappable = getMappableEntities(entities);
+    if (id) {
+      const byId = mappable.find((entity) => entity.id === id);
+      if (byId) return byId;
+    }
+    if (slug) {
+      const bySlug = mappable.find((entity) => entity.slug === slug);
+      if (bySlug) return bySlug;
+    }
+    return null;
+  }
+
   /** [[south, west], [north, east]] over the given markers, or null if too few to bound. */
   function computeBounds(markers) {
     if (!markers || markers.length === 0) return null;
@@ -57,6 +80,7 @@
     getMappableEntities,
     filterByType,
     computeBounds,
+    findDeepLinkEntity,
   });
 })(typeof window !== "undefined" ? window : globalThis);
 
@@ -130,6 +154,10 @@
    */
   function renderMarkers(map, entities, lang, labels) {
     const group = L.layerGroup().addTo(map);
+    // Keyed lookup alongside the layer group so a deep link (?entity=<id>)
+    // can find and open its own marker's popup without re-querying Leaflet's
+    // internal layer storage — see focusMapOnQueryParam() in script.js.
+    const markersByEntityId = new Map();
     entities.forEach((entity) => {
       const icon = L.divIcon({
         className: `map-marker ${MARKER_CLASS_BY_TYPE[entity.entityType] || "map-marker-place"}`,
@@ -144,7 +172,9 @@
       const typeLabel = labels?.typeLabels?.[entity.entityType] || entity.entityType;
       marker.bindPopup(popupHtml(entity, lang, typeLabel, labels?.detailLabel || ""));
       marker.addTo(group);
+      markersByEntityId.set(entity.id, marker);
     });
+    group.markersByEntityId = markersByEntityId;
     return group;
   }
 

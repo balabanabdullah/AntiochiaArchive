@@ -3770,6 +3770,30 @@ a.timeline-rail-card:hover,
   gap: 6px;
   color: var(--clr-red);
   font-weight: 600;
+  text-decoration: none;
+  min-height: 44px;
+  padding-block: 4px;
+}
+
+.record-location-link:hover,
+.record-location-link:focus-visible {
+  color: var(--clr-red-dark);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.record-location-link .location-pin-icon { flex-shrink: 0; }
+
+html[dir="rtl"] .record-location-link { flex-direction: row-reverse; }
+
+.map-deep-link-status {
+  margin-top: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--clr-paper-light);
+  border: 1px solid var(--clr-line);
+  border-radius: var(--radius-sm);
+  color: var(--clr-ink-muted);
+  font-size: 0.86rem;
 }
 
 @media (max-width: 900px) {

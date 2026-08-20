@@ -160,6 +160,27 @@ test("generateV2DetailDocument never renders a literal sentinel placeholder valu
   assert.doesNotMatch(html, /NEEDS VERIFICATION|UNRESOLVED|NOT YET RESEARCHED/);
 });
 
+test("a coordinate-bearing place gets a real 'View on Map' <a> CTA linking by canonical id, never a disabled placeholder", () => {
+  const entity = {
+    id: "place-0099", slug: "sample-place", entityType: "place", status: "published",
+    title: { en: "Sample Place" }, summary: { en: "S" },
+    coordinates: { latitude: 36.2, longitude: 36.16 },
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /<a class="record-location-link" data-map-cta href="\/pages\/map\.html\?entity=place-0099"/);
+  assert.doesNotMatch(html, /disabled/);
+  assert.match(html, /location-pin-icon/);
+  assert.match(html, /data-i18n="map\.viewOnMapCta"/);
+  assert.match(html, /aria-label="View Sample Place on the map"/);
+});
+
+test("a coordinate-less public entity renders no map CTA at all — never a disabled/placeholder link", () => {
+  const entity = { id: "place-0098", slug: "no-coords", entityType: "place", status: "published", title: { en: "T" }, summary: { en: "S" } };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(html, /record-location-section/);
+  assert.doesNotMatch(html, /data-map-cta/);
+});
+
 test("metadata panel (period/type/evidence) is entirely omitted when the entity carries none of those fields", () => {
   const entity = { id: "belief-0100", slug: "no-metadata", entityType: "belief", status: "published", title: { en: "T" }, summary: { en: "S" } };
   const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });

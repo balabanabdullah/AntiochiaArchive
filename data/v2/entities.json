@@ -3062,6 +3062,14 @@
       "officialName": {
         "tr": "Antakya"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Mtake (İl Mdine)"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Antiokheia"
@@ -3581,6 +3589,14 @@
       "officialName": {
         "tr": "Harbiye"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "7arbiy (Beytülma)"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Daphne"
@@ -3650,6 +3666,14 @@
       "officialName": {
         "tr": "Samandağ"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Sveydiy"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Süveydiye"
@@ -3890,6 +3914,14 @@
       "officialName": {
         "tr": "Vakıflı"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Vakıflıy"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Vakef / Vakef village"
@@ -4030,6 +4062,14 @@
       "officialName": {
         "tr": "Kapısuyu"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Kebusi"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Kabusiye"
@@ -4082,6 +4122,14 @@
       "officialName": {
         "tr": "Batıayaz"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bityes"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Bitias? — UNRESOLVED"
@@ -4121,6 +4169,14 @@
       "officialName": {
         "tr": "Tekebaşı"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Cilliy"
+        }
+      ],
       "researchExtensions": {
         "confidence": "medium",
         "period": "modern",
@@ -4156,6 +4212,14 @@
       "officialName": {
         "tr": "Mağaracık"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Mğayer"
+        }
+      ],
       "researchExtensions": {
         "confidence": "medium",
         "period": "modern",
@@ -4197,6 +4261,14 @@
       "officialName": {
         "tr": "Altınözü"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Il_Kseyr"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Kuseyr as broader historical/regional label; not automatic exact synonym"
@@ -4252,6 +4324,14 @@
       "officialName": {
         "tr": "Yayladağı"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Yirdiy"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Ordu: historical official/name layer identified in DR-4"
@@ -4343,6 +4423,14 @@
       "officialName": {
         "tr": "İskenderun"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Skendrune"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Alexandretta"
@@ -4409,6 +4497,14 @@
       "officialName": {
         "tr": "Arsuz"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Ka3baa"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Rhosus/Rhosos association: NEEDS PRECISE ARCHAEOLOGICAL MAPPING"
@@ -4463,6 +4559,14 @@
       "officialName": {
         "tr": "Dursunlu"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Dersuniy"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Darsūnī transcription in dialect research"
@@ -4512,6 +4616,14 @@
       "officialName": {
         "tr": "Tokaçlı"
       },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Cneydo"
+        }
+      ],
       "historicalNames": [
         {
           "name": "Historical/local name NEEDS VERIFICATION"
@@ -7842,6 +7954,3142 @@
         ]
       },
       "status": "draft"
+    },
+    {
+      "id": "place-0029",
+      "slug": "acikdere-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Açıkdere"
+      },
+      "summary": {
+        "tr": "Açıkdere, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Açıkdere"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tel 7abeş"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2192,
+        "longitude": 36.26
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0030",
+      "slug": "akdari-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Akdarı"
+      },
+      "summary": {
+        "tr": "Akdarı, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Akdarı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bera"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0765,
+        "longitude": 36.2366
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0031",
+      "slug": "babatorun-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Babatorun"
+      },
+      "summary": {
+        "tr": "Babatorun, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Babatorun"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Babitrun"
+        },
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "bebetrun"
+        },
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "bebilrum"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0815231,
+        "longitude": 36.2984055
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0032",
+      "slug": "bakras-belen",
+      "entityType": "place",
+      "title": {
+        "tr": "Bakras"
+      },
+      "summary": {
+        "tr": "Bakras, Hatay ilinin Belen ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Belen district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Bakras"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bığros"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.4909048,
+        "longitude": 36.1945761
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0033",
+      "slug": "baliklidere-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Balıklıdere"
+      },
+      "summary": {
+        "tr": "Balıklıdere, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Balıklıdere"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Zire"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1202237,
+        "longitude": 36.1050772
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0034",
+      "slug": "ballioz-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Ballıöz"
+      },
+      "summary": {
+        "tr": "Ballıöz, Hatay ilinin Defne ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Ballıöz"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Berbrun"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2292693,
+        "longitude": 36.0926574
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0035",
+      "slug": "bohsin-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Bohşin"
+      },
+      "summary": {
+        "tr": "Bohşin, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Bohşin"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "bahşin"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2027859,
+        "longitude": 36.3693745
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0036",
+      "slug": "beykoyu-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Beyköyü"
+      },
+      "summary": {
+        "tr": "Beyköyü, Hatay ilinin Arsuz ilçesine bağlı bir köydür",
+        "en": "A village in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Beyköyü"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bakwe"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.405201,
+        "longitude": 35.960785
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0037",
+      "slug": "bostancik-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Bostancık"
+      },
+      "summary": {
+        "tr": "Bostancık, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Bostancık"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bisten_il_ros"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1633648,
+        "longitude": 36.1342964
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.780Z",
+      "updatedAt": "2026-08-20T18:39:51.780Z"
+    },
+    {
+      "id": "place-0038",
+      "slug": "boynuyogun-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Boynuyoğun"
+      },
+      "summary": {
+        "tr": "Boynuyoğun, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Boynuyoğun"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Btetiyn"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.169506,
+        "longitude": 36.342396
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0039",
+      "slug": "buyukcat-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Büyükçat"
+      },
+      "summary": {
+        "tr": "Büyükçat, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Büyükçat"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Minet"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1113294,
+        "longitude": 36.0829352
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0040",
+      "slug": "buyuk-dalyan-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Büyük Dalyan"
+      },
+      "summary": {
+        "tr": "Büyük Dalyan, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Büyük Dalyan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Dalyen"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2795965,
+        "longitude": 36.1961549
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0041",
+      "slug": "ceylandere-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Ceylandere"
+      },
+      "summary": {
+        "tr": "Ceylandere, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Ceylandere"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Ğimmaca"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.242972,
+        "longitude": 35.9722499
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0042",
+      "slug": "cardakli-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Çardaklı"
+      },
+      "summary": {
+        "tr": "Çardaklı, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çardaklı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Cerdekiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1546471,
+        "longitude": 36.1268787
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0043",
+      "slug": "canak-oluk-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Çanak oluk"
+      },
+      "summary": {
+        "tr": "Çanak oluk, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çanak oluk"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "kabaharnup"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.174319,
+        "longitude": 36.0561793
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0044",
+      "slug": "catbasi-yayladagi",
+      "entityType": "place",
+      "title": {
+        "tr": "Çatbaşı"
+      },
+      "summary": {
+        "tr": "Çatbaşı, Hatay ilinin Yayladağı ilçesine bağlı bir köydür",
+        "en": "A village in Yayladağı district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çatbaşı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Kırsbello"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.023985,
+        "longitude": 36.1860493
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0045",
+      "slug": "cekmece-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Çekmece"
+      },
+      "summary": {
+        "tr": "Çekmece, Hatay ilinin Defne ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çekmece"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Çekimce"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.206608,
+        "longitude": 36.1303301
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0046",
+      "slug": "cetenli-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Çetenli"
+      },
+      "summary": {
+        "tr": "Çetenli, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çetenli"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bıksenuz"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1120061,
+        "longitude": 36.2973479
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0047",
+      "slug": "cetillik-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Çetillik"
+      },
+      "summary": {
+        "tr": "Çetillik, Hatay ilinin Arsuz ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çetillik"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "İş Ştul"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.403,
+        "longitude": 35.918
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0048",
+      "slug": "cigdede-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Çiğdede"
+      },
+      "summary": {
+        "tr": "Çiğdede, Hatay ilinin Samandağ ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çiğdede"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "7adid Cdeyde"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0863,
+        "longitude": 35.973
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0049",
+      "slug": "cogurlu-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Çöğürlü"
+      },
+      "summary": {
+        "tr": "Çöğürlü, Hatay ilinin Samandağ ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çöğürlü"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Sabunit Cilliy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0745,
+        "longitude": 36.0054
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0050",
+      "slug": "cokek-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Çökek"
+      },
+      "summary": {
+        "tr": "Çökek, Hatay ilinin Defne ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çökek"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "İl_Çkakliy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.188,
+        "longitude": 36.0698
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0051",
+      "slug": "caksina-yayladagi",
+      "entityType": "place",
+      "title": {
+        "tr": "Çaksına"
+      },
+      "summary": {
+        "tr": "Çaksına, Hatay ilinin Yayladağı ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Yayladağı district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Çaksına"
+      },
+      "historicalNames": [
+        {
+          "name": "Dağdüzü"
+        }
+      ],
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Çaksuniy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0666,
+        "longitude": 36.0975
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0052",
+      "slug": "degirmenyolu-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Değirmenyolu"
+      },
+      "summary": {
+        "tr": "Değirmenyolu, Hatay ilinin Defne ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Değirmenyolu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Biğdediy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1409,
+        "longitude": 36.1045
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0053",
+      "slug": "degirmenbasi-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Değirmenbaşı"
+      },
+      "summary": {
+        "tr": "Değirmenbaşı, Hatay ilinin Samandağ ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Değirmenbaşı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Nehr_il_gbir ti7tene"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1255,
+        "longitude": 36.056
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0054",
+      "slug": "demirkopru-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Demirköprü"
+      },
+      "summary": {
+        "tr": "Demirköprü, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Demirköprü"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Cisr_il_Hadid"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.248,
+        "longitude": 36.3538
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0055",
+      "slug": "dikmece-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Dikmece"
+      },
+      "summary": {
+        "tr": "Dikmece, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Dikmece"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Dekimca"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2918,
+        "longitude": 36.151
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0056",
+      "slug": "dover-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Döver"
+      },
+      "summary": {
+        "tr": "Döver, Hatay ilinin Defne ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Döver"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Dver"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1155,
+        "longitude": 36.1239
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0057",
+      "slug": "ekinci-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Ekinci"
+      },
+      "summary": {
+        "tr": "Ekinci, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Ekinci"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "3aydiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.248,
+        "longitude": 36.1371
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0058",
+      "slug": "elektrik-mah-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Elektrik Mah."
+      },
+      "summary": {
+        "tr": "Elektrik Mah., Hatay ilinin Defne ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Elektrik Mah."
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Davviyat"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1982,
+        "longitude": 36.1496
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0059",
+      "slug": "enek-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Enek"
+      },
+      "summary": {
+        "tr": "Enek, Hatay ilinin Altınözü ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Enek"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Feng"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1553,
+        "longitude": 36.2
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0060",
+      "slug": "erbasi-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Erbaşı"
+      },
+      "summary": {
+        "tr": "Erbaşı, Hatay ilinin Altınözü ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Erbaşı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Fırfıriy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 35.9727,
+        "longitude": 36.2499
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0061",
+      "slug": "eriklikuyu-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Eriklikuyu"
+      },
+      "summary": {
+        "tr": "Eriklikuyu, Hatay ilinin Samandağ ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Eriklikuyu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Hbebli"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1537,
+        "longitude": 35.9976
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0062",
+      "slug": "fatikli-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Fatıklı"
+      },
+      "summary": {
+        "tr": "Fatıklı, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Fatıklı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Feytki"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.12787,
+        "longitude": 36.23949
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0063",
+      "slug": "fidanli-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Fidanlı"
+      },
+      "summary": {
+        "tr": "Fidanlı, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Fidanlı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bet slim"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1498151,
+        "longitude": 36.0237287
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0064",
+      "slug": "gokmeydan-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Gökmeydan"
+      },
+      "summary": {
+        "tr": "Gökmeydan, Hatay ilinin Arsuz ilçesine bağlı bir köydür",
+        "en": "A village in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gökmeydan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Güvmidan"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.4326267,
+        "longitude": 35.9213456
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0065",
+      "slug": "gozculer-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Gözcüler"
+      },
+      "summary": {
+        "tr": "Gözcüler, Hatay ilinin Arsuz ilçesine bağlı bir köydür",
+        "en": "A village in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gözcüler"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "ll_Uheb"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.388756,
+        "longitude": 35.916489
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0066",
+      "slug": "gozene-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Gözene"
+      },
+      "summary": {
+        "tr": "Gözene, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gözene"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bet Da3dük"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0655206,
+        "longitude": 36.0099871
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0067",
+      "slug": "gulcihan-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Gülcihan"
+      },
+      "summary": {
+        "tr": "Gülcihan, Hatay ilinin Arsuz ilçesine bağlı bir köydür",
+        "en": "A village in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gülcihan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Gülçhon"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.4628353,
+        "longitude": 35.9535669
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0068",
+      "slug": "gulderen-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Gülderen"
+      },
+      "summary": {
+        "tr": "Gülderen, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gülderen"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Küdren"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.286537,
+        "longitude": 36.123352
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0069",
+      "slug": "gumusgoze-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Gümüşgöze"
+      },
+      "summary": {
+        "tr": "Gümüşgöze, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gümüşgöze"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Yakto"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.150676,
+        "longitude": 36.1310674
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0070",
+      "slug": "guneysogut-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Güneysöğüt"
+      },
+      "summary": {
+        "tr": "Güneysöğüt, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Güneysöğüt"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bet Z3aytre"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1742569,
+        "longitude": 36.1140194
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0071",
+      "slug": "gunvuran-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Günvuran"
+      },
+      "summary": {
+        "tr": "Günvuran, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Günvuran"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Besibe"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.029011,
+        "longitude": 36.321496
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0072",
+      "slug": "gozecik-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Gözecik"
+      },
+      "summary": {
+        "tr": "Gözecik, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Gözecik"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "aynfuvvar"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.031961,
+        "longitude": 36.328116
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0073",
+      "slug": "gunyazi-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Günyazı"
+      },
+      "summary": {
+        "tr": "Günyazı, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Günyazı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Il_3akliy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.231983,
+        "longitude": 36.117126
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0074",
+      "slug": "guzelburc-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Güzelburc"
+      },
+      "summary": {
+        "tr": "Güzelburc, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Güzelburc"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Gzelbirc"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2420217,
+        "longitude": 36.1898288
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0075",
+      "slug": "hacipasa-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Hacıpaşa"
+      },
+      "summary": {
+        "tr": "Hacıpaşa, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Hacıpaşa"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "heccibaşa"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.068485,
+        "longitude": 36.370659
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0076",
+      "slug": "hanyolu-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Hanyolu"
+      },
+      "summary": {
+        "tr": "Hanyolu, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Hanyolu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Hayno"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0388842,
+        "longitude": 36.1887113
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0077",
+      "slug": "koyunoglu-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Koyunoğlu"
+      },
+      "summary": {
+        "tr": "Koyunoğlu, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Koyunoğlu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Ved_il Cerob"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1075992,
+        "longitude": 36.0230843
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0078",
+      "slug": "kuruyer-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Kuruyer"
+      },
+      "summary": {
+        "tr": "Kuruyer, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Kuruyer"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Kirriy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1865174,
+        "longitude": 36.1947645
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0079",
+      "slug": "kurt-mezrasi-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Kurt mezrası"
+      },
+      "summary": {
+        "tr": "Kurt mezrası, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Kurt mezrası"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "mazrat şammat"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.169804,
+        "longitude": 36.309776
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0080",
+      "slug": "kusalani-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Kuşalanı"
+      },
+      "summary": {
+        "tr": "Kuşalanı, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Kuşalanı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Mğayrun (Mutayran)"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0970201,
+        "longitude": 36.0106054
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0081",
+      "slug": "kuzeytepe-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Kuzeytepe"
+      },
+      "summary": {
+        "tr": "Kuzeytepe, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Kuzeytepe"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tlel kız7"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2612395,
+        "longitude": 36.1546066
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0082",
+      "slug": "kucukdalyan-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Küçükdalyan"
+      },
+      "summary": {
+        "tr": "Küçükdalyan, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Küçükdalyan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Dalyen zğiyr"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2200717,
+        "longitude": 36.1722687
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0083",
+      "slug": "madenboyu-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Madenboyu"
+      },
+      "summary": {
+        "tr": "Madenboyu, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Madenboyu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Bdembo"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2437654,
+        "longitude": 36.3179607
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0084",
+      "slug": "madenli-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Madenli"
+      },
+      "summary": {
+        "tr": "Madenli, Hatay ilinin Arsuz ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Madenli"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Kilse"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.4600379,
+        "longitude": 35.990291
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0085",
+      "slug": "masuklu-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Maşuklu"
+      },
+      "summary": {
+        "tr": "Maşuklu, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Maşuklu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Ma3şuka"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2298839,
+        "longitude": 36.1925508
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0086",
+      "slug": "meydancik-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Meydancık"
+      },
+      "summary": {
+        "tr": "Meydancık, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Meydancık"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Meydencuk"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1660823,
+        "longitude": 36.1190695
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0087",
+      "slug": "mayadali-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Mayadalı"
+      },
+      "summary": {
+        "tr": "Mayadalı, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Mayadalı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "meğdele"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.118195,
+        "longitude": 36.335056
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0088",
+      "slug": "mizrakli-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Mızraklı"
+      },
+      "summary": {
+        "tr": "Mızraklı, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Mızraklı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Mişrakiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1222181,
+        "longitude": 36.0055794
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0089",
+      "slug": "narduzu-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Nardüzü"
+      },
+      "summary": {
+        "tr": "Nardüzü, Hatay ilinin Arsuz ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Nardüzü"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Hikr il şawra"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.554438,
+        "longitude": 36.1305043
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0090",
+      "slug": "narlica-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Narlica"
+      },
+      "summary": {
+        "tr": "Narlica, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Narlica"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "mansurlu"
+        },
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Elica"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2337858,
+        "longitude": 36.2092708
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0091",
+      "slug": "odabasi-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Odabaşı"
+      },
+      "summary": {
+        "tr": "Odabaşı, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Odabaşı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Il_Kuvvesiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2369536,
+        "longitude": 36.1547996
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0092",
+      "slug": "oglakoren-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Oğlakören"
+      },
+      "summary": {
+        "tr": "Oğlakören, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Oğlakören"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "sümberiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.28442,
+        "longitude": 36.134369
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0093",
+      "slug": "oymakli-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Oymaklı"
+      },
+      "summary": {
+        "tr": "Oymaklı, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Oymaklı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Deyr"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0903668,
+        "longitude": 36.2980426
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0094",
+      "slug": "otencay-belen",
+      "entityType": "place",
+      "title": {
+        "tr": "Ötençay"
+      },
+      "summary": {
+        "tr": "Ötençay, Hatay ilinin Belen ilçesine bağlı bir köydür",
+        "en": "A village in Belen district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Ötençay"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Baqras"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.4279747,
+        "longitude": 36.2296656
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0095",
+      "slug": "ovunduk-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Övündük"
+      },
+      "summary": {
+        "tr": "Övündük, Hatay ilinin Arsuz ilçesine bağlı bir köydür",
+        "en": "A village in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Övündük"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Fakhura"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.5598672,
+        "longitude": 36.1288049
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0096",
+      "slug": "ozbek-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Özbek"
+      },
+      "summary": {
+        "tr": "Özbek, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Özbek"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "İzbekliy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1286931,
+        "longitude": 36.0637327
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0097",
+      "slug": "ozengili-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Özengili"
+      },
+      "summary": {
+        "tr": "Özengili, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Özengili"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tirraşiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.179055,
+        "longitude": 36.0628707
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.781Z",
+      "updatedAt": "2026-08-20T18:39:51.781Z"
+    },
+    {
+      "id": "place-0098",
+      "slug": "sacakli-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Saçaklı"
+      },
+      "summary": {
+        "tr": "Saçaklı, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Saçaklı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Telldis"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.295277,
+        "longitude": 36.314163
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0099",
+      "slug": "saribuk-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Sarıbük"
+      },
+      "summary": {
+        "tr": "Sarıbük, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Sarıbük"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Beşirbe"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.021397,
+        "longitude": 36.324722
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0100",
+      "slug": "sebenoba-yayladagi",
+      "entityType": "place",
+      "title": {
+        "tr": "Sebenoba"
+      },
+      "summary": {
+        "tr": "Sebenoba, Hatay ilinin Yayladağı ilçesine bağlı bir köydür",
+        "en": "A village in Yayladağı district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Sebenoba"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tmayme"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0473306,
+        "longitude": 36.0203478
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0101",
+      "slug": "seferli-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Seferli"
+      },
+      "summary": {
+        "tr": "Seferli, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Seferli"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Sefariy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0212715,
+        "longitude": 36.2725607
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0102",
+      "slug": "seldiren-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Seldiren"
+      },
+      "summary": {
+        "tr": "Seldiren, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Seldiren"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Sildren"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2298144,
+        "longitude": 35.98685
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0103",
+      "slug": "serinyol-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Serinyol"
+      },
+      "summary": {
+        "tr": "Serinyol, Hatay ilinin Antakya ilçesine bağlı bir yerleşim yeridir",
+        "en": "A settlement in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Serinyol"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Betirken"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.3623704,
+        "longitude": 36.2130649
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0104",
+      "slug": "sivrikavak-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Sivrikavak"
+      },
+      "summary": {
+        "tr": "Sivrikavak, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Sivrikavak"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Cumey"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0375943,
+        "longitude": 36.2993249
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0105",
+      "slug": "subasi-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Subaşi"
+      },
+      "summary": {
+        "tr": "Subaşi, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Subaşi"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Süsiy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1849978,
+        "longitude": 36.1287141
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0106",
+      "slug": "sutasi-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Sutaşı"
+      },
+      "summary": {
+        "tr": "Sutaşı, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Sutaşı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Sabuniy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0797817,
+        "longitude": 36.005907
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0107",
+      "slug": "tanisma-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Tanışma"
+      },
+      "summary": {
+        "tr": "Tanışma, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Tanışma"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tirşmaniy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.199646,
+        "longitude": 36.280388
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0108",
+      "slug": "tavla-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Tavla"
+      },
+      "summary": {
+        "tr": "Tavla, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Tavla"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tavle"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1470433,
+        "longitude": 36.093846
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0109",
+      "slug": "tepehan-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Tepehan"
+      },
+      "summary": {
+        "tr": "Tepehan, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Tepehan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Ermenco"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1595217,
+        "longitude": 36.229717
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0110",
+      "slug": "tokdemir-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Tokdemir"
+      },
+      "summary": {
+        "tr": "Tokdemir, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Tokdemir"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Frincar"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0607723,
+        "longitude": 36.266785
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0111",
+      "slug": "tomruksuyu-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Tomruksuyu"
+      },
+      "summary": {
+        "tr": "Tomruksuyu, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Tomruksuyu"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Karamenniy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.150342,
+        "longitude": 36.0470694
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0112",
+      "slug": "toygarli-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Toygarlı"
+      },
+      "summary": {
+        "tr": "Toygarlı, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Toygarlı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tlel himbles"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.2133635,
+        "longitude": 36.0691797
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0113",
+      "slug": "toprakhisar-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Toprakhisar"
+      },
+      "summary": {
+        "tr": "Toprakhisar, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Toprakhisar"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Beverda"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.158863,
+        "longitude": 36.3186208
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0114",
+      "slug": "yesilpinar-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Yeşilpınar"
+      },
+      "summary": {
+        "tr": "Yeşilpınar, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yeşilpınar"
+      },
+      "historicalNames": [
+        {
+          "name": "Tosunpınar"
+        }
+      ],
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "3eyn_il Camus"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1361914,
+        "longitude": 36.1212886
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0115",
+      "slug": "turfanda-yayladagi",
+      "entityType": "place",
+      "title": {
+        "tr": "Turfanda"
+      },
+      "summary": {
+        "tr": "Turfanda, Hatay ilinin Yayladağı ilçesine bağlı bir köydür",
+        "en": "A village in Yayladağı district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Turfanda"
+      },
+      "historicalNames": [
+        {
+          "name": "Güneydam"
+        }
+      ],
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tırfando"
+        },
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Turfando"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0156582,
+        "longitude": 36.2034675
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0116",
+      "slug": "uzunbag-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Uzunbağ"
+      },
+      "summary": {
+        "tr": "Uzunbağ, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Uzunbağ"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Nehir li_gbir"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.137869,
+        "longitude": 36.0422531
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0117",
+      "slug": "ucgedik-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Üçgedik"
+      },
+      "summary": {
+        "tr": "Üçgedik, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Üçgedik"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "3uvvaki"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.3152896,
+        "longitude": 36.1682622
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0118",
+      "slug": "ucgulluk-arsuz",
+      "entityType": "place",
+      "title": {
+        "tr": "Üçgüllük"
+      },
+      "summary": {
+        "tr": "Üçgüllük, Hatay ilinin Arsuz ilçesine bağlı bir köydür",
+        "en": "A village in Arsuz district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Üçgüllük"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Akbar"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.43243,
+        "longitude": 35.985382
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0119",
+      "slug": "uzumdali-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Üzümdalı"
+      },
+      "summary": {
+        "tr": "Üzümdalı, Hatay ilinin Antakya ilçesine bağlı bir köydür",
+        "en": "A village in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Üzümdalı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Sübhe"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.241497,
+        "longitude": 36.277584
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0120",
+      "slug": "yanikpinar-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Yanıkpınar"
+      },
+      "summary": {
+        "tr": "Yanıkpınar, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yanıkpınar"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Marsı"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.0258,
+        "longitude": 36.2342
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0121",
+      "slug": "yarseli-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Yarseli"
+      },
+      "summary": {
+        "tr": "Yarseli, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yarseli"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "ferzele"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.177,
+        "longitude": 36.334
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0122",
+      "slug": "yaylica-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Yaylıca"
+      },
+      "summary": {
+        "tr": "Yaylıca, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yaylıca"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Silkya"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.175,
+        "longitude": 36.017
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0123",
+      "slug": "yenicag-defne",
+      "entityType": "place",
+      "title": {
+        "tr": "Yeniçağ"
+      },
+      "summary": {
+        "tr": "Yeniçağ, Hatay ilinin Defne ilçesine bağlı bir köydür",
+        "en": "A village in Defne district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yeniçağ"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Tavakliy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.1327,
+        "longitude": 36.0911
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0124",
+      "slug": "bezge-yayladagi",
+      "entityType": "place",
+      "title": {
+        "tr": "Bezge"
+      },
+      "summary": {
+        "tr": "Bezge, Hatay ilinin Yayladağı ilçesine bağlı bir köydür",
+        "en": "A village in Yayladağı district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Bezge"
+      },
+      "historicalNames": [
+        {
+          "name": "Yeditepe"
+        }
+      ],
+      "coordinates": {
+        "latitude": 35.9675,
+        "longitude": 36.0144
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0125",
+      "slug": "yesilyazi-samandag",
+      "entityType": "place",
+      "title": {
+        "tr": "Yeşilyazı"
+      },
+      "summary": {
+        "tr": "Yeşilyazı, Hatay ilinin Samandağ ilçesine bağlı bir köydür",
+        "en": "A village in Samandağ district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yeşilyazı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Zirit bet Cidanya"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.076,
+        "longitude": 36.042
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0126",
+      "slug": "yolagzi-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Yolağzı"
+      },
+      "summary": {
+        "tr": "Yolağzı, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yolağzı"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Mkabros"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.064,
+        "longitude": 36.324
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0127",
+      "slug": "yunushan-altinozu",
+      "entityType": "place",
+      "title": {
+        "tr": "Yunushan"
+      },
+      "summary": {
+        "tr": "Yunushan, Hatay ilinin Altınözü ilçesine bağlı bir köydür",
+        "en": "A village in Altınözü district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Yunushan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "Miskano"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.055,
+        "longitude": 36.219
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
+    },
+    {
+      "id": "place-0128",
+      "slug": "zulufluhan-antakya",
+      "entityType": "place",
+      "title": {
+        "tr": "Zülüflühan"
+      },
+      "summary": {
+        "tr": "Zülüflühan, Hatay ilinin Antakya ilçesine bağlı bir mahalledir",
+        "en": "A neighborhood in Antakya district, Hatay Province."
+      },
+      "evidenceType": "verifiedHistorical",
+      "officialName": {
+        "tr": "Zülüflühan"
+      },
+      "localNames": [
+        {
+          "language": "ar",
+          "script": "Latin",
+          "dialect": "Hatay Arabic (local)",
+          "name": "zilifkenliy"
+        }
+      ],
+      "coordinates": {
+        "latitude": 36.328,
+        "longitude": 36.203
+      },
+      "status": "inReview",
+      "createdAt": "2026-08-20T18:39:51.782Z",
+      "updatedAt": "2026-08-20T18:39:51.782Z"
     }
   ]
 }

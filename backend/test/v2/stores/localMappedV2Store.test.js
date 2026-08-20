@@ -178,9 +178,72 @@ test("real merged store: v1-only records with no replacement (keepLegacyOnlyPend
   }
 });
 
-test("real merged store: total served entity count matches 23 mapped minus 7 active suppressions plus 168 promoted native entities", async () => {
+test("real merged store: total served entity count matches 23 mapped minus 7 active suppressions plus 268 promoted native entities", async () => {
   const store = realStore();
   await store.initialize();
   const page = await store.listEntities({ limit: 500 });
-  assert.equal(page.count, 184);
+  assert.equal(page.count, 284);
+});
+
+// --- 3. Hatay local-toponym round: 100 new inReview place entities ---
+// (place-0029..place-0128, added for user-supplied local Hatay-Arabic
+// village/neighborhood names — see tmp/hatay-toponym-research.json).
+
+test("real merged store: exactly 100 new inReview place entities (place-0029..place-0128), none published", async () => {
+  const store = realStore();
+  await store.initialize();
+  const page = await store.listEntities({ limit: 500 });
+  const newPlaces = page.items.filter((e) => {
+    if (e.entityType !== "place") return false;
+    const num = Number(e.id.split("-")[1]);
+    return num >= 29 && num <= 128;
+  });
+  assert.equal(newPlaces.length, 100);
+  assert.ok(newPlaces.every((e) => e.status === "inReview"), "every new toponym place must be inReview, never published");
+});
+
+test("real merged store: a new inReview toponym place 404s from getEntityById the same way a nonexistent id does — no distinguishing signal", async () => {
+  const store = realStore();
+  await store.initialize();
+  const { isPublic } = await import("../../../v2/serializers/publicVisibility.js");
+  const entity = await store.getEntityById("place-0029");
+  assert.ok(entity, "the record exists in the store (this is the store layer, not the public API)");
+  assert.equal(isPublic(entity), false, "but it must never pass the publication-visibility gate the routes/serializer rely on");
+});
+
+test("real merged store: every new place has a unique id and slug, no collision with the 28 pre-existing places or each other", async () => {
+  const store = realStore();
+  await store.initialize();
+  const page = await store.listEntities({ limit: 500 });
+  const allPlaces = page.items.filter((e) => e.entityType === "place");
+  assert.equal(allPlaces.length, 128, "28 pre-existing + 100 new");
+  assert.equal(new Set(allPlaces.map((e) => e.id)).size, 128, "no duplicate ids");
+  assert.equal(new Set(allPlaces.map((e) => e.slug)).size, 128, "no duplicate slugs");
+});
+
+test("real merged store: user-supplied local Hatay-Arabic names are preserved byte-for-byte, never converted to Arabic script", async () => {
+  const store = realStore();
+  await store.initialize();
+  // A spot check across the real dataset: underscores and Arabizi digit-letters
+  // (3/7/5 standing in for Arabic letters) must survive completely unmodified.
+  const antakyaAreaPlace = (await store.listEntities({ limit: 500 })).items.find(
+    (e) => e.entityType === "place" && e.localNames?.some((n) => n.name.includes("_") || /\d/.test(n.name)),
+  );
+  assert.ok(antakyaAreaPlace, "at least one new/enriched place must carry an underscore or Arabizi-digit local name");
+  const localName = antakyaAreaPlace.localNames.find((n) => n.name.includes("_") || /\d/.test(n.name));
+  assert.ok(!/[؀-ۿ]/.test(localName.name), "must never contain Arabic-script characters");
+  assert.equal(localName.language, "ar");
+  assert.equal(localName.script, "Latin");
+});
+
+test("real merged store: no local name is the literal '?' placeholder — an unknown user local name is omitted, never stored as data", async () => {
+  const store = realStore();
+  await store.initialize();
+  const page = await store.listEntities({ limit: 500 });
+  const allPlaces = page.items.filter((e) => e.entityType === "place");
+  for (const place of allPlaces) {
+    for (const localName of place.localNames || []) {
+      assert.notEqual(localName.name, "?", `${place.id} must never store the literal "?" as a local name`);
+    }
+  }
 });

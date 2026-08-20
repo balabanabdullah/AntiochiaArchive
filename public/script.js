@@ -1214,6 +1214,15 @@ function renderV2DetailPage(lang) {
     caption.textContent = localizedMetadataValue(media?.metadata?.caption, lang, "");
   }
 
+  const mapCta = document.querySelector("[data-map-cta]");
+  if (mapCta) {
+    const ctaLabel = resolveKey(lang, "map.viewOnMapCta");
+    const ctaTextEl = mapCta.querySelector("span");
+    if (ctaTextEl && ctaLabel != null) ctaTextEl.textContent = ctaLabel;
+    const ariaTemplate = resolveKey(lang, "map.viewOnMapAria");
+    if (ariaTemplate != null) mapCta.setAttribute("aria-label", ariaTemplate.replace("{title}", title));
+  }
+
   document.title = `${title} — AntiochiaArchive`;
   initArchiveImageFallbacks();
 }
@@ -1484,24 +1493,68 @@ function initMapFilterButtons() {
   });
 }
 
+/** Hides/clears the "no map location" deep-link status message, if shown. */
+function hideMapDeepLinkStatus() {
+  const status = document.querySelector("[data-map-deep-link-status]");
+  if (status) { status.hidden = true; status.textContent = ""; }
+}
+
+/** Shows the localized "no map location is available" status message for an invalid/coordinate-less deep-link target. Never logs to console — an unresolved deep link is an expected, safely-handled outcome, not an error. */
+function showMapDeepLinkNotFound() {
+  const status = document.querySelector("[data-map-deep-link-status]");
+  if (!status) return;
+  const message = resolveKey(currentLang, "map.locationNotFound");
+  if (!message) return;
+  status.textContent = message;
+  status.hidden = false;
+}
+
 /**
- * A place detail page's "Open the full map" link points at
- * /pages/map.html?focus={slug} (see locationPreviewMarkup() in
- * scripts/v2-archive-release.js). Pans/zooms to that record on first load
- * only — deliberately not re-applied on later filter-button re-renders, so
- * switching the Places/Structures filter re-fits to the filtered set
- * (fitToMarkers, already called inside renderMapInstance) instead of
- * snapping back to the original deep-linked record every time.
+ * A place detail page's "View on Map" link points at
+ * /pages/map.html?entity={canonical id} (see locationPreviewMarkup() in
+ * scripts/v2-archive-release.js; ?focus={slug} is still read as a legacy
+ * fallback for any older links). Resolves the target via
+ * AntiochiaArchiveMapCore.findDeepLinkEntity(), which only ever matches a
+ * public entity already present in `entities` (the array this function
+ * receives is always the public-API-served set — see loadAllPublicEntities()
+ * — so an inReview/draft id can never resolve here; it just falls through to
+ * the same "not found" path as any other invalid id, with no distinguishing
+ * behavior that could leak its existence).
+ *
+ * On a real match: switches the type filter to "all" if the marker would
+ * otherwise be hidden by the current filter, re-fits/re-renders, pans to the
+ * marker, and opens its popup. Runs once on first load only — deliberately
+ * not re-applied on later filter-button clicks, so switching the
+ * Places/Structures filter re-fits to the filtered set (fitToMarkers,
+ * already called inside renderMapInstance) instead of snapping back to the
+ * original deep-linked record every time.
  */
 function focusMapOnQueryParam(entities) {
   const state = mapInstances["map-explore-container"];
   if (!state || !window.AntiochiaArchiveStore || !window.AntiochiaArchiveMapCore) return;
-  const focusSlug = new URLSearchParams(window.location.search).get("focus");
-  if (!focusSlug) return;
-  const entity = window.AntiochiaArchiveStore.bySlug(entities, focusSlug);
-  if (entity && window.AntiochiaArchiveMapCore.hasValidCoordinates(entity)) {
-    state.map.setView([entity.coordinates.latitude, entity.coordinates.longitude], 15);
+  const params = new URLSearchParams(window.location.search);
+  const entityId = params.get("entity");
+  const focusSlug = params.get("focus");
+  if (!entityId && !focusSlug) return;
+
+  const entity = window.AntiochiaArchiveMapCore.findDeepLinkEntity(entities, { id: entityId, slug: focusSlug });
+  if (!entity) {
+    showMapDeepLinkNotFound();
+    return;
   }
+  hideMapDeepLinkStatus();
+
+  if (state.filter !== "all" && state.filter !== entity.entityType) {
+    state.filter = "all";
+    document.querySelectorAll("[data-map-filters] [data-map-filter]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.mapFilter === "all");
+    });
+    renderMapInstance("map-explore-container");
+  }
+
+  state.map.setView([entity.coordinates.latitude, entity.coordinates.longitude], 15);
+  const marker = state.group?.markersByEntityId?.get(entity.id);
+  if (marker) marker.openPopup();
 }
 
 function initMapFeature() {

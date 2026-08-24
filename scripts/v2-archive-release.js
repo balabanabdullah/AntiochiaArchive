@@ -232,6 +232,12 @@ function metadataPanelMarkup(entity, language, placeById) {
     rows.push(["detail.languagesLabel", "Languages", escapeHtml(entity.languages.join(", ").toUpperCase())]);
   }
 
+  // dialect/originalLanguage are public fields on music (and proverb, not yet
+  // rendered) — a free-text cultural dialect label plus the ISO-ish language
+  // code already used elsewhere on the site (tr/en/ar), never fabricated.
+  if (entity.dialect) rows.push(["detail.dialect", "Dialect", escapeHtml(entity.dialect)]);
+  if (entity.originalLanguage) rows.push(["detail.originalLanguage", "Original Language", escapeHtml(entity.originalLanguage.toUpperCase())]);
+
   if (!rows.length && !entity.evidenceType) return "";
   return `<section class="record-detail-section record-metadata-section" aria-labelledby="record-metadata-heading">
               <h2 id="record-metadata-heading" data-i18n="detail.metadataHeading">Record Metadata</h2>
@@ -285,6 +291,51 @@ function locationPreviewMarkup(entity) {
             </section>`;
 }
 
+/**
+ * Music lyrics/transcript/translation — public multilingual text fields
+ * already on the entity itself (backend/v2/serializers/publicSerializer.js's
+ * music allowlist), so — unlike the audio player, which needs the separate
+ * `media` entity resolved — this can be baked straight into the static page
+ * at build time: real text on first paint, no client-side fetch, no flash.
+ * Renders only the subsections that actually have content in this language
+ * (falling back like every other multilingual field); renders nothing at
+ * all for a music record with none of the three.
+ */
+function musicTextSectionMarkup(entity, language) {
+  if (entity.entityType !== "music") return "";
+  const rows = [
+    ["music.lyrics", "Lyrics", localized(entity.lyrics, language)],
+    ["music.transcript", "Transcript", localized(entity.transcript, language)],
+    ["music.translation", "Translation", localized(entity.translations, language)],
+  ].filter(([, , text]) => text);
+  if (!rows.length) return "";
+  return `<section class="record-detail-section record-music-text-section" aria-labelledby="record-music-text-heading">
+              <h2 id="record-music-text-heading" hidden>Lyrics &amp; Transcript</h2>
+              ${rows.map(([key, fallback, text]) => `<h3 data-i18n="${key}">${escapeHtml(fallback)}</h3><p class="record-music-text-block">${escapeHtml(text)}</p>`).join("\n              ")}
+            </section>`;
+}
+
+/**
+ * Hidden placeholder for the real audio player — only emitted for a music
+ * entity that actually carries audioMediaIds. Populated client-side (see
+ * renderMusicFeature() in public/script.js + public/js/music.js): resolving
+ * an audioMediaIds entry to its `media` entity, and applying the rights gate
+ * (rightsStatus === "cleared"), both require the full public entity set
+ * (including `media`), which this static generator's own entity list never
+ * includes (see V2_DETAIL_TYPES — media has no detail page and is
+ * deliberately excluded from collectPublicV2Entities()). A music entity
+ * with audioMediaIds that all turn out non-playable (unresolved rights,
+ * unsupported format, or simply missing) is left `hidden` by the client —
+ * this container never implies a player exists.
+ */
+function musicAudioSectionMarkup(entity) {
+  if (entity.entityType !== "music" || !Array.isArray(entity.audioMediaIds) || !entity.audioMediaIds.length) return "";
+  return `<section class="record-detail-section record-audio-section" data-music-audio-section hidden aria-labelledby="record-audio-heading">
+              <h2 id="record-audio-heading" data-i18n="music.audio">Audio</h2>
+              <div data-music-audio-container></div>
+            </section>`;
+}
+
 /** Populated client-side (see initExploreMore() in public/script.js) — never bakes another entity's link into the static page, so nothing here can go stale between deploys. */
 function exploreMoreMarkup(entity) {
   return `<section class="record-explore-more" data-explore-more data-entity-id="${escapeHtml(entity.id)}" data-entity-type="${escapeHtml(entity.entityType)}" aria-labelledby="record-explore-more-heading">
@@ -294,7 +345,7 @@ function exploreMoreMarkup(entity) {
             </section>`;
 }
 
-export function generateV2DetailDocument({ entity, stylesheet, langScript, v2ApiScript, archiveStoreScript, searchScript, appScript, entities = [] }) {
+export function generateV2DetailDocument({ entity, stylesheet, langScript, v2ApiScript, archiveStoreScript, searchScript, musicScript, appScript, entities = [] }) {
   const typeInfo = V2_TYPE_INFO[entity.entityType];
   if (!typeInfo) throw new TypeError(`Unknown v2 entity type: ${entity.entityType}.`);
 
@@ -386,6 +437,8 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
             </section>
             ${namesSectionMarkup(entity, "en")}
             ${metadataPanelMarkup(entity, "en", placeById)}
+            ${musicAudioSectionMarkup(entity)}
+            ${musicTextSectionMarkup(entity, "en")}
             ${locationPreviewMarkup(entity)}
             ${shareControlsMarkup(canonical, title)}
           </div>
@@ -411,6 +464,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
   <script src="${escapeHtml(v2ApiScript)}"></script>
   ${archiveStoreScript ? `<script src="${escapeHtml(archiveStoreScript)}"></script>` : ""}
   ${searchScript ? `<script src="${escapeHtml(searchScript)}"></script>` : ""}
+  ${entity.entityType === "music" && Array.isArray(entity.audioMediaIds) && entity.audioMediaIds.length && musicScript ? `<script src="${escapeHtml(musicScript)}"></script>` : ""}
   <script src="${escapeHtml(appScript)}"></script>
   <button id="back-to-top" class="back-to-top" type="button" data-i18n-aria="backToTop" aria-label="Back to Top"><span class="back-to-top-icon" aria-hidden="true">↑</span><span class="back-to-top-text" data-i18n="backToTop">Back to Top</span></button>
 </body>

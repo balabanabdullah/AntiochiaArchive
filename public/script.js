@@ -705,9 +705,14 @@ function renderV2Music(items, lang) {
     const tag = item.genre || "";
     const desc = localizedMetadataValue(item.summary, lang, "");
     const cat = v2CardCategory("music", item);
-    const searchStr = v2SearchText(item, tag);
+    // Includes subgenre/dialect (e.g. "Hatay Arabic") alongside genre so a
+    // search for a dialect name or subgenre still finds the card — the audio
+    // badge itself is injected separately, after-the-fact, by
+    // annotateMusicAudioBadges() once the full public entity set (with
+    // `media`) has loaded, see initMusicFeature() below.
+    const searchStr = v2SearchText(item, tag, item.subgenre || "", item.dialect || "");
     return `
-    <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
+    <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" data-entity-id="${escapeHtml(item.id)}">
       <div class="track-badge" aria-hidden="true">🎵</div>
       <div class="track-info">
         ${tag ? `<span class="track-tag">${escapeHtml(tag)}</span>` : ""}
@@ -945,6 +950,11 @@ function renderArchiveSections(lang) {
   initGalleryClickHandlers();
   initArchiveImageFallbacks();
   renderDynamicFilterBars(lang);
+  // Re-apply audio badges to freshly-repainted music cards, if the full
+  // (media-including) public entity set has already loaded — a no-op
+  // otherwise, since initMusicFeature()'s own ensureDiscoveryEntities().then()
+  // will call renderMusicFeature() again once it does.
+  renderMusicFeature(lang);
   applyCombinedFilters();
   renderHomepageSectionCounts();
 }
@@ -1443,7 +1453,7 @@ function renderHomepageTimeline() {
 /* -------------------------------------------------------------------------
    Interactive map — full /pages/map.html and the homepage mini preview
    ------------------------------------------------------------------------- */
-const mapInstances = {}; // containerId -> { map, group, listContainerId, filter, limit }
+const mapInstances = {}; // containerId -> { map, group, listContainerId, filter, limit, searchQuery, activeEntityId }
 
 function initOneMapInstance(containerId, listContainerId, { limit = null, mapOptions = {} } = {}) {
   const container = document.getElementById(containerId);
@@ -1460,24 +1470,109 @@ function initOneMapInstance(containerId, listContainerId, { limit = null, mapOpt
     container.appendChild(notice);
     return;
   }
-  mapInstances[containerId] = { map, group: null, listContainerId, filter: "all", limit };
+  mapInstances[containerId] = { map, group: null, listContainerId, filter: "all", limit, searchQuery: "", activeEntityId: null };
+}
+
+/** Localized "N shown"/"N result(s)" line under the search box — distinct wording depending on whether a search query is active. */
+function updateMapResultsCount(state, count) {
+  const el = document.querySelector("[data-map-results-count]");
+  if (!el) return;
+  const hasQuery = !!(state.searchQuery && state.searchQuery.trim());
+  const key = hasQuery
+    ? (count === 1 ? "map.resultsCountOne" : "map.resultsCount")
+    : (count === 1 ? "map.shownCountOne" : "map.shownCount");
+  const template = resolveKey(currentLang, key);
+  el.textContent = template ? template.replace("{count}", String(count)) : "";
 }
 
 function renderMapInstance(containerId) {
   const state = mapInstances[containerId];
   if (!state || !discoveryEntities || !window.AntiochiaArchiveMapCore) return;
-  const mappable = window.AntiochiaArchiveMapCore.getMappableEntities(discoveryEntities);
-  const filtered = window.AntiochiaArchiveMapCore.filterByType(mappable, state.filter);
-  const limited = state.limit ? filtered.slice(0, state.limit) : filtered;
+  const searched = window.AntiochiaArchiveMapCore.searchMappableEntities(discoveryEntities, state.searchQuery, { typeFilter: state.filter });
+  const limited = state.limit ? searched.slice(0, state.limit) : searched;
 
   if (state.group) state.map.removeLayer(state.group);
   const typeLabels = v2TypeLabels(currentLang);
-  const labels = { typeLabels, detailLabel: resolveKey(currentLang, "map.viewDetail") || "", emptyLabel: resolveKey(currentLang, "map.empty") || "" };
+  const hasQuery = !!(state.searchQuery && state.searchQuery.trim());
+  const emptyLabel = resolveKey(currentLang, hasQuery ? "map.searchNoResults" : "map.empty") || "";
+  const labels = { typeLabels, detailLabel: resolveKey(currentLang, "map.viewDetail") || "", emptyLabel };
   state.group = window.AntiochiaArchiveMapDom.renderMarkers(state.map, limited, currentLang, labels);
   window.AntiochiaArchiveMapDom.fitToMarkers(state.map, limited);
 
   const listContainer = document.getElementById(state.listContainerId);
-  if (listContainer) window.AntiochiaArchiveMapDom.renderMapList(listContainer, limited, currentLang, labels);
+  if (listContainer) {
+    window.AntiochiaArchiveMapDom.renderMapList(listContainer, limited, currentLang, labels, {
+      activeId: state.activeEntityId,
+      onSelect: (entityId) => handleMapListSelect(containerId, entityId),
+    });
+  }
+  updateMapResultsCount(state, limited.length);
+}
+
+/** Wires the map search input + clear button to `state.searchQuery`, re-rendering the map/list on every keystroke. Called once per full-map container (the homepage mini preview has no search box). */
+function initMapSearch() {
+  const input = document.querySelector("[data-map-search-input]");
+  if (!input || input.dataset.wired) return;
+  input.dataset.wired = "true";
+  const clearBtn = document.querySelector("[data-map-search-clear]");
+
+  const runSearch = (value) => {
+    const state = mapInstances["map-explore-container"];
+    if (!state) return;
+    state.searchQuery = value;
+    state.activeEntityId = null;
+    if (clearBtn) clearBtn.hidden = !value;
+    renderMapInstance("map-explore-container");
+  };
+
+  input.addEventListener("input", () => runSearch(input.value));
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && input.value) {
+      event.stopPropagation();
+      input.value = "";
+      runSearch("");
+    }
+  });
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      input.focus();
+      runSearch("");
+    });
+  }
+}
+
+/**
+ * Shared marker-focus pipeline: centers/zooms the map on `entity`, switching
+ * the active type filter to "all" first if it would otherwise hide the
+ * marker, then opens that marker's popup. Used by both the `?entity=`
+ * deep-link handler (focusMapOnQueryParam) and a map-search-result / list
+ * click (handleMapListSelect) — one implementation, so the two entry points
+ * can never drift out of sync with each other.
+ */
+function focusMapMarker(containerId, entity) {
+  const state = mapInstances[containerId];
+  if (!state || !entity) return;
+
+  if (state.filter !== "all" && state.filter !== entity.entityType) {
+    state.filter = "all";
+    document.querySelectorAll("[data-map-filters] [data-map-filter]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.mapFilter === "all");
+    });
+  }
+  state.activeEntityId = entity.id;
+  renderMapInstance(containerId);
+
+  state.map.setView([entity.coordinates.latitude, entity.coordinates.longitude], 15);
+  const marker = state.group?.markersByEntityId?.get(entity.id);
+  if (marker) marker.openPopup();
+}
+
+/** A map-list item was clicked (normal browsing or a search result) — resolve it via the same safe lookup a deep link uses, then focus its marker in place. Never navigates away. */
+function handleMapListSelect(containerId, entityId) {
+  if (!discoveryEntities || !window.AntiochiaArchiveMapCore) return;
+  const entity = window.AntiochiaArchiveMapCore.findDeepLinkEntity(discoveryEntities, { id: entityId });
+  if (entity) focusMapMarker(containerId, entity);
 }
 
 function initMapFilterButtons() {
@@ -1543,18 +1638,7 @@ function focusMapOnQueryParam(entities) {
     return;
   }
   hideMapDeepLinkStatus();
-
-  if (state.filter !== "all" && state.filter !== entity.entityType) {
-    state.filter = "all";
-    document.querySelectorAll("[data-map-filters] [data-map-filter]").forEach((btn) => {
-      btn.classList.toggle("is-active", btn.dataset.mapFilter === "all");
-    });
-    renderMapInstance("map-explore-container");
-  }
-
-  state.map.setView([entity.coordinates.latitude, entity.coordinates.longitude], 15);
-  const marker = state.group?.markersByEntityId?.get(entity.id);
-  if (marker) marker.openPopup();
+  focusMapMarker("map-explore-container", entity);
 }
 
 function initMapFeature() {
@@ -1565,6 +1649,7 @@ function initMapFeature() {
   if (fullContainer) {
     initOneMapInstance("map-explore-container", "map-list-container");
     initMapFilterButtons();
+    initMapSearch();
   }
   if (previewContainer) {
     initOneMapInstance("map-preview-container", "map-preview-list", { limit: 24, mapOptions: { zoom: 8, scrollWheelZoom: false } });
@@ -1582,6 +1667,56 @@ function initMapFeature() {
 
 function rerenderMapFeature() {
   Object.keys(mapInstances).forEach((containerId) => renderMapInstance(containerId));
+}
+
+/* -------------------------------------------------------------------------
+   Music archive activation — "Audio" badges on the music list page, and the
+   real audio player on a music detail page. See public/js/music.js for the
+   rights-gated resolution logic this only renders the result of.
+   ------------------------------------------------------------------------- */
+
+/**
+ * Renders whatever music-audio state is possible from already-loaded data —
+ * a no-op wherever the relevant container isn't present on this page, and a
+ * no-op if `discoveryEntities` (which carries the `media` entities needed to
+ * resolve audioMediaIds) hasn't loaded yet. Safe to call repeatedly (every
+ * archive render + every language switch), matching rerenderMapFeature()'s
+ * pattern — the actual "wait for data, then do the first render" trigger is
+ * initMusicFeature() below.
+ */
+function renderMusicFeature(lang) {
+  if (!discoveryEntities || !window.AntiochiaArchiveMusic) return;
+
+  const listContainer = document.getElementById("music-list-container");
+  if (listContainer) {
+    const musicEntities = discoveryEntities.filter((e) => e.entityType === "music");
+    const eligible = window.AntiochiaArchiveMusic.musicIdsWithPlayableAudio(musicEntities, discoveryEntities);
+    window.AntiochiaArchiveMusicDom?.annotateAudioBadges(listContainer, eligible, resolveKey(lang, "music.audioBadge") || "");
+  }
+
+  const audioSection = document.querySelector("[data-music-audio-section]");
+  if (audioSection) {
+    const data = readV2DetailPageData();
+    if (data?.entity?.entityType === "music") {
+      const playable = window.AntiochiaArchiveMusic.resolvePlayableAudio(data.entity, discoveryEntities);
+      window.AntiochiaArchiveMusicDom?.renderAudioSection(audioSection, playable, {
+        duration: resolveKey(lang, "music.duration") || "Duration",
+        credit: resolveKey(lang, "provenance.sourceLabel") || "Source",
+        author: resolveKey(lang, "provenance.photoBy") || "Credit",
+        license: resolveKey(lang, "provenance.license") || "License",
+        trackLabelTemplate: resolveKey(lang, "music.trackLabel") || "Track {n}",
+      });
+    }
+  }
+}
+
+function initMusicFeature() {
+  const listContainer = document.getElementById("music-list-container");
+  const audioSection = document.querySelector("[data-music-audio-section]");
+  if (!listContainer && !audioSection) return;
+  ensureDiscoveryEntities().then((entities) => {
+    if (entities) renderMusicFeature(currentLang);
+  });
 }
 
 /* -------------------------------------------------------------------------
@@ -1829,6 +1964,7 @@ function renderDiscoveryFeatures() {
   renderExploreMore();
   renderArchiveSummary();
   renderDiscoverButtonLabel();
+  renderMusicFeature(currentLang);
 }
 
 /* ==========================================================================
@@ -1915,6 +2051,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initShareControls();
   initRandomDiscover();
   initArchiveSummary();
+  initMusicFeature();
 
   /* Contribution map intentionally disabled until submissions have location data. */
 });

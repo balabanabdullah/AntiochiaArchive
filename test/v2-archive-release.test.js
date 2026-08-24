@@ -181,6 +181,71 @@ test("a coordinate-less public entity renders no map CTA at all — never a disa
   assert.doesNotMatch(html, /data-map-cta/);
 });
 
+test("a music entity with audioMediaIds gets a hidden, client-populated audio-section placeholder and loads music.js; one without gets neither", () => {
+  const withAudio = {
+    id: "music-0099", slug: "sample-track", entityType: "music", status: "published",
+    title: { en: "Sample Track" }, summary: { en: "S" }, audioMediaIds: ["media-0001"],
+  };
+  const htmlWith = generateV2DetailDocument({
+    entity: withAudio, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", musicScript: "/m.js", appScript: "/a.js",
+  });
+  assert.match(htmlWith, /data-music-audio-section/);
+  assert.match(htmlWith, /<section class="record-detail-section record-audio-section" data-music-audio-section hidden/);
+  assert.match(htmlWith, /<script src="\/m\.js"><\/script>/);
+
+  const withoutAudio = { ...withAudio, id: "music-0098", audioMediaIds: [] };
+  const htmlWithout = generateV2DetailDocument({
+    entity: withoutAudio, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", musicScript: "/m.js", appScript: "/a.js",
+  });
+  assert.doesNotMatch(htmlWithout, /data-music-audio-section/);
+  assert.doesNotMatch(htmlWithout, /<script src="\/m\.js"><\/script>/, "music.js must not load on a page with nothing for it to do");
+});
+
+test("musicScript is never loaded on a non-music detail page, even when provided", () => {
+  const entity = { id: "place-0097", slug: "not-music", entityType: "place", status: "published", title: { en: "T" }, summary: { en: "S" } };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", musicScript: "/m.js", appScript: "/a.js" });
+  assert.doesNotMatch(html, /\/m\.js/);
+});
+
+test("a music entity's lyrics/transcript/translation are server-rendered as real text on first paint, escaped, and omitted per-field when absent", () => {
+  const entity = {
+    id: "music-0096", slug: "with-lyrics", entityType: "music", status: "published",
+    title: { en: "T" }, summary: { en: "S" },
+    lyrics: { en: "Line one <script>alert(1)</script>" },
+    translations: { en: "English rendering of the lyrics" },
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /record-music-text-section/);
+  assert.match(html, /data-i18n="music\.lyrics"/);
+  assert.match(html, /Line one &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
+  assert.match(html, /data-i18n="music\.translation"/);
+  assert.doesNotMatch(html, /data-i18n="music\.transcript"/, "an absent field must render no subsection at all");
+});
+
+test("a music entity with none of lyrics/transcript/translations renders no text section at all", () => {
+  const entity = { id: "music-0095", slug: "no-text", entityType: "music", status: "published", title: { en: "T" }, summary: { en: "S" } };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(html, /record-music-text-section/);
+});
+
+test("dialect/originalLanguage render as metadata rows only for an entity that actually carries them, never fabricated", () => {
+  const entity = {
+    id: "music-0094", slug: "with-dialect", entityType: "music", status: "published",
+    title: { en: "T" }, summary: { en: "S" }, dialect: "Hatay Arabic (local)", originalLanguage: "ar",
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /data-i18n="detail\.dialect"/);
+  assert.match(html, />Hatay Arabic \(local\)</);
+  assert.match(html, /data-i18n="detail\.originalLanguage"/);
+  assert.match(html, />AR</);
+
+  const withoutDialect = { ...entity, id: "music-0093", dialect: undefined, originalLanguage: undefined };
+  const htmlWithout = generateV2DetailDocument({ entity: withoutDialect, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(htmlWithout, /detail\.dialect/);
+  assert.doesNotMatch(htmlWithout, /detail\.originalLanguage/);
+});
+
 test("metadata panel (period/type/evidence) is entirely omitted when the entity carries none of those fields", () => {
   const entity = { id: "belief-0100", slug: "no-metadata", entityType: "belief", status: "published", title: { en: "T" }, summary: { en: "S" } };
   const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });

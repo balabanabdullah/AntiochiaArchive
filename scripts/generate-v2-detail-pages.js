@@ -27,8 +27,11 @@ const appScript = scripts.find((source) => /\/assets\/script-[^/]+\.js$/.test(so
 // lang/v2-api/script above.
 const archiveStoreScript = scripts.find((source) => /\/assets\/archive-store-[^/]+\.js$/.test(source));
 const searchScript = scripts.find((source) => /\/assets\/search-[^/]+\.js$/.test(source));
+// Only music detail pages actually load this (see generateV2DetailDocument) —
+// resolved here regardless so every page type shares the same lookup.
+const musicScript = scripts.find((source) => /\/assets\/music-[^/]+\.js$/.test(source));
 
-if (!stylesheet || !langScript || !v2ApiScript || !appScript || !archiveStoreScript || !searchScript) {
+if (!stylesheet || !langScript || !v2ApiScript || !appScript || !archiveStoreScript || !searchScript || !musicScript) {
   throw new Error("Could not resolve versioned stylesheet, language script, v2 API script, discovery-feature scripts, and application script from dist/index.html.");
 }
 
@@ -43,6 +46,7 @@ for (const entity of entities) {
     v2ApiScript,
     archiveStoreScript,
     searchScript,
+    musicScript,
     appScript,
     entities,
   }), "utf8");

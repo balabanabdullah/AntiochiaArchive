@@ -21,6 +21,7 @@ const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "js/timeline.js",
   "js/map.js",
   "js/collections.js",
+  "js/music.js",
 ]);
 
 /**

@@ -1284,6 +1284,23 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
   color: var(--clr-ink-muted);
 }
 
+/* "Audio" badge — only injected for a music card with a real, rights-cleared
+   playable asset; see annotateAudioBadges() in public/js/music.js. */
+.track-audio-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--clr-olive);
+  color: var(--clr-paper-light);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .track-play-btn {
   width: 44px;
   height: 44px;
@@ -3283,6 +3300,45 @@ html[dir="rtl"] .record-provenance {
 .record-source-link { display: inline-block; margin-top: var(--sp-2); color: var(--clr-red); }
 .record-rights-note { margin: var(--sp-2) 0 0; }
 
+/* Music audio player section (record-detail-page) — see public/js/music.js */
+.music-audio-item + .music-audio-item {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--clr-line);
+}
+.music-audio-item audio {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+}
+.music-audio-item .music-audio-facts {
+  margin-top: var(--sp-2);
+  padding: var(--sp-3);
+  border-left: 3px solid var(--clr-red);
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--clr-ink-muted);
+  font-size: 0.84rem;
+}
+html[dir="rtl"] .music-audio-item .music-audio-facts {
+  border-right: 3px solid var(--clr-red);
+  border-left: 0;
+}
+
+/* Music text sections (lyrics / transcript / translation) — static, server-rendered */
+.record-music-text-section h3 {
+  margin-top: var(--sp-4);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--clr-red-dark);
+}
+.record-music-text-section h3:first-child { margin-top: 0; }
+.record-music-text-block {
+  white-space: pre-line;
+  line-height: 1.8;
+  color: var(--clr-ink);
+}
+
 .record-detail-section + .record-detail-section { margin-top: var(--sp-6); }
 .record-detail-section h2,
 .methodology-content h2 {
@@ -3710,25 +3766,95 @@ a.timeline-rail-card:hover,
   padding: var(--sp-3);
   background: var(--clr-paper-light);
   border: 1px solid var(--clr-line);
+  scrollbar-width: thin;
+}
+.map-list-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--clr-paper-light);
+  padding-bottom: var(--sp-2);
+  margin-bottom: 2px;
 }
 .map-list-panel h2 {
   margin-bottom: var(--sp-2);
   font-family: var(--font-serif);
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 1.15rem;
+  font-weight: 600;
   color: var(--clr-red-dark);
 }
+
+.map-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.map-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--clr-ink-muted);
+  pointer-events: none;
+}
+html[dir="rtl"] .map-search-icon { left: auto; right: 10px; }
+.map-search-input {
+  width: 100%;
+  padding: 9px 34px;
+  border: 1px solid var(--clr-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--clr-paper);
+  color: var(--clr-ink);
+  font-size: 0.88rem;
+  min-height: 40px;
+}
+html[dir="rtl"] .map-search-input { padding: 9px 34px; }
+.map-search-input:focus-visible,
+.map-search-input:focus {
+  outline: none;
+  border-color: var(--clr-red);
+  box-shadow: 0 0 0 2px rgba(144, 54, 40, 0.15);
+}
+.map-search-clear {
+  position: absolute;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--clr-ink-muted);
+  font-size: 1.1rem;
+  border-radius: 50%;
+}
+html[dir="rtl"] .map-search-clear { right: auto; left: 4px; }
+.map-search-clear:hover,
+.map-search-clear:focus-visible { background: var(--clr-paper-deep); color: var(--clr-ink); }
+
+.map-results-count {
+  margin-top: var(--sp-2);
+  font-size: 0.74rem;
+  color: var(--clr-ink-muted);
+}
+
 .map-list { list-style: none; display: grid; gap: 2px; }
-.map-list li a,
-.map-list li span {
+.map-list li { margin: 0; }
+.map-list-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: 100%;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
+  text-align: start;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
 }
-.map-list li a:hover,
-.map-list li a:focus-visible { background: var(--clr-paper-deep); }
+.map-list-item:hover,
+.map-list-item:focus-visible { background: var(--clr-paper-deep); }
+.map-list-item:focus-visible { outline: 2px solid var(--clr-red); outline-offset: -2px; }
+.map-list-item.is-active {
+  background: var(--clr-paper-deep);
+  border-color: var(--clr-red);
+}
 .map-list-type {
   font-size: 0.66rem;
   font-weight: 700;

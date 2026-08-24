@@ -60,6 +60,28 @@
     return null;
   }
 
+  /**
+   * Client-side map search: narrows the mappable set by type filter, then (if
+   * a query is given) by text relevance — reusing AntiochiaArchiveSearch's
+   * existing deterministic, Turkish-aware normalization and multilingual/
+   * localName/historicalName matching (public/js/search.js) rather than
+   * inventing a second normalize/match implementation. Only ever searches
+   * within entities that are already mappable (public + place/structure +
+   * valid coordinates) — a query can never surface a draft/inReview/
+   * coordinate-less/wrong-type record, because getMappableEntities() has
+   * already excluded it before the search index is even built. An empty or
+   * whitespace-only query returns the full (type-filtered) mappable set
+   * unchanged — the "clear search" case.
+   */
+  function searchMappableEntities(entities, query, { typeFilter = "all" } = {}) {
+    const scoped = filterByType(getMappableEntities(entities), typeFilter);
+    const trimmed = typeof query === "string" ? query.trim() : "";
+    if (!trimmed) return scoped;
+    if (!root.AntiochiaArchiveSearch) return scoped;
+    const index = root.AntiochiaArchiveSearch.buildSearchIndex(scoped);
+    return root.AntiochiaArchiveSearch.searchEntities(index, trimmed);
+  }
+
   /** [[south, west], [north, east]] over the given markers, or null if too few to bound. */
   function computeBounds(markers) {
     if (!markers || markers.length === 0) return null;
@@ -81,6 +103,7 @@
     filterByType,
     computeBounds,
     findDeepLinkEntity,
+    searchMappableEntities,
   });
 })(typeof window !== "undefined" ? window : globalThis);
 
@@ -188,8 +211,19 @@
     }
   }
 
-  /** Accessible text alternative to the visual map — always rendered, list stays in sync with the current filter. */
-  function renderMapList(container, entities, lang, labels) {
+  /**
+   * Accessible text alternative to the visual map — always rendered, list
+   * stays in sync with the current filter/search. Each entry is a real
+   * `<button>` (not a link): its primary action is to focus that entity's
+   * marker in place — center/zoom the map and open the popup, exactly like a
+   * `?entity=` deep link — rather than navigating away, so search results
+   * (and normal browsing) stay on the map. The popup itself still carries a
+   * "View record →" link (see popupHtml()) for anyone who wants the full
+   * detail page. `onSelect(entityId)` is called on click/Enter/Space (native
+   * button semantics need no extra keydown handling); `activeId` highlights
+   * the currently-focused entity, if any.
+   */
+  function renderMapList(container, entities, lang, labels, { onSelect, activeId } = {}) {
     if (!container) return;
     if (!entities.length) {
       container.innerHTML = `<p class="map-list-empty">${escapeHtml(labels?.emptyLabel || "")}</p>`;
@@ -197,11 +231,20 @@
     }
     container.innerHTML = `<ul class="map-list">${entities.map((entity) => {
       const title = escapeHtml(localized(entity.title, lang, entity.slug));
-      const href = detailHref(entity);
       const typeLabel = escapeHtml(labels?.typeLabels?.[entity.entityType] || entity.entityType);
-      const inner = `<span class="map-list-type">${typeLabel}</span><span class="map-list-title">${title}</span>`;
-      return `<li>${href ? `<a href="${escapeHtml(href)}">${inner}</a>` : `<span>${inner}</span>`}</li>`;
+      const isActive = activeId != null && entity.id === activeId;
+      return `<li>
+        <button type="button" class="map-list-item${isActive ? " is-active" : ""}" data-map-list-item data-entity-id="${escapeHtml(entity.id)}"${isActive ? ' aria-current="true"' : ""}>
+          <span class="map-list-type">${typeLabel}</span>
+          <span class="map-list-title">${title}</span>
+        </button>
+      </li>`;
     }).join("")}</ul>`;
+    if (typeof onSelect === "function") {
+      container.querySelectorAll("[data-map-list-item]").forEach((button) => {
+        button.addEventListener("click", () => onSelect(button.getAttribute("data-entity-id")));
+      });
+    }
   }
 
   root.AntiochiaArchiveMapDom = Object.freeze({

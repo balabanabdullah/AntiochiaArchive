@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /pages/admin.html
+Disallow: /admin/
 Disallow: /pages/submissions.html
 
 Sitemap: https://antiochia-app-6939593871.europe-west1.run.app/sitemap.xml

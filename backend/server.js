@@ -6,11 +6,13 @@ import { fileURLToPath } from "url";
 import { sendContributionMail } from "./mailer.js";
 import { getArchive, updateArchive } from "./archiveController.js";
 import { getSubmissions, addSubmissionToStore, deleteSubmission } from "./submissionsController.js";
-import { requireAdmin } from "./auth.js";
 import { getSelectedDataStoreName, initializeDataStore } from "./dataStore.js";
 import { backupHandlers, preventBackupCaching } from "./backupController.js";
 import v2Router from "./v2/routes/v2Routes.js";
 import { initializeV2Store } from "./v2/stores/v2Store.js";
+import adminEditorialRouter from "./admin/adminRoutes.js";
+import { requireAdminAny } from "./admin/adminSession.js";
+import { initializeEditorialStore, getSelectedEditorialStoreName } from "./admin/editorialStore.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -64,14 +66,28 @@ function contributionRateLimit(req, res, next) {
 }
 
 app.get("/api/archive", getArchive);
-app.put("/api/archive", requireAdmin, updateArchive);
+// requireAdminAny accepts EITHER the legacy Authorization: Bearer <ADMIN_TOKEN>
+// header (unchanged — any existing script keeps working) OR a new admin
+// session cookie (see admin/adminSession.js), so the redesigned browser
+// panel can use these same routes without ever holding the raw token.
+app.put("/api/archive", requireAdminAny, updateArchive);
 
-app.get("/api/submissions", requireAdmin, getSubmissions);
-app.delete("/api/submissions/:id", requireAdmin, deleteSubmission);
+app.get("/api/submissions", requireAdminAny, getSubmissions);
+app.delete("/api/submissions/:id", requireAdminAny, deleteSubmission);
 
-app.get("/api/admin/export/archive", preventBackupCaching, requireAdmin, backupHandlers.archive);
-app.get("/api/admin/export/submissions", preventBackupCaching, requireAdmin, backupHandlers.submissions);
-app.get("/api/admin/export/full", preventBackupCaching, requireAdmin, backupHandlers.full);
+app.get("/api/admin/export/archive", preventBackupCaching, requireAdminAny, backupHandlers.archive);
+app.get("/api/admin/export/submissions", preventBackupCaching, requireAdminAny, backupHandlers.submissions);
+app.get("/api/admin/export/full", preventBackupCaching, requireAdminAny, backupHandlers.full);
+
+// v2 admin/editorial API — session-cookie authenticated, drafts/proposals
+// only. Never writes to the v2 store the public API reads from; see
+// admin/editorialStore.js. Admin JSON responses are never cached.
+app.use("/api/admin/editorial", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  next();
+}, adminEditorialRouter);
 
 // v2 domain foundation: read-only, additive, and does not alter any v1 route above.
 app.use("/api/v2", v2Router);
@@ -148,8 +164,9 @@ app.use((err, _req, res, _next) => {
 try {
   await initializeDataStore();
   await initializeV2Store();
+  await initializeEditorialStore();
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`AntiochiaArchive backend listening on port ${PORT} using ${getSelectedDataStoreName()} storage`);
+    console.log(`AntiochiaArchive backend listening on port ${PORT} using ${getSelectedDataStoreName()} storage (editorial: ${getSelectedEditorialStoreName()})`);
   });
 } catch (error) {
   console.error("[Backend] Data store initialization failed:", error.message);

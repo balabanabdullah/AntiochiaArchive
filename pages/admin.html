@@ -3,116 +3,224 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AntiochiaArchive Yönetici Paneli — seçili backend veri deposundaki arşivi düzenleme arayüzü">
+  <meta name="description" content="AntiochiaArchive Yönetim Paneli — editoryal içerik, taslak inceleme ve arşiv yönetimi arayüzü.">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#1c1814">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-  <title>Admin Panel — AntiochiaArchive</title>
+  <title>AntiochiaArchive Yönetim Paneli</title>
 
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
   <style>
-    /* ── Admin Dashboard Specific Styles ────────────────────────────────── */
-    body {
-      background-color: var(--clr-paper-light);
+    /* ── Admin palette — understated, utilitarian, distinct from the public
+       archive's parchment identity (see round brief §56): warm off-white
+       ground, dark plum/navy ink, terracotta accents reused from the site
+       palette, clean borders. ─────────────────────────────────────────── */
+    :root {
+      --admin-bg: #f6f4f0;
+      --admin-surface: #ffffff;
+      --admin-ink: #241f2e;
+      --admin-ink-muted: #625d6e;
+      --admin-border: #dedad2;
+      --admin-accent: #903628;
+      --admin-accent-dark: #6e2920;
+      --admin-navy: #2c2740;
     }
-    
-    .admin-header {
-      background-color: var(--clr-ink);
-      color: var(--clr-paper);
-      padding: var(--sp-3) 0;
-      border-bottom: 3px solid var(--clr-red);
-    }
+    body { background-color: var(--admin-bg); color: var(--admin-ink); }
 
-    .admin-header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: var(--sp-2);
-    }
-
-    .admin-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--clr-paper);
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
-
-    .admin-brand .brand-mark {
-      width: 32px;
-      height: 32px;
-      background: var(--clr-red);
-      color: #fff;
+    /* ── Login gate ──────────────────────────────────────────────────────── */
+    .admin-login-gate {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-sm);
+      background: var(--admin-navy);
+      padding: 20px;
+    }
+    /* An author `display` declaration on an element beats the UA
+       stylesheet's `[hidden]{display:none}` rule at equal specificity, so
+       the `hidden` attribute alone would never actually hide either half of
+       the login-gate/panel-shell toggle — these two rules restore it
+       explicitly, for every element this file toggles `hidden` on. */
+    .admin-login-gate[hidden],
+    #admin-panel-shell[hidden],
+    [data-admin-panel][hidden] {
+      display: none !important;
+    }
+    .admin-login-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--admin-surface);
+      border-radius: 10px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .admin-login-card h1 {
       font-family: var(--font-serif);
-      font-weight: bold;
+      font-size: 1.5rem;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 4px;
+      color: var(--admin-ink);
+    }
+    .admin-login-card .admin-login-subtitle {
+      text-align: center;
+      color: var(--admin-ink-muted);
+      font-size: 0.84rem;
+      margin-bottom: 24px;
+    }
+    .admin-login-input-row { display: flex; gap: 8px; }
+    .admin-login-input-row input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--admin-border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .admin-login-input-row button {
+      padding: 0 14px;
+      border: 1px solid var(--admin-border);
+      border-radius: 6px;
+      background: var(--admin-bg);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .admin-login-card form .btn-admin { width: 100%; justify-content: center; margin-top: 16px; padding: 11px; }
+    .admin-login-error {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 0.84rem;
     }
 
-    .admin-actions {
+    /* ── Panel shell / layout ────────────────────────────────────────────── */
+    .admin-topbar {
+      background: var(--admin-navy);
+      color: #f4f1ea;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
-      gap: var(--sp-2);
+      justify-content: space-between;
+    }
+    .admin-topbar .admin-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    .admin-topbar .brand-mark { width: 30px; height: 30px; background: var(--admin-accent); color: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: 700; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 54px); }
+    .admin-sidebar {
+      background: var(--admin-surface);
+      border-right: 1px solid var(--admin-border);
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .admin-nav-item {
+      text-align: left;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: var(--admin-ink);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .admin-nav-item:hover { background: var(--admin-bg); }
+    .admin-nav-item.active { background: var(--admin-accent); color: #fff; }
+    .admin-nav-divider { height: 1px; background: var(--admin-border); margin: 8px 4px; }
+    .admin-main { padding: 24px 28px; }
+    .admin-mobile-nav-toggle { display: none; }
+
+    @media (max-width: 860px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar {
+        position: fixed; inset-inline-start: 0; top: 54px; bottom: 0; width: 240px; z-index: 40;
+        transform: translateX(-100%); transition: transform 0.2s ease; overflow-y: auto;
+      }
+      html[dir="rtl"] .admin-sidebar { transform: translateX(100%); }
+      .admin-sidebar.is-open { transform: translateX(0); }
+      .admin-mobile-nav-toggle { display: inline-flex; }
     }
 
-    .api-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    .api-badge.online { color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
-    .api-badge.offline { color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+    .admin-panel-heading { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 500; margin-bottom: 4px; }
+    .admin-panel-sub { color: var(--admin-ink-muted); font-size: 0.88rem; margin-bottom: 20px; }
+    .admin-muted { color: var(--admin-ink-muted); }
+    .admin-error { color: #991b1b; }
+    .admin-readonly-value { padding: 8px 10px; background: var(--admin-bg); border-radius: 6px; font-size: 0.86rem; overflow-wrap: anywhere; }
 
+    /* ── Dashboard ────────────────────────────────────────────────────────── */
+    .admin-storage-banner {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+    }
+    .admin-storage-banner-durable { background: #dcfce7; color: #166534; }
+    .admin-storage-banner-ephemeral { background: #fef3c7; color: #92400e; }
+    .admin-dashboard-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .admin-dashboard-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 16px; }
+    .admin-dashboard-card-count { display: block; font-family: var(--font-serif); font-size: 1.8rem; color: var(--admin-accent); }
+    .admin-dashboard-card-label { display: block; margin-top: 4px; font-size: 0.78rem; color: var(--admin-ink-muted); }
+
+    /* ── Status badges ────────────────────────────────────────────────────── */
+    .admin-badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; }
+    .admin-badge-published, .admin-badge-applied { background: #dcfce7; color: #166534; }
+    .admin-badge-inReview, .admin-badge-readyForReview { background: #fef3c7; color: #92400e; }
+    .admin-badge-draft { background: #e5e3f0; color: var(--admin-navy); }
+    .admin-badge-archived, .admin-badge-rejected { background: #f1f1f1; color: #52525b; }
+    .admin-badge-approved { background: #dbeafe; color: #1e40af; }
+
+    /* ── Records filter bar / table ───────────────────────────────────────── */
+    .admin-filter-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .admin-filter-toolbar input, .admin-filter-toolbar select { padding: 8px 10px; border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.86rem; }
+    #admin-records-type-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .admin-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Editorial draft cards ────────────────────────────────────────────── */
+    .admin-drafts-list { display: grid; gap: 12px; }
+    .admin-draft-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 14px 16px; }
+    .admin-draft-card header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .admin-draft-kind { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--admin-ink-muted); font-weight: 700; }
+    .admin-draft-card p { margin: 2px 0; font-size: 0.88rem; }
+    .admin-draft-card .admin-row-actions { margin-top: 10px; }
+
+    /* ── Entity editor: multilingual tabs / name lists / map ─────────────── */
+    .admin-ml-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .admin-ml-tag { display: block; font-size: 0.7rem; color: var(--admin-ink-muted); margin-bottom: 2px; }
+    @media (max-width: 640px) { .admin-ml-tabs { grid-template-columns: 1fr; } }
+    .admin-name-list { display: grid; gap: 8px; margin-bottom: 8px; }
+    .admin-name-row { display: grid; grid-template-columns: 2fr 1fr 1.4fr auto; gap: 6px; align-items: center; }
+    @media (max-width: 640px) { .admin-name-row { grid-template-columns: 1fr; } }
+    .admin-editor-map { height: 220px; margin-top: 10px; border: 1px solid var(--admin-border); border-radius: 6px; }
+
+    /* ── Login/logout button placement, reusing existing .btn-admin family ── */
+    #admin-logout-btn { margin-inline-start: 10px; }
+
+    /* ── Restored from the original v1 admin tool (these modal/form/toast/
+       button rules are shared by BOTH the new editorial editor modal and
+       the legacy V1 modal). ──────────────────────────────────────────── */
     .btn-admin {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 8px 16px;
-      border-radius: var(--radius-md);
+      border-radius: 6px;
       font-size: 0.85rem;
       font-weight: 600;
       transition: all var(--dur-fast) var(--ease);
       cursor: pointer;
+      border: none;
     }
+    .btn-admin-primary { background-color: var(--admin-accent); color: #fff; }
+    .btn-admin-primary:hover { background-color: var(--admin-accent-dark); transform: translateY(-1px); }
+    .btn-admin-secondary { background-color: var(--admin-bg); color: var(--admin-ink); border: 1px solid var(--admin-border); }
+    .btn-admin-secondary:hover { background-color: #fff; }
+    .btn-admin-danger { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .btn-admin-danger:hover { background-color: #fca5a5; }
+    .btn-admin:disabled { cursor: not-allowed; opacity: 0.6; }
 
-    .btn-admin-primary {
-      background-color: var(--clr-red);
-      color: #fff;
-    }
-    .btn-admin-primary:hover {
-      background-color: var(--clr-red-dark);
-      transform: translateY(-1px);
-    }
-
-    .btn-admin-secondary {
-      background-color: var(--clr-paper-deep);
-      color: var(--clr-ink);
-      border: 1px solid var(--clr-line-strong);
-    }
-    .btn-admin-secondary:hover {
-      background-color: #fff;
-    }
-
-    .btn-admin-danger {
-      background-color: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fca5a5;
-    }
-    .btn-admin-danger:hover {
-      background-color: #fca5a5;
-    }
-
-    /* Tabs */
     .admin-tabs {
       display: flex;
       gap: 8px;
@@ -121,7 +229,6 @@
       overflow-x: auto;
       padding-bottom: 4px;
     }
-
     .tab-btn {
       padding: 10px 18px;
       border-radius: var(--radius-sm) var(--radius-sm) 0 0;
@@ -132,57 +239,26 @@
       border: none;
       transition: all var(--dur-fast) var(--ease);
     }
-    .tab-btn:hover {
-      color: var(--clr-ink);
-      background: var(--clr-paper-deep);
-    }
-    .tab-btn.active {
-      color: var(--clr-red);
-      background: var(--clr-paper);
-      border-bottom: 3px solid var(--clr-red);
-    }
+    .tab-btn:hover { color: var(--clr-ink); background: var(--clr-paper-deep); }
+    .tab-btn.active { color: var(--clr-red); background: var(--clr-paper); border-bottom: 3px solid var(--clr-red); }
 
-    /* Admin Data Table */
     .table-container {
-      background: var(--clr-paper);
-      border: 1px solid var(--clr-line-strong);
-      border-radius: var(--radius-md);
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      border-radius: 8px;
       overflow-x: auto;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-
-    .admin-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.88rem;
-    }
+    .admin-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
     html[dir="rtl"] .admin-table { text-align: right; }
-
-    .admin-table th {
-      background: var(--clr-paper-deep);
-      color: var(--clr-ink);
-      padding: 12px 16px;
-      font-weight: 600;
-      border-bottom: 1px solid var(--clr-line-strong);
-    }
-
-    .admin-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--clr-line);
-      vertical-align: top;
-    }
-
-    .admin-table tr:hover td {
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    .cell-id { font-family: monospace; font-weight: bold; color: var(--clr-red); }
+    .admin-table th { background: var(--admin-bg); color: var(--admin-ink); padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--admin-border); }
+    .admin-table td { padding: 12px 16px; border-bottom: 1px solid var(--admin-border); vertical-align: top; }
+    .admin-table tr:hover td { background: rgba(0,0,0,0.02); }
+    .cell-id { font-family: monospace; font-weight: bold; color: var(--admin-accent); }
     .cell-tag { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; }
     .cell-title { font-family: var(--font-serif); font-size: 1.05rem; }
-    .cell-desc { color: var(--clr-ink-muted); max-width: 380px; line-height: 1.5; }
+    .cell-desc { color: var(--admin-ink-muted); max-width: 380px; line-height: 1.5; }
 
-    /* Modal Overlay */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -197,11 +273,7 @@
       pointer-events: none;
       transition: opacity var(--dur-mid) var(--ease);
     }
-    .modal-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
     .modal-card {
       background: var(--clr-paper);
       border: 1px solid var(--clr-line-strong);
@@ -215,10 +287,7 @@
       transform: translateY(20px);
       transition: transform var(--dur-mid) var(--ease);
     }
-    .modal-overlay.open .modal-card {
-      transform: translateY(0);
-    }
-
+    .modal-overlay.open .modal-card { transform: translateY(0); }
     .modal-header {
       display: flex;
       align-items: center;
@@ -227,24 +296,10 @@
       padding-bottom: var(--sp-2);
       border-bottom: 1px solid var(--clr-line);
     }
+    .modal-title { font-family: var(--font-serif); font-size: 1.4rem; }
 
-    .modal-title {
-      font-family: var(--font-serif);
-      font-size: 1.4rem;
-    }
-
-    .form-group {
-      margin-bottom: var(--sp-3);
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--clr-ink);
-    }
-
+    .form-group { margin-bottom: var(--sp-3); }
+    .form-label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; color: var(--clr-ink); }
     .form-input, .form-textarea, .form-select {
       width: 100%;
       padding: 8px 12px;
@@ -255,224 +310,255 @@
       background: #fff;
     }
     .form-textarea { min-height: 70px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .form-help { display: block; margin-top: 6px; color: var(--clr-ink-muted); font-size: 0.74rem; line-height: 1.5; }
+    .form-row-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .form-help {
-      display: block;
-      margin-top: 6px;
-      color: var(--clr-ink-muted);
-      font-size: 0.74rem;
-      line-height: 1.5;
-    }
-
-    .form-row-two {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .editor-section {
-      margin-top: var(--sp-4);
-      padding: var(--sp-3);
-      border: 1px solid var(--clr-line-strong);
-      background: var(--clr-paper-light);
-    }
-
-    .editor-section > summary {
-      cursor: pointer;
-      font-family: var(--font-serif);
-      font-size: 1.05rem;
-      font-weight: 600;
-    }
-
+    .editor-section { margin-top: var(--sp-4); padding: var(--sp-3); border: 1px solid var(--clr-line-strong); background: var(--clr-paper-light); }
+    .editor-section > summary { cursor: pointer; font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; }
     .editor-section-body { margin-top: var(--sp-3); }
 
-    .source-editor {
-      margin-bottom: var(--sp-3);
-      padding: var(--sp-3);
-      border: 1px solid var(--clr-line);
-      background: #fff;
-    }
+    .source-editor { margin-bottom: var(--sp-3); padding: var(--sp-3); border: 1px solid var(--clr-line); background: #fff; }
+    .source-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: var(--sp-2); }
+    .source-editor-title { color: var(--clr-ink-muted); font-family: monospace; font-size: 0.75rem; overflow-wrap: anywhere; }
 
-    .source-editor-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: var(--sp-2);
-    }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; padding-block: 8px; font-size: 0.86rem; }
 
-    .source-editor-title {
-      color: var(--clr-ink-muted);
-      font-family: monospace;
-      font-size: 0.75rem;
-      overflow-wrap: anywhere;
-    }
+    @media (max-width: 640px) { .form-row, .form-row-two { grid-template-columns: 1fr; } }
 
-    .checkbox-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding-block: 8px;
-      font-size: 0.86rem;
-    }
-
-    @media (max-width: 640px) {
-      .form-row, .form-row-two { grid-template-columns: 1fr; }
-    }
-
-    /* Toast Notification */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      inset-inline-end: 24px;
-      z-index: 1100;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .toast {
-      padding: 12px 20px;
-      border-radius: var(--radius-md);
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-      animation: slideUp 0.3s ease;
-    }
+    .toast-container { position: fixed; bottom: 24px; inset-inline-end: 24px; z-index: 1100; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 12px 20px; border-radius: var(--radius-md); font-size: 0.9rem; font-weight: 600; color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
     .toast.success { background-color: #15803d; }
     .toast.error { background-color: #b91c1c; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .api-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: rgba(0,0,0,0.05); }
+    .api-badge.online { color: #15803d; border: 1px solid rgba(21, 128, 61, 0.3); }
+    .api-badge.offline { color: #b91c1c; border: 1px solid rgba(185, 28, 28, 0.3); }
 
     .backup-panel {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--sp-3);
-      flex-wrap: wrap;
-      margin-bottom: var(--sp-4);
-      padding: var(--sp-3);
-      border: 1px solid var(--clr-line);
-      background: var(--clr-paper);
+      display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap;
+      margin-bottom: var(--sp-4); padding: var(--sp-3); border: 1px solid var(--admin-border); background: var(--admin-surface); border-radius: 8px;
     }
-
-    .backup-panel h2 {
-      margin: 0 0 4px;
-      font-family: var(--font-serif);
-      font-size: 1.2rem;
-      font-weight: 500;
-    }
-
-    .backup-panel p {
-      margin: 0;
-      max-width: 660px;
-      color: var(--clr-ink-muted);
-      font-size: 0.84rem;
-    }
-
-    .backup-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .backup-actions button:disabled {
-      cursor: wait;
-      opacity: 0.65;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+    .backup-panel h2 { margin: 0 0 4px; font-family: var(--font-serif); font-size: 1.2rem; font-weight: 500; }
+    .backup-panel p { margin: 0; max-width: 660px; color: var(--admin-ink-muted); font-size: 0.84rem; }
+    .backup-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .backup-actions button:disabled { cursor: wait; opacity: 0.65; }
   </style>
 </head>
 <body>
 
-  <!-- Admin Top Bar -->
-  <header class="admin-header">
-    <div class="container admin-header-inner">
+  <!-- ══════════════════════════════════════════════════════════════════════
+       LOGIN GATE — the only thing an unauthenticated visitor to /pages/admin.html
+       ever sees. No panel markup, no data, renders before this point.
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div class="admin-login-gate" id="admin-login-gate">
+    <div class="admin-login-card">
+      <h1>AntiochiaArchive<br>Yönetim Paneli</h1>
+      <p class="admin-login-subtitle">Devam etmek için yönetici anahtarınızı girin.</p>
+      <form id="admin-login-form" autocomplete="off">
+        <label class="form-label" for="admin-login-token">Yönetici Anahtarı</label>
+        <div class="admin-login-input-row">
+          <input type="password" id="admin-login-token" name="admin-token" autocomplete="off" required>
+          <button type="button" id="admin-login-toggle-visibility">Göster</button>
+        </div>
+        <button type="submit" class="btn-admin btn-admin-primary">Giriş Yap</button>
+        <p id="admin-login-error" class="admin-login-error" role="alert" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PANEL SHELL — only shown once a valid session cookie is confirmed.
+       ══════════════════════════════════════════════════════════════════════ -->
+  <div id="admin-panel-shell" hidden>
+
+    <header class="admin-topbar">
       <div class="admin-brand">
+        <button class="admin-mobile-nav-toggle btn-admin btn-admin-secondary" id="admin-mobile-nav-toggle" type="button" aria-label="Menüyü aç/kapat">☰</button>
         <span class="brand-mark">A</span>
         <span>AntiochiaArchive Yönetim Paneli</span>
       </div>
-
-      <div class="admin-actions">
-        <span class="api-badge" id="api-status-badge">● Bağlantı Kontrol Ediliyor</span>
+      <div>
         <a class="btn-admin btn-admin-secondary" href="../index.html">← Siteye Dön</a>
+        <button class="btn-admin btn-admin-secondary" id="admin-logout-btn" type="button">Çıkış Yap</button>
       </div>
+    </header>
+
+    <div class="admin-layout">
+      <nav class="admin-sidebar" aria-label="Yönetim menüsü">
+        <button class="admin-nav-item active" type="button" data-admin-view="dashboard">Dashboard</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records">Kayıtlar</button>
+        <div class="admin-nav-divider"></div>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="place">Yerler</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="structure">Yapılar</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="community">Topluluklar</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="belief">İnançlar</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="story">Hikâyeler</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="music">Müzik</button>
+        <button class="admin-nav-item" type="button" data-admin-view="records" data-admin-type="proverb">Atasözleri</button>
+        <div class="admin-nav-divider"></div>
+        <button class="admin-nav-item" type="button" data-admin-view="media">Medya</button>
+        <button class="admin-nav-item" type="button" data-admin-view="sources">Kaynaklar</button>
+        <button class="admin-nav-item" type="button" data-admin-view="relationships">İlişkiler</button>
+        <div class="admin-nav-divider"></div>
+        <button class="admin-nav-item" type="button" data-admin-view="drafts">Değişiklikler</button>
+        <button class="admin-nav-item" type="button" data-admin-view="submissions">Gönderimler</button>
+        <button class="admin-nav-item" type="button" data-admin-view="backups">Yedekler</button>
+        <div class="admin-nav-divider"></div>
+        <button class="admin-nav-item" type="button" data-admin-view="v1legacy">V1 Arşiv (Legacy)</button>
+      </nav>
+
+      <main class="admin-main">
+
+        <!-- Dashboard -->
+        <section data-admin-panel="dashboard">
+          <h1 class="admin-panel-heading">Dashboard</h1>
+          <p class="admin-panel-sub">Gerçek zamanlı arşiv ve editoryal durum özeti.</p>
+          <div id="admin-storage-banner"></div>
+          <div class="admin-dashboard-cards" id="admin-dashboard-cards"></div>
+        </section>
+
+        <!-- Records (Kayıtlar + per-type shortcuts + Medya + Kaynaklar all reuse this) -->
+        <section data-admin-panel="records" hidden>
+          <h1 class="admin-panel-heading">Kayıtlar</h1>
+          <p class="admin-panel-sub">Her durumdaki (yayında, incelemede, taslak, arşivlenmiş) kayıtları görüntüleyin.</p>
+          <div id="admin-records-type-filters"></div>
+          <div class="admin-filter-toolbar">
+            <input type="search" id="admin-records-search" placeholder="Başlık, ID veya slug ara…">
+            <select id="admin-records-status-filter">
+              <option value="">Tüm Durumlar</option>
+              <option value="published">Yayında</option>
+              <option value="inReview">İncelemede</option>
+              <option value="draft">Taslak</option>
+              <option value="archived">Arşivlenmiş</option>
+            </select>
+            <button type="button" class="btn-admin btn-admin-primary" id="admin-records-new-btn">＋ Yeni Kayıt</button>
+          </div>
+          <div class="table-container">
+            <table class="admin-table">
+              <thead><tr><th>Başlık</th><th>ID</th><th>Tür</th><th>Durum</th><th>Son Değişiklik</th><th>İşlemler</th></tr></thead>
+              <tbody id="admin-records-tbody"><tr><td colspan="6" class="admin-muted">Yükleniyor…</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Relationships -->
+        <section data-admin-panel="relationships" hidden>
+          <h1 class="admin-panel-heading">İlişkiler</h1>
+          <p class="admin-panel-sub">Kayıtlar arası ilişkiler — bu sürümde yalnızca görüntüleme; yeni ilişki önerisi desteklenmiyor.</p>
+          <div id="admin-relationships-list"></div>
+        </section>
+
+        <!-- Editorial changes -->
+        <section data-admin-panel="drafts" hidden>
+          <h1 class="admin-panel-heading">Değişiklikler</h1>
+          <p class="admin-panel-sub">Taslak → İncelemeye Hazır → Onaylandı → Uygulandı. Onaylanan değişiklikler yalnızca dışa aktarılan paket, geliştirici tarafından <code>npm run editorial:apply</code> ile canonical veriye işlenince sitede görünür.</p>
+          <div class="admin-filter-toolbar">
+            <select id="admin-drafts-status-filter">
+              <option value="">Tüm Durumlar</option>
+              <option value="draft">Taslak</option>
+              <option value="readyForReview">İncelemeye Hazır</option>
+              <option value="approved">Onaylandı</option>
+              <option value="rejected">Reddedildi</option>
+              <option value="applied">Uygulandı</option>
+            </select>
+            <button type="button" class="btn-admin btn-admin-primary" id="admin-export-changes-btn">Değişiklik Paketini Dışa Aktar</button>
+          </div>
+          <div class="admin-drafts-list" id="admin-drafts-list"></div>
+        </section>
+
+        <!-- Submissions (reuses existing bearer-or-session protected routes) -->
+        <section data-admin-panel="submissions" hidden>
+          <h1 class="admin-panel-heading">Gönderimler</h1>
+          <p class="admin-panel-sub">Ziyaretçi katkı formundan gelen gönderimler.</p>
+          <div class="table-container">
+            <table class="admin-table">
+              <thead><tr><th>Ad</th><th>E-posta</th><th>Mesaj</th><th style="text-align:right;">İşlemler</th></tr></thead>
+              <tbody id="admin-submissions-tbody"><tr><td colspan="4" class="admin-muted">Yükleniyor…</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Backups -->
+        <section data-admin-panel="backups" hidden>
+          <h1 class="admin-panel-heading">Yedekler</h1>
+          <section class="backup-panel" aria-labelledby="backup-heading">
+            <div>
+              <h2 id="backup-heading">Güvenli JSON Yedekleri</h2>
+              <p id="backup-description">Dışa aktarımlar salt okunurdur. Katkı ve tam yedek dosyaları özel ziyaretçi bilgileri içerir; güvenli biçimde saklayın.</p>
+            </div>
+            <div class="backup-actions" aria-describedby="backup-description">
+              <button class="btn-admin btn-admin-secondary" type="button" data-backup="archive">Arşiv JSON Yedeği</button>
+              <button class="btn-admin btn-admin-secondary" type="button" data-backup="submissions">Katkılar JSON Yedeği</button>
+              <button class="btn-admin btn-admin-secondary" type="button" data-backup="full">Tam Yedek</button>
+            </div>
+          </section>
+        </section>
+
+        <!-- V1 Legacy archive editor (unchanged behavior, now gated by the session shell) -->
+        <section data-admin-panel="v1legacy" hidden>
+          <h1 class="admin-panel-heading">V1 Arşiv (Legacy Doğrudan Düzenleme)</h1>
+          <p class="admin-panel-sub">Bu araç, backend'in seçili v1 veri deposu üzerinde doğrudan çalışır ve inceleme adımı yoktur — yalnızca v1 içerikleri için kullanın.</p>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: var(--sp-4);">
+            <span class="api-badge" id="api-status-badge">● Bağlantı Kontrol Ediliyor</span>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button class="btn-admin btn-admin-secondary" type="button" id="btn-reload">🔄 Yenile</button>
+              <button class="btn-admin btn-admin-secondary" type="button" id="btn-add-new">＋ Yeni Kayıt Ekle</button>
+              <button class="btn-admin btn-admin-primary" type="button" id="btn-save-all">💾 Değişiklikleri Kaydet (PUT)</button>
+            </div>
+          </div>
+
+          <div class="admin-tabs" id="category-tabs">
+            <button class="tab-btn active" data-cat="history">📜 Tarih (History)</button>
+            <button class="tab-btn" data-cat="stories">🗣 Hikâyeler (Stories)</button>
+            <button class="tab-btn" data-cat="structures">🏛 Yapılar (Structures)</button>
+            <button class="tab-btn" data-cat="beliefs">🕊 İnançlar (Beliefs)</button>
+            <button class="tab-btn" data-cat="music">🎵 Müzik (Music)</button>
+            <button class="tab-btn" data-cat="gallery">🖼️ Galeri (Gallery)</button>
+          </div>
+
+          <div class="table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 70px;">ID</th>
+                  <th style="width: 140px;">Etiket / Dönem</th>
+                  <th>Başlık (TR)</th>
+                  <th>Açıklama / Metin (TR)</th>
+                  <th style="width: 130px; text-align: right;">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--clr-ink-muted);">Veriler yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
     </div>
-  </header>
+  </div>
 
-  <!-- Dashboard Main Area -->
-  <main class="container" style="padding-block: var(--sp-6);">
-
-    <!-- Dashboard Title & Global Actions -->
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: var(--sp-4);">
-      <div>
-        <h1 style="font-family: var(--font-serif); font-size: 2rem; font-weight: 400;">Arşiv Veri Yönetimi</h1>
-        <p style="color: var(--clr-ink-muted); font-size: 0.92rem;">Backend API tarafından sunulan arşiv verilerini düzenleyin, yeni kayıtlar ekleyin veya silin.</p>
+  <!-- Editor modal (create / propose edit) -->
+  <div class="modal-overlay" id="admin-editor-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="admin-editor-heading">Kayıt Düzenle</h2>
+        <button type="button" id="admin-editor-close" style="font-size: 1.5rem; color: var(--clr-ink-muted); cursor: pointer;">&times;</button>
       </div>
-
-      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <a class="btn-admin btn-admin-secondary" href="/pages/submissions.html" style="text-decoration: none;">📥 Ziyaretçi Katkıları</a>
-        <button class="btn-admin btn-admin-secondary" type="button" id="btn-reload">🔄 Yenile</button>
-        <button class="btn-admin btn-admin-secondary" type="button" id="btn-add-new">＋ Yeni Kayıt Ekle</button>
-        <button class="btn-admin btn-admin-primary" type="button" id="btn-save-all">💾 Değişiklikleri Kaydet (PUT)</button>
-      </div>
+      <form id="admin-editor-form">
+        <div id="admin-editor-form-body"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--sp-4);">
+          <button class="btn-admin btn-admin-secondary" type="button" id="admin-editor-cancel">İptal</button>
+          <button class="btn-admin btn-admin-primary" type="submit">Taslak Olarak Kaydet</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <section class="backup-panel" aria-labelledby="backup-heading">
-      <div>
-        <h2 id="backup-heading">Güvenli JSON Yedekleri</h2>
-        <p id="backup-description">Dışa aktarımlar salt okunurdur. Katkı ve tam yedek dosyaları özel ziyaretçi bilgileri içerir; güvenli biçimde saklayın. Geri yükleme/içe aktarma bilinçli olarak ertelenmiştir.</p>
-      </div>
-      <div class="backup-actions" aria-describedby="backup-description">
-        <button class="btn-admin btn-admin-secondary" type="button" data-backup="archive">Arşiv JSON Yedeği</button>
-        <button class="btn-admin btn-admin-secondary" type="button" data-backup="submissions">Katkılar JSON Yedeği</button>
-        <button class="btn-admin btn-admin-secondary" type="button" data-backup="full">Tam Yedek</button>
-      </div>
-    </section>
-
-    <!-- Category Tabs -->
-    <div class="admin-tabs" id="category-tabs">
-      <button class="tab-btn active" data-cat="history">📜 Tarih (History)</button>
-      <button class="tab-btn" data-cat="stories">🗣 Hikâyeler (Stories)</button>
-      <button class="tab-btn" data-cat="structures">🏛 Yapılar (Structures)</button>
-      <button class="tab-btn" data-cat="beliefs">🕊 İnançlar (Beliefs)</button>
-      <button class="tab-btn" data-cat="music">🎵 Müzik (Music)</button>
-      <button class="tab-btn" data-cat="gallery">🖼️ Galeri (Gallery)</button>
-    </div>
-
-    <!-- Table Container -->
-    <div class="table-container">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th style="width: 70px;">ID</th>
-            <th style="width: 140px;">Etiket / Dönem</th>
-            <th>Başlık (TR)</th>
-            <th>Açıklama / Metin (TR)</th>
-            <th style="width: 130px; text-align: right;">İşlemler</th>
-          </tr>
-        </thead>
-        <tbody id="table-body">
-          <tr>
-            <td colspan="5" style="text-align: center; padding: 40px; color: var(--clr-ink-muted);">
-              Veriler yükleniyor...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </main>
-
-  <!-- Edit / Create Modal -->
+  <!-- V1 legacy edit/create modal (unchanged) -->
   <div class="modal-overlay" id="editor-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -647,14 +733,18 @@
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
+  <!-- Toast Notification Container (shared) -->
+  <div class="toast-container" id="admin-toast-container"></div>
   <div class="toast-container" id="toast-container"></div>
 
-  <!-- Admin JavaScript Logic -->
+  <!-- Scripts -->
+  <script src="/admin-session.js"></script>
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/js/admin-panel.js"></script>
   <script src="/admin-api.js"></script>
   <script src="/admin-archive.js"></script>
   <script>
-    /* ── Global State ────────────────────────────────────────────────────────── */
+    /* ── V1 legacy tool: unchanged logic, now living inside the gated panel shell. ── */
     let archiveState = null;
     let currentCategory = "history";
     const API_BASE = "/api/archive";
@@ -672,7 +762,6 @@
       return CATEGORY_ENTITY_TYPES[category] || "historicalContext";
     }
 
-    /* ── DOM Elements ────────────────────────────────────────────────────────── */
     const tableBody = document.getElementById("table-body");
     const apiBadge = document.getElementById("api-status-badge");
     const editorModal = document.getElementById("editor-modal");
@@ -680,7 +769,6 @@
     const modalHeading = document.getElementById("modal-heading");
     const saveButton = document.getElementById("btn-save-all");
 
-    /* ── Toast Notification Helper ───────────────────────────────────────────── */
     function showToast(message, type = "success") {
       const container = document.getElementById("toast-container");
       const toast = document.createElement("div");
@@ -818,7 +906,6 @@
       document.getElementById("sources-list").appendChild(createSourceEditor());
     });
 
-    /* ── Fetch Data from GET /api/archive ────────────────────────────────────── */
     async function loadArchiveData() {
       saveButton.disabled = true;
       try {
@@ -843,7 +930,6 @@
       }
     }
 
-    /* ── Render Current Category Items in Table ──────────────────────────────── */
     function renderTable() {
       if (!archiveState || !archiveState[currentCategory]) {
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px;">Kayıt bulunamadı.</td></tr>`;
@@ -876,7 +962,6 @@
       }).join("");
     }
 
-    /* ── Edit Item Modal Open ────────────────────────────────────────────────── */
     window.editItem = function(index) {
       const item = archiveState[currentCategory][index];
       if (!item) return;
@@ -910,7 +995,6 @@
       editorModal.classList.add("open");
     };
 
-    /* ── Delete Item ─────────────────────────────────────────────────────────── */
     window.deleteItem = function(index) {
       if (!confirm("Bu kaydı silmek istediğinizden emin misiniz?")) return;
       archiveState[currentCategory].splice(index, 1);
@@ -918,7 +1002,6 @@
       showToast("Kayıt listeden silindi. Değişiklikleri kaydetmeyi unutmayın!");
     };
 
-    /* ── Add New Item Modal Open ─────────────────────────────────────────────── */
     document.getElementById("btn-add-new").addEventListener("click", () => {
       document.getElementById("edit-item-index").value = "-1";
       document.getElementById("editor-form").reset();
@@ -933,14 +1016,12 @@
       editorModal.classList.add("open");
     });
 
-    /* ── Modal Close ─────────────────────────────────────────────────────────── */
     function closeModal() {
       editorModal.classList.remove("open");
     }
     document.getElementById("btn-close-modal").addEventListener("click", closeModal);
     document.getElementById("btn-cancel-modal").addEventListener("click", closeModal);
 
-    /* ── Editor Form Submit (Local State Update) ─────────────────────────────── */
     editorForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const index = parseInt(document.getElementById("edit-item-index").value, 10);
@@ -1070,23 +1151,20 @@
       renderTable();
     });
 
-    /* ── Category Tab Switcher ───────────────────────────────────────────────── */
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
+    document.querySelectorAll(".tab-btn[data-cat]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-btn[data-cat]").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         currentCategory = btn.dataset.cat;
         renderTable();
       });
     });
 
-    /* ── Reload Button ───────────────────────────────────────────────────────── */
     document.getElementById("btn-reload").addEventListener("click", async () => {
       await loadArchiveData();
       if (archiveState) showToast("Veriler API üzerinden yeniden yüklendi.");
     });
 
-    /* ── Save All Changes to Backend via PUT /api/archive ────────────────────── */
     document.getElementById("btn-save-all").addEventListener("click", async () => {
       if (!archiveState) return;
 
@@ -1109,20 +1187,10 @@
       }
     });
 
-    /* ── Read-only JSON backup downloads ─────────────────────────────────────── */
     const backupOptions = {
-      archive: {
-        path: "/api/admin/export/archive",
-        fallback: "antiochia-archive-backup.json",
-      },
-      submissions: {
-        path: "/api/admin/export/submissions",
-        fallback: "antiochia-submissions-backup.json",
-      },
-      full: {
-        path: "/api/admin/export/full",
-        fallback: "antiochia-full-backup.json",
-      },
+      archive: { path: "/api/admin/export/archive", fallback: "antiochia-archive-backup.json" },
+      submissions: { path: "/api/admin/export/submissions", fallback: "antiochia-submissions-backup.json" },
+      full: { path: "/api/admin/export/full", fallback: "antiochia-full-backup.json" },
     };
 
     async function downloadBackup(button, option, allowAuthRetry = true) {
@@ -1152,11 +1220,47 @@
       });
     });
 
-    /* ── Init ────────────────────────────────────────────────────────────────── */
-    loadArchiveData();
+    /* Submissions view (Gönderimler) — reuses the same bearer-or-session route. */
+    async function loadSubmissions() {
+      const tbody = document.getElementById("admin-submissions-tbody");
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="4" class="admin-muted">Yükleniyor…</td></tr>`;
+      try {
+        const result = await AntiochiaAdminAPI.request("/api/submissions", { admin: true });
+        const items = result.data || [];
+        if (!items.length) {
+          tbody.innerHTML = `<tr><td colspan="4" class="admin-muted">Gönderim bulunamadı.</td></tr>`;
+          return;
+        }
+        const escapeHtml = AntiochiaAdminAPI.escapeHtml;
+        tbody.innerHTML = items.map((item) => `
+          <tr>
+            <td>${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.email)}</td>
+            <td class="cell-desc">${escapeHtml(item.message)}</td>
+            <td style="text-align:right;"><button class="btn-admin btn-admin-danger" data-delete-submission="${escapeHtml(item.id)}" style="padding: 4px 8px; font-size: 0.78rem;">🗑️ Sil</button></td>
+          </tr>`).join("");
+        tbody.querySelectorAll("[data-delete-submission]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            if (!confirm("Bu gönderimi kalıcı olarak silmek istediğinizden emin misiniz?")) return;
+            try {
+              await AntiochiaAdminAPI.request(`/api/submissions/${encodeURIComponent(btn.dataset.deleteSubmission)}`, { method: "DELETE", admin: true });
+              showToast("Gönderim silindi.");
+              loadSubmissions();
+            } catch (error) {
+              showToast(error.message, "error");
+            }
+          });
+        });
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="admin-error">${AntiochiaAdminAPI.escapeHtml(error.message)}</td></tr>`;
+      }
+    }
+
+    document.querySelectorAll('[data-admin-view="submissions"]').forEach((btn) => btn.addEventListener("click", loadSubmissions));
+    document.querySelectorAll('[data-admin-view="v1legacy"]').forEach((btn) => btn.addEventListener("click", () => { if (!archiveState) loadArchiveData(); }));
   </script>
 
-  <!-- Back to Top Button -->
   <button id="back-to-top" class="back-to-top" type="button" data-i18n-aria="backToTop" aria-label="Back to Top">
     <span class="back-to-top-icon" aria-hidden="true">↑</span>
     <span class="back-to-top-text" data-i18n="backToTop">Back to Top</span>

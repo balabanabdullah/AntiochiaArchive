@@ -77,8 +77,36 @@
     sessionStorage.removeItem(TOKEN_KEY);
   }
 
+  async function tryRequest(path, fetchOptions, headers) {
+    const response = await fetch(path, { ...fetchOptions, headers, credentials: "same-origin" });
+    let data = null;
+    try { data = await response.json(); } catch (_) { /* response may be empty */ }
+    return { response, data };
+  }
+
   async function request(path, options = {}) {
     const { admin = false, ...fetchOptions } = options;
+
+    if (admin) {
+      // Prefer an already-active v2 admin-panel session cookie (see
+      // admin-session.js) over prompting for the raw token again — a
+      // browser that already logged into the redesigned panel should never
+      // be asked a second time for these legacy v1 routes, since the
+      // backend's requireAdminAny accepts either credential. State-changing
+      // verbs also need the paired CSRF header the session cookie requires.
+      const sessionHeaders = new Headers(fetchOptions.headers || {});
+      const method = (fetchOptions.method || "GET").toUpperCase();
+      if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+        const csrfMatch = document.cookie.match(/(?:^|; )aa_admin_csrf=([^;]*)/);
+        if (csrfMatch) sessionHeaders.set("X-CSRF-Token", decodeURIComponent(csrfMatch[1]));
+      }
+      const sessionAttempt = await tryRequest(path, fetchOptions, sessionHeaders);
+      if (sessionAttempt.response.ok) return sessionAttempt.data;
+      if (sessionAttempt.response.status !== 401 && sessionAttempt.response.status !== 403) {
+        throw new Error(sessionAttempt.data?.error || `Request failed (${sessionAttempt.response.status}).`);
+      }
+    }
+
     const headers = new Headers(fetchOptions.headers || {});
     if (admin) {
       const token = await getToken({ promptIfMissing: true });
@@ -86,10 +114,7 @@
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const response = await fetch(path, { ...fetchOptions, headers });
-    let data = null;
-    try { data = await response.json(); } catch (_) { /* response may be empty */ }
-
+    const { response, data } = await tryRequest(path, fetchOptions, headers);
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) clearToken();
       throw new Error(data?.error || `Request failed (${response.status}).`);

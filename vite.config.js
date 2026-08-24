@@ -11,6 +11,7 @@ const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "script.js",
   "admin-api.js",
   "admin-archive.js",
+  "admin-session.js",
   // Discovery-feature modules (search/timeline/map/collections), kept as
   // small standalone files under public/js/ rather than growing script.js
   // further. Same versioning treatment as the flat files above — see
@@ -22,6 +23,7 @@ const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "js/map.js",
   "js/collections.js",
   "js/music.js",
+  "js/admin-panel.js",
 ]);
 
 /**

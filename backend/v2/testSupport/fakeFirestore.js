@@ -1,9 +1,13 @@
 // Minimal in-memory fake implementing just enough of the
 // @google-cloud/firestore query builder surface (collection/doc/where/
-// orderBy/limit/startAfter/get/getAll) for FirestoreV2Store's tests. It is
-// deliberately not a full Firestore emulator — only equality and
-// array-contains filters, and ordering by document id (the only ordering
-// FirestoreV2Store ever performs), are implemented.
+// orderBy/limit/startAfter/get/getAll, plus doc.set/doc.delete for stores
+// that mutate, like the editorial draft store) for this project's Firestore
+// store tests. It is deliberately not a full Firestore emulator — only
+// equality and array-contains filters, and ordering by document id, are
+// implemented. doc.set()/doc.delete() are real, synchronous mutations
+// against the same in-memory Map a subsequent .get()/.where() query reads
+// from, so read-your-writes works exactly like it does against real
+// Firestore.
 
 function makeSnapshot(id, data) {
   return { id, exists: data !== undefined, data: () => data };
@@ -66,6 +70,15 @@ export function createFakeFirestore(seedData = {}) {
       id,
       async get() {
         return makeSnapshot(id, getCollectionMap(name).get(id));
+      },
+      async set(data) {
+        // Real Firestore stores a deep copy, not a live reference — mirror
+        // that so a caller mutating its own object after set() can never
+        // retroactively change what a later read sees.
+        getCollectionMap(name).set(id, JSON.parse(JSON.stringify(data)));
+      },
+      async delete() {
+        return getCollectionMap(name).delete(id);
       },
     };
   }

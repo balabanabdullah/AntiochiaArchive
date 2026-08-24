@@ -58,3 +58,32 @@ should replace Firestore. Running the command without either `--dry-run` or
 `--apply` fails without connecting to Firestore.
 Submission IDs are preserved and existing IDs are skipped, so reruns do not
 silently duplicate visitor records. The source JSON files are never deleted.
+
+## Editorial draft persistence (admin/editorial panel)
+
+Separate from everything above: `EDITORIAL_DATA_STORE` selects where
+**editorial drafts/proposals** (created via `/api/admin/editorial/drafts`)
+are held. This is purely administrative staging — see
+`backend/admin/editorialStore.js`'s header — and is never the source for
+`GET /api/v2/...` or any public page; a draft cannot become visible to the
+public no matter what this variable is set to.
+
+**Explicit restart-persistence contract:**
+
+| `EDITORIAL_DATA_STORE` | Where drafts live | Survives a backend restart/redeploy? | Intended for |
+|---|---|---|---|
+| `memory` (default) | The Node process's RAM | **No — every draft is lost.** | Local development and tests only. |
+| `firestore` | A dedicated `editorialDrafts` Firestore collection, via the same ADC/service-account credentials the `firestore` `DATA_STORE` mode already uses — no new secret, no new project. | **Yes.** | Production. |
+
+The admin dashboard (`GET /api/admin/editorial/dashboard`) reports the active
+mode as `editorialStoreName`, and the panel UI shows it plainly (e.g.
+"Editorial Storage: Memory (Temporary)") so an editor is never left assuming
+durability the current deployment doesn't provide.
+
+**Enabling durable storage in production** requires only setting
+`EDITORIAL_DATA_STORE=firestore` on the `antiochia-archive-backend` Cloud Run
+service (a deploy-time env var change) — the attached service account already
+holds `roles/datastore.user` at the project level (the same role that lets
+`DATA_STORE=firestore` read/write the `archive`/`submissions` collections
+today), and Firestore IAM has no per-collection scoping, so no IAM change is
+needed. This is a deliberate operator action, not a default.

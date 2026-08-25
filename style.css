@@ -895,7 +895,7 @@ html[dir="rtl"] .section-view-all-link { flex-direction: row-reverse; }
 
 .timeline-visual {
   width: 100%;
-  height: 140px;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border: 1px solid var(--clr-line);
 }
@@ -1002,7 +1002,7 @@ html[dir="rtl"] .section-view-all-link { flex-direction: row-reverse; }
 .story-image-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--clr-paper-deep);
 }
@@ -1154,7 +1154,7 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 .struct-media {
   position: relative;
   width: 100%;
-  height: 150px;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--clr-paper-deep);
 }
@@ -1251,7 +1251,7 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 
 .belief-media {
   width: 100%;
-  height: 170px;
+  aspect-ratio: 4 / 3;
   margin-bottom: var(--sp-2);
   overflow: hidden;
   border: 1px solid var(--clr-line);
@@ -1323,17 +1323,40 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 .music-track-card {
   background: var(--clr-paper-light);
   border: 1px solid var(--clr-line-strong);
-  padding: var(--sp-4);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: var(--sp-3);
   transition: transform var(--dur-mid) var(--ease), background var(--dur-mid) var(--ease), border-color var(--dur-mid) var(--ease);
 }
 .music-track-card:hover {
   transform: translateY(-4px);
   background: var(--clr-paper-deep);
   border-color: var(--clr-red);
+}
+
+.track-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--clr-paper-deep);
+}
+.track-media > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease);
+}
+.music-track-card:hover .track-media > img {
+  transform: scale(1.05);
+}
+
+.track-row {
+  padding: var(--sp-4);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex: 1;
 }
 
 .track-badge {
@@ -1567,7 +1590,7 @@ html[dir="rtl"] .record-proverb-expression-section {
 .place-media {
   position: relative;
   width: 100%;
-  height: 160px;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--clr-paper-deep);
 }
@@ -2309,9 +2332,15 @@ html[dir="rtl"] .back-to-top {
   transition: background-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
-.btn-cta-primary:hover {
+.btn-cta-primary:hover,
+.btn-cta-primary:focus-visible {
   background-color: var(--clr-red-dark);
   transform: translateY(-2px);
+}
+
+html[dir="rtl"] .btn-cta-primary span[aria-hidden="true"] {
+  display: inline-block;
+  transform: scaleX(-1);
 }
 
 /* --------------------------------------------------------------------------
@@ -3356,6 +3385,19 @@ html[dir="rtl"] .contribution-card {
 /* ==========================================================================
    v1.0 record links, static detail pages, methodology, and 404
    ========================================================================== */
+/* Restrained "eyebrow" record-type label shown above a card's title, shared
+   by every per-type card renderer in script.js (renderV2Places/Structures/
+   Communities/Beliefs/Stories/History/Music) via cardTypeEyebrowHtml(). */
+.card-type-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--clr-ink-muted);
+}
+
 .archive-detail-link {
   display: inline-flex;
   align-items: center;
@@ -3370,6 +3412,11 @@ html[dir="rtl"] .contribution-card {
   text-transform: uppercase;
 }
 
+.archive-detail-link span[aria-hidden="true"] {
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
 .archive-detail-link:hover,
 .archive-detail-link:focus-visible {
   color: var(--clr-red-dark);
@@ -3377,7 +3424,17 @@ html[dir="rtl"] .contribution-card {
   text-underline-offset: 4px;
 }
 
+.archive-detail-link:hover span[aria-hidden="true"],
+.archive-detail-link:focus-visible span[aria-hidden="true"] {
+  transform: translateX(3px);
+}
+
 html[dir="rtl"] .archive-detail-link { flex-direction: row-reverse; }
+
+html[dir="rtl"] .archive-detail-link:hover span[aria-hidden="true"],
+html[dir="rtl"] .archive-detail-link:focus-visible span[aria-hidden="true"] {
+  transform: translateX(-3px);
+}
 
 .gallery-lightbox-trigger {
   display: block;
@@ -4293,7 +4350,15 @@ a.generic-entity-card:hover,
    32. Search Results Page
    -------------------------------------------------------------------------- */
 .section-search-results { padding-block: clamp(2rem, 5vw, 3.5rem); }
-.search-results-empty { color: var(--clr-ink-muted); padding: var(--sp-5) 0; text-align: center; }
+.search-results-empty {
+  grid-column: 1 / -1;
+  padding: var(--sp-6) var(--sp-4);
+  text-align: center;
+  color: var(--clr-ink-muted);
+  background: var(--clr-paper-light);
+  border: 1px dashed var(--clr-line-strong);
+  border-radius: var(--radius-md);
+}
 #search-results-summary { color: var(--clr-ink-muted); }
 
 /* --------------------------------------------------------------------------
@@ -4329,6 +4394,10 @@ a.generic-entity-card:hover,
   letter-spacing: 0.04em;
 }
 
+.record-share {
+  padding-block: var(--sp-6) var(--sp-8);
+  border-top: 1px solid var(--clr-line);
+}
 .record-share-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
 .record-share-btn {
   display: inline-flex;

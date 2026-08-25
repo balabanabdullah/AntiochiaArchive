@@ -223,23 +223,36 @@ function alternateNamesText(value, language) {
 }
 
 /**
- * "Also known as / Historical names / Local names" — only for the fields
- * that exist on this entity's public shape (today, only `place` carries
- * any of these). Renders nothing when none are present.
+ * "Local names" and "Historical / alternate names" — rendered as two
+ * separately-headed sections (rather than one flat list under a single,
+ * potentially-misleading heading) so a reader can tell a still-current local
+ * toponym from a historical or alternate one. Only for the fields that exist
+ * on this entity's public shape (today, only `place` carries any of these).
+ * Renders nothing when none are present.
  */
 function namesSectionMarkup(entity, language) {
-  const rows = [
+  const localValue = nameListText(entity.localNames);
+  const historicalAlternateRows = [
     ["detail.alternateNames", "Also known as", alternateNamesText(entity.alternateNames, language)],
     ["detail.historicalNames", "Historical names", nameListText(entity.historicalNames)],
-    ["detail.localNames", "Local names", nameListText(entity.localNames)],
   ].filter(([, , value]) => value);
-  if (!rows.length) return "";
-  return `<section class="record-detail-section record-names-section" aria-labelledby="record-names-heading">
-              <h2 id="record-names-heading" data-i18n="detail.alternateNames">Also known as</h2>
+
+  const sections = [];
+  if (localValue) {
+    sections.push(`<section class="record-detail-section record-names-section" aria-labelledby="record-local-names-heading">
+              <h2 id="record-local-names-heading" data-i18n="detail.localNames">Local names</h2>
+              <p class="record-names-value">${escapeHtml(localValue)}</p>
+            </section>`);
+  }
+  if (historicalAlternateRows.length) {
+    sections.push(`<section class="record-detail-section record-names-section" aria-labelledby="record-historical-names-heading">
+              <h2 id="record-historical-names-heading" data-i18n="detail.historicalAlternateNames">Historical / alternate names</h2>
               <dl class="record-names-list">
-                ${rows.map(([key, fallback, value]) => `<div><dt data-i18n="${key}">${escapeHtml(fallback)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("\n                ")}
+                ${historicalAlternateRows.map(([key, fallback, value]) => `<div><dt data-i18n="${key}">${escapeHtml(fallback)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("\n                ")}
               </dl>
-            </section>`;
+            </section>`);
+  }
+  return sections.join("\n            ");
 }
 
 /**
@@ -298,6 +311,28 @@ function shareControlsMarkup(canonicalUrl, title) {
                 <a class="record-share-btn record-share-whatsapp" href="https://wa.me/?text=${encodedTitle}%20${encodedUrl}" target="_blank" rel="noopener noreferrer" data-i18n="detail.share.whatsapp">WhatsApp</a>
                 <a class="record-share-btn record-share-x" href="https://twitter.com/intent/tweet?text=${encodedTitle}&amp;url=${encodedUrl}" target="_blank" rel="noopener noreferrer" data-i18n="detail.share.x">X</a>
                 <button type="button" class="record-share-btn record-share-native" data-i18n="detail.share.nativeShare" hidden>Share</button>
+              </div>
+            </section>`;
+}
+
+/**
+ * Record-specific "do you know something about this?" CTA, reusing the
+ * existing /index.html#contribute route (the same real anchor the header,
+ * footer, and every page-bottom .page-cta already link to). The current
+ * contribution form/backend (see initContributeForm/handleContributionFormSubmit
+ * in public/script.js and POST /api/contribute) has no entity-linking or
+ * pre-fill query contract, so this deliberately does not invent one — see
+ * the redesign round's report for this documented limitation.
+ */
+function contributionCtaMarkup() {
+  return `<section class="page-cta record-detail-contribute-cta">
+              <div class="page-cta-inner">
+                <h2 class="page-cta-title" data-i18n="detail.contributeCta.title">Do you have information about this record?</h2>
+                <p class="page-cta-body" data-i18n="detail.contributeCta.body">An old photograph, a family story, a local name, a correction, a Mettule saying, or an audio recording — your contribution helps preserve this record for future generations.</p>
+                <a class="btn-cta-primary" href="/index.html#contribute">
+                  <span data-i18n="detail.contributeCta.btn">Contribute to Archive</span>
+                  <span aria-hidden="true">→</span>
+                </a>
               </div>
             </section>`;
 }
@@ -541,10 +576,6 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
         <div class="record-detail-grid">
           <div class="record-detail-media">${mediaMarkup(entity, "en")}</div>
           <div class="record-detail-content">
-            <section class="record-detail-section" aria-labelledby="record-about-heading">
-              <h2 id="record-about-heading" data-i18n="detail.aboutRecord">About this record</h2>
-              <p data-detail-description>${escapeHtml(description)}</p>
-            </section>
             ${proverbExpressionMarkup(entity)}
             ${namesSectionMarkup(entity, "en")}
             ${metadataPanelMarkup(entity, "en", placeById)}
@@ -552,7 +583,6 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
             ${musicTextSectionMarkup(entity, "en")}
             ${proverbTextSectionMarkup(entity, "en")}
             ${locationPreviewMarkup(entity)}
-            ${shareControlsMarkup(canonical, title)}
           </div>
         </div>
         <nav class="record-detail-actions" aria-label="Record navigation">
@@ -563,6 +593,8 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
           <h2 id="related-entities-heading" data-i18n="detail.relatedEntities">Related records</h2>
           <div class="related-entities-grid" id="related-entities-container" aria-live="polite"></div>
         </section>
+        ${contributionCtaMarkup()}
+        ${shareControlsMarkup(canonical, title)}
         ${exploreMoreMarkup(entity)}
       </div>
     </article>

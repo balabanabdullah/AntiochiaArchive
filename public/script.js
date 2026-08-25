@@ -532,6 +532,20 @@ function renderArchiveV2DetailLink(item, lang) {
   return `<a class="archive-detail-link" href="${escapeHtml(href)}"><span>${escapeHtml(label)}</span><span aria-hidden="true">→</span></a>`;
 }
 
+/**
+ * Small restrained "eyebrow" type label shown above a card's title, so a
+ * card communicates its record type at a glance (place/structure/community/
+ * etc.) without adding a new colored badge box. Reuses the same nav.* labels
+ * already used by the related-entity compact card and header search results
+ * (see V2_ENTITY_TYPE_NAV_KEY / v2TypeLabels below) rather than inventing a
+ * second set of type strings.
+ */
+function cardTypeEyebrowHtml(entityType, lang) {
+  const typeKey = V2_ENTITY_TYPE_NAV_KEY[entityType];
+  const label = typeKey && resolveKey(lang, `nav.${typeKey}`);
+  return label ? `<span class="card-type-eyebrow">${escapeHtml(label)}</span>` : "";
+}
+
 /** Category used for data-category / filter-bar matching, per entity type. */
 function v2CardCategory(entityType, item) {
   if (entityType === "structure") return item.structureType || "all";
@@ -632,6 +646,7 @@ function renderV2History(items, lang) {
       <article class="timeline-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
         ${era ? `<span class="timeline-era">${escapeHtml(era)}</span>` : ""}
         <div class="timeline-visual"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
+        ${cardTypeEyebrowHtml("historicalContext", lang)}
         <h3 class="timeline-title">${escapeHtml(title)}</h3>
         <p class="timeline-desc">${escapeHtml(body)}</p>
         ${renderArchiveV2DetailLink(item, lang)}
@@ -655,6 +670,7 @@ function renderV2Stories(items, lang) {
           ${tag ? `<span class="story-tag">${escapeHtml(tag)}</span>` : ""}
         </div>
         <div class="story-content">
+          ${cardTypeEyebrowHtml("story", lang)}
           <h3 class="story-title">${escapeHtml(title)}</h3>
           <p class="story-body">${escapeHtml(body)}</p>
           ${renderArchiveV2DetailLink(item, lang)}
@@ -679,6 +695,7 @@ function renderV2Structures(items, lang) {
           ${tag ? `<span class="struct-tag">${escapeHtml(tag)}</span>` : ""}
         </div>
         <div class="struct-info">
+          ${cardTypeEyebrowHtml("structure", lang)}
           <h3 class="struct-title">${escapeHtml(title)}</h3>
           <p class="struct-desc">${escapeHtml(desc)}</p>
           ${renderArchiveV2DetailLink(item, lang)}
@@ -702,6 +719,7 @@ function renderV2Beliefs(items, lang) {
     return `
     <article class="belief-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
       <div class="belief-media"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
+      ${cardTypeEyebrowHtml("belief", lang)}
       <h3 class="belief-title">${escapeHtml(title)}</h3>
       <p class="belief-desc">${escapeHtml(desc)}</p>
       ${renderArchiveV2DetailLink(item, lang)}
@@ -721,14 +739,23 @@ function renderV2Music(items, lang) {
     // annotateMusicAudioBadges() once the full public entity set (with
     // `media`) has loaded, see initMusicFeature() below.
     const searchStr = v2SearchText(item, tag, item.subgenre || "", item.dialect || "");
+    // Music entities do carry a `media` field per the public serializer
+    // (see MEDIA_PREVIEW_HOST_TYPES), unlike proverbs — so a real cleared
+    // image renders here when one exists; otherwise the card keeps its
+    // original emoji-badge-only layout rather than showing an empty box.
+    const realImage = renderRecordImage(item, lang, title, "track-image");
     return `
-    <article class="music-track-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" data-entity-id="${escapeHtml(item.id)}">
-      <div class="track-badge" aria-hidden="true">🎵</div>
-      <div class="track-info">
-        ${tag ? `<span class="track-tag">${escapeHtml(tag)}</span>` : ""}
-        <h3 class="track-title">${escapeHtml(title)}</h3>
-        <p class="track-desc">${escapeHtml(desc)}</p>
-        ${renderArchiveV2DetailLink(item, lang)}
+    <article class="music-track-card${realImage ? " has-image" : ""}" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" data-entity-id="${escapeHtml(item.id)}">
+      ${realImage ? `<div class="track-media">${realImage}</div>` : ""}
+      <div class="track-row">
+        <div class="track-badge" aria-hidden="true">🎵</div>
+        <div class="track-info">
+          ${cardTypeEyebrowHtml("music", lang)}
+          ${tag ? `<span class="track-tag">${escapeHtml(tag)}</span>` : ""}
+          <h3 class="track-title">${escapeHtml(title)}</h3>
+          <p class="track-desc">${escapeHtml(desc)}</p>
+          ${renderArchiveV2DetailLink(item, lang)}
+        </div>
       </div>
     </article>`;
   }).join("");
@@ -780,6 +807,7 @@ function renderV2Communities(items, lang) {
     return `
     <article class="community-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
       <div class="community-media"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
+      ${cardTypeEyebrowHtml("community", lang)}
       <h3 class="community-title">${escapeHtml(title)}</h3>
       <p class="community-desc">${escapeHtml(desc)}</p>
       ${renderArchiveV2DetailLink(item, lang)}
@@ -799,6 +827,7 @@ function renderV2Places(items, lang) {
     return `
     <article class="place-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}">
       <div class="place-media"${mediaHtml === svg ? ' aria-hidden="true"' : ""}>${mediaHtml}</div>
+      ${cardTypeEyebrowHtml("place", lang)}
       <h3 class="place-title">${escapeHtml(title)}</h3>
       ${officialName && officialName !== title ? `<p class="place-official-name">${escapeHtml(officialName)}</p>` : ""}
       <p class="place-desc">${escapeHtml(desc)}</p>

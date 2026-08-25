@@ -61,6 +61,7 @@ const TRANSLATIONS = {
       relatedEntities: "Related records",
       alternateNames: "Also known as",
       historicalNames: "Historical names",
+      historicalAlternateNames: "Historical / alternate names",
       localNames: "Local names",
       etymology: "Etymology",
       period: "Period",
@@ -94,6 +95,11 @@ const TRANSLATIONS = {
         religiousTradition: "Religious Tradition",
         legend: "Legend",
         mythologicalNarrative: "Mythological Narrative",
+      },
+      contributeCta: {
+        title: "Do you have information about this record?",
+        body: "An old photograph, a family story, a local name, a correction, a Mettule saying, or an audio recording — your contribution helps preserve this record for future generations.",
+        btn: "Contribute to Archive",
       },
     },
     notFound: {
@@ -670,6 +676,7 @@ const TRANSLATIONS = {
       relatedEntities: "İlgili kayıtlar",
       alternateNames: "Diğer adları",
       historicalNames: "Tarihî adları",
+      historicalAlternateNames: "Tarihî / Alternatif Adlar",
       localNames: "Yerel adları",
       etymology: "Köken bilgisi",
       period: "Dönem",
@@ -703,6 +710,11 @@ const TRANSLATIONS = {
         religiousTradition: "Dini Gelenek",
         legend: "Efsane",
         mythologicalNarrative: "Mitolojik Anlatı",
+      },
+      contributeCta: {
+        title: "Bu kayıtla ilgili bir bilginiz mi var?",
+        body: "Eski bir fotoğraf, aile hikâyesi, yerel bir isim, bir düzeltme, bir Mettule ya da ses kaydınız mı var? Katkınız bu kaydın gelecek kuşaklar için korunmasına yardımcı olur.",
+        btn: "Arşive Katkıda Bulun",
       },
     },
     notFound: {
@@ -1279,6 +1291,7 @@ const TRANSLATIONS = {
       relatedEntities: "سجلات ذات صلة",
       alternateNames: "يُعرف أيضاً باسم",
       historicalNames: "الأسماء التاريخية",
+      historicalAlternateNames: "الأسماء التاريخية / البديلة",
       localNames: "الأسماء المحلية",
       etymology: "أصل التسمية",
       period: "الحقبة",
@@ -1312,6 +1325,11 @@ const TRANSLATIONS = {
         religiousTradition: "تقليد ديني",
         legend: "أسطورة",
         mythologicalNarrative: "سردية أسطورية",
+      },
+      contributeCta: {
+        title: "هل لديك معلومات عن هذا السجل؟",
+        body: "صورة قديمة، قصة عائلية، اسم محلي، تصحيح، مثل شعبي (مثولة)، أو تسجيل صوتي — مساهمتك تساعد في حفظ هذا السجل للأجيال القادمة.",
+        btn: "ساهم في الأرشيف",
       },
     },
     notFound: {

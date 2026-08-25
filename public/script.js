@@ -1737,13 +1737,44 @@ function initMapFeature() {
   }
 
   ensureDiscoveryEntities().then((entities) => {
-    if (!entities) return;
+    if (!entities) {
+      if (fullContainer) renderMapListErrorState();
+      return;
+    }
     if (fullContainer) {
       renderMapInstance("map-explore-container");
       focusMapOnQueryParam(entities);
     }
     if (previewContainer) renderMapInstance("map-preview-container");
   });
+}
+
+/**
+ * A calm, localized, retry-capable message for the one map failure mode not
+ * already covered: the map/tiles loaded fine, but the public entity data
+ * request itself failed (see ensureDiscoveryEntities()'s catch branch). The
+ * map keeps showing its base tiles — only the list panel, which would
+ * otherwise stay silently empty, gets this notice. Reuses the exact same
+ * copy/retry pattern as renderArchiveErrorState() on the list pages.
+ */
+function renderMapListErrorState() {
+  const container = document.getElementById("map-list-container");
+  if (!container) return;
+  const message = document.createElement("p");
+  message.textContent = localizedArchiveText("archiveLoadError", currentLang);
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "archive-load-retry";
+  retry.textContent = localizedArchiveText("archiveRetry", currentLang);
+  retry.addEventListener("click", () => {
+    discoveryLoadPromise = null;
+    discoveryEntities = null;
+    initMapFeature();
+  });
+  const wrap = document.createElement("div");
+  wrap.className = "map-list-empty";
+  wrap.append(message, retry);
+  container.replaceChildren(wrap);
 }
 
 function rerenderMapFeature() {
@@ -1830,8 +1861,10 @@ function collectionPreviewCardHtml(collection, lang) {
   const previewTitles = collection.members.slice(0, 4)
     .map((entity) => escapeHtml(window.AntiochiaArchiveSearch.displayTitle(entity, lang)))
     .join(" · ");
+  const badge = escapeHtml(resolveKey(lang, "nav.collections") || "Collection");
   return `<article class="collection-preview-card">
       <span class="collection-card-icon" aria-hidden="true">${collection.icon}</span>
+      <span class="card-type-eyebrow">${badge}</span>
       <h3 class="collection-card-title">${title}</h3>
       <p class="collection-card-desc">${desc}</p>
       ${previewTitles ? `<p class="collection-card-preview">${previewTitles}</p>` : ""}
@@ -1845,10 +1878,12 @@ function collectionPreviewCardHtml(collection, lang) {
 function collectionFullSectionHtml(collection, lang, typeLabels) {
   const title = escapeHtml(resolveKey(lang, `collections.items.${collection.id}.title`) || collection.id);
   const desc = escapeHtml(resolveKey(lang, `collections.items.${collection.id}.desc`) || "");
+  const badge = escapeHtml(resolveKey(lang, "nav.collections") || "Collection");
   return `<section class="collection-full-section" id="collection-${escapeHtml(collection.id)}" aria-labelledby="collection-${escapeHtml(collection.id)}-heading">
       <header class="collection-full-header">
         <span class="collection-card-icon" aria-hidden="true">${collection.icon}</span>
         <div>
+          <span class="card-type-eyebrow">${badge}</span>
           <h2 id="collection-${escapeHtml(collection.id)}-heading">${title}</h2>
           <p class="collection-card-desc">${desc}</p>
           <span class="collection-card-count">${escapeHtml(collectionCountText(collection.members.length, lang))}</span>

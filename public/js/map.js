@@ -133,6 +133,12 @@
       : null;
   }
 
+  /** First published local name, if any — place-only public field (backend/v2/serializers/publicSerializer.js). Never invents one. */
+  function firstLocalName(entity) {
+    const list = Array.isArray(entity?.localNames) ? entity.localNames : [];
+    return list.find((item) => item?.name)?.name || "";
+  }
+
   const MARKER_CLASS_BY_TYPE = Object.freeze({ place: "map-marker-place", structure: "map-marker-structure" });
 
   /**
@@ -154,9 +160,14 @@
     return map;
   }
 
+  /**
+   * Compact popup — type, title, local name, short CTA. Deliberately omits
+   * the full entity.summary (a map popup is an index card, not a detail
+   * dump — the "View record" link is the door to the full description).
+   */
   function popupHtml(entity, lang, typeLabel, detailLabel) {
     const title = escapeHtml(localized(entity.title, lang, entity.slug));
-    const summary = escapeHtml(localized(entity.summary, lang, ""));
+    const localName = escapeHtml(firstLocalName(entity));
     const href = detailHref(entity);
     const imagePath = entity.media?.path ? escapeHtml(entity.media.path) : "";
     return `
@@ -164,7 +175,7 @@
         ${imagePath ? `<img class="map-popup-image" src="${imagePath}" alt="" loading="lazy">` : ""}
         <span class="map-popup-type">${escapeHtml(typeLabel)}</span>
         <h3 class="map-popup-title">${title}</h3>
-        ${summary ? `<p class="map-popup-summary">${summary}</p>` : ""}
+        ${localName ? `<p class="map-popup-local-name">${localName}</p>` : ""}
         ${href ? `<a class="map-popup-link" href="${escapeHtml(href)}">${escapeHtml(detailLabel)} →</a>` : ""}
       </div>`;
   }
@@ -231,12 +242,14 @@
     }
     container.innerHTML = `<ul class="map-list">${entities.map((entity) => {
       const title = escapeHtml(localized(entity.title, lang, entity.slug));
+      const localName = escapeHtml(firstLocalName(entity));
       const typeLabel = escapeHtml(labels?.typeLabels?.[entity.entityType] || entity.entityType);
       const isActive = activeId != null && entity.id === activeId;
       return `<li>
         <button type="button" class="map-list-item${isActive ? " is-active" : ""}" data-map-list-item data-entity-id="${escapeHtml(entity.id)}"${isActive ? ' aria-current="true"' : ""}>
           <span class="map-list-type">${typeLabel}</span>
           <span class="map-list-title">${title}</span>
+          ${localName ? `<span class="map-list-local-name">${localName}</span>` : ""}
         </button>
       </li>`;
     }).join("")}</ul>`;

@@ -2290,6 +2290,17 @@ html[dir="rtl"] .back-to-top {
   line-height: 1.6;
 }
 
+/* Optional quiet supporting line under a page-hero-desc — a real, dynamically
+   computed figure (never a static claim), e.g. map coverage. Shared by any
+   exploration page hero that has one. */
+.page-hero-stat {
+  margin-top: var(--sp-2);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--clr-ink-muted);
+}
+.page-hero-stat:empty { display: none; }
+
 .subpage-container {
   padding: var(--sp-6) 0 var(--sp-7);
 }
@@ -3994,7 +4005,31 @@ a.timeline-rail-card:hover,
   font-size: 0.82rem;
   line-height: 1.6;
 }
-.timeline-rail-empty { color: var(--clr-ink-muted); text-align: center; padding: var(--sp-4) 0; }
+.timeline-rail-empty {
+  text-align: center;
+  padding: var(--sp-5) var(--sp-3);
+  color: var(--clr-ink-muted);
+  background: var(--clr-paper-light);
+  border: 1px dashed var(--clr-line-strong);
+  border-radius: var(--radius-md);
+}
+
+/* Mobile: a horizontally-scrolling rail is not a reliable touch interaction
+   at this width — collapse to a single vertical stack instead. Same cards,
+   same data, no JS change; just a flex-direction flip. */
+@media (max-width: 640px) {
+  .timeline-rail-track {
+    flex-direction: column;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  .timeline-rail-track::before {
+    display: none;
+  }
+  .timeline-rail-card {
+    width: 100%;
+  }
+}
 
 /* --------------------------------------------------------------------------
    27. Map (mini preview + full /pages/map.html)
@@ -4099,6 +4134,7 @@ html[dir="rtl"] .map-search-input { padding: 9px 34px; }
   font-size: 1.1rem;
   border-radius: 50%;
 }
+.map-search-clear[hidden] { display: none; }
 html[dir="rtl"] .map-search-clear { right: auto; left: 4px; }
 .map-search-clear:hover,
 .map-search-clear:focus-visible { background: var(--clr-paper-deep); color: var(--clr-ink); }
@@ -4138,7 +4174,16 @@ html[dir="rtl"] .map-search-clear { right: auto; left: 4px; }
   color: var(--clr-ink-muted);
 }
 .map-list-title { font-size: 0.88rem; color: var(--clr-ink); }
-.map-list-empty { color: var(--clr-ink-muted); font-size: 0.86rem; padding: var(--sp-2); }
+.map-list-local-name { font-size: 0.76rem; font-style: italic; color: var(--clr-ink-muted); }
+.map-list-empty {
+  text-align: center;
+  padding: var(--sp-5) var(--sp-3);
+  color: var(--clr-ink-muted);
+  font-size: 0.86rem;
+  background: var(--clr-paper-light);
+  border: 1px dashed var(--clr-line-strong);
+  border-radius: var(--radius-md);
+}
 
 .map-attribution-note {
   margin-top: var(--sp-2);
@@ -4162,7 +4207,7 @@ html[dir="rtl"] .map-search-clear { right: auto; left: 4px; }
   color: var(--clr-ink-muted);
 }
 .map-popup-title { font-family: var(--font-serif); font-size: 1rem; font-weight: 500; color: var(--clr-red-dark); margin-bottom: 4px; }
-.map-popup-summary { font-size: 0.82rem; color: var(--clr-ink-muted); line-height: 1.5; margin-bottom: 6px; }
+.map-popup-local-name { font-size: 0.8rem; font-style: italic; color: var(--clr-ink-muted); margin-bottom: 6px; }
 .map-popup-link { color: var(--clr-red); font-size: 0.82rem; font-weight: 600; }
 
 .record-location-link {
@@ -4314,7 +4359,28 @@ a.generic-entity-card:hover,
 .discover-inner h2 { font-family: var(--font-serif); font-size: clamp(1.6rem, 3.4vw, 2.3rem); color: var(--clr-red-dark); margin: 6px 0; }
 .discover-inner p { color: var(--clr-ink-muted); margin-bottom: var(--sp-4); }
 .discover-panel { margin-top: var(--sp-5); text-align: start; max-width: 420px; margin-inline: auto; }
-.discover-panel .generic-entity-card { background: var(--clr-paper-light); }
+
+/* Today's Discovery / Discover a Record: both spotlight a single record, so
+   the shared .generic-entity-card (also used in dense grids elsewhere) gets
+   a scoped, larger treatment here only — no change to its base definition. */
+.todays-discovery-panel .generic-entity-card,
+.discover-panel .generic-entity-card {
+  background: var(--clr-paper-light);
+  padding: var(--sp-4);
+  border-color: var(--clr-line-strong);
+}
+.todays-discovery-panel .generic-card-image,
+.discover-panel .generic-card-image {
+  height: 200px;
+}
+.todays-discovery-panel .generic-card-title,
+.discover-panel .generic-card-title {
+  font-size: 1.4rem;
+}
+.todays-discovery-panel .generic-card-summary,
+.discover-panel .generic-card-summary {
+  font-size: 0.9rem;
+}
 
 /* --------------------------------------------------------------------------
    31. Methodology Teaser (Section J)
@@ -4514,7 +4580,6 @@ a.generic-entity-card:hover,
 
 .section-todays-discovery { padding: clamp(2.4rem, 5vw, 3.6rem) 0; text-align: center; }
 .todays-discovery-panel { max-width: 420px; margin-inline: auto; }
-.todays-discovery-panel .generic-entity-card { background: var(--clr-paper-light); }
 
 .section-category-explore { padding: clamp(2.4rem, 5vw, 3.6rem) 0; background: var(--clr-paper-deep); border-block: 1px solid var(--clr-line); }
 .category-explore-grid {

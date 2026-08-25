@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 globalThis.AntiochiaArchiveV2API = { fetchAllEntities: async () => [] };
 await import("../public/js/archive-store.js");
 
-const { DETAIL_TYPES, byType, byId, bySlug, detailEligible, pickRandomEntity } = globalThis.AntiochiaArchiveStore;
+const { DETAIL_TYPES, byType, byId, bySlug, detailEligible, pickRandomEntity, pickDailyEntity } = globalThis.AntiochiaArchiveStore;
 
 function entity(id, entityType, slug) {
   return { id, entityType, slug, title: {} };
@@ -44,6 +44,44 @@ test("pickRandomEntity draws only from detail-eligible entities, excluding media
   const entities = [entity("m1", "media"), entity("pl1", "place")];
   const picked = pickRandomEntity(entities, { randomFn: () => 0.99 });
   assert.equal(picked.id, "pl1");
+});
+
+test("pickDailyEntity is deterministic: the same date and entity pool always picks the same record", () => {
+  const entities = [entity("a", "place"), entity("b", "story"), entity("c", "belief"), entity("d", "music")];
+  const first = pickDailyEntity(entities, { dateStr: "2026-08-25" });
+  const second = pickDailyEntity(entities, { dateStr: "2026-08-25" });
+  assert.equal(first.id, second.id);
+});
+
+test("pickDailyEntity's pick does not depend on the input array's order — only on the entity set itself", () => {
+  const entities = [entity("a", "place"), entity("b", "story"), entity("c", "belief"), entity("d", "music")];
+  const reversed = [...entities].reverse();
+  const picked = pickDailyEntity(entities, { dateStr: "2026-08-25" });
+  const pickedReversed = pickDailyEntity(reversed, { dateStr: "2026-08-25" });
+  assert.equal(picked.id, pickedReversed.id);
+});
+
+test("pickDailyEntity draws only from detail-eligible entities, never media/source, and never fabricates a result for an empty pool", () => {
+  const entities = [entity("m1", "media"), entity("s1", "source"), entity("pl1", "place")];
+  const picked = pickDailyEntity(entities, { dateStr: "2026-08-25" });
+  assert.equal(picked.id, "pl1");
+  assert.equal(pickDailyEntity([], { dateStr: "2026-08-25" }), null);
+  assert.equal(pickDailyEntity([entity("m1", "media")], { dateStr: "2026-08-25" }), null);
+});
+
+test("pickDailyEntity varies across different dates (not pinned to a single always-picked record)", () => {
+  const entities = Array.from({ length: 12 }, (_, i) => entity(`e${i}`, "place"));
+  const picks = new Set();
+  for (let day = 1; day <= 28; day += 1) {
+    picks.add(pickDailyEntity(entities, { dateStr: `2026-01-${String(day).padStart(2, "0")}` }).id);
+  }
+  assert.ok(picks.size > 1, "28 different days should not all resolve to the exact same record");
+});
+
+test("pickDailyEntity defaults to today's real UTC date when no dateStr is supplied", () => {
+  const entities = [entity("a", "place"), entity("b", "story")];
+  const todayStr = new Date().toISOString().slice(0, 10);
+  assert.deepEqual(pickDailyEntity(entities), pickDailyEntity(entities, { dateStr: todayStr }));
 });
 
 test("loadAllPublicEntities caches: a second call does not trigger a second fetch", async () => {

@@ -47,6 +47,11 @@ for (const entity of entities) {
   check((html.match(/<h1\b/g) || []).length === 1, `${entity.id} must have exactly one H1.`);
   check(/<meta name="description" content="[^"]+">/.test(html), `${entity.id} is missing a description.`);
   check(html.includes('"@type":"WebPage"'), `${entity.id} is missing WebPage JSON-LD.`);
+  check(html.includes('"@type":"BreadcrumbList"'), `${entity.id} is missing BreadcrumbList JSON-LD.`);
+  check(/<meta property="og:site_name" content="AntiochiaArchive">/.test(html), `${entity.id} is missing og:site_name.`);
+  check(/<meta property="og:image" content="https:\/\/[^"]+">/.test(html), `${entity.id} has a missing or non-absolute og:image.`);
+  check(/<meta name="twitter:card" content="summary_large_image">/.test(html), `${entity.id} is missing twitter:card.`);
+  check(/<meta name="twitter:image" content="https:\/\/[^"]+">/.test(html), `${entity.id} has a missing or non-absolute twitter:image.`);
   check(html.includes(`data-entity-id="${entity.id}"`), `${entity.id} detail page identity is missing.`);
   check(html.includes(`href="${route}"`) === false, `${entity.id} contains a self-referential card link.`);
   check(html.includes(`href="${typeInfo.href}"`), `${entity.id} is missing its parent collection link.`);

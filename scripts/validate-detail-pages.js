@@ -46,6 +46,10 @@ for (const { category, record } of flattenArchive(archive)) {
   check((html.match(/<h1\b/g) || []).length === 1, `${record.id} must have exactly one H1.`);
   check(/<meta name="description" content="[^"]+">/.test(html), `${record.id} is missing a description.`);
   check(html.includes('"@type":"WebPage"'), `${record.id} is missing WebPage JSON-LD.`);
+  check(html.includes('"@type":"BreadcrumbList"'), `${record.id} is missing BreadcrumbList JSON-LD.`);
+  check(/<meta property="og:site_name" content="AntiochiaArchive">/.test(html), `${record.id} is missing og:site_name.`);
+  check(/<meta property="og:image" content="https:\/\/[^"]+">/.test(html), `${record.id} has a missing or non-absolute og:image.`);
+  check(/<meta name="twitter:card" content="summary_large_image">/.test(html), `${record.id} is missing twitter:card.`);
   check(html.includes(`data-record-id="${record.id}"`), `${record.id} detail page identity is missing.`);
   check(html.includes(`href="${recordDetailPath(record)}"`) === false, `${record.id} contains a self-referential card link.`);
   check(html.includes(`href="/pages/${category}.html"`), `${record.id} is missing its parent collection link.`);

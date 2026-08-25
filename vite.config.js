@@ -129,6 +129,7 @@ export default defineConfig({
         methodology:    "pages/methodology.html",
         map:            "pages/map.html",
         collections:    "pages/collections.html",
+        discover:       "pages/discover.html",
         search:         "pages/search.html",
         notFound:       "404.html",
       },

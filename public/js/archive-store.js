@@ -85,6 +85,33 @@
     return pool[Math.floor(randomFn() * pool.length)];
   }
 
+  /**
+   * A small, fast string hash (FNV-1a) — used only to turn a UTC calendar
+   * date into a deterministic index, never for anything security-sensitive.
+   */
+  function fnv1aHash(value) {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < value.length; i += 1) {
+      hash ^= value.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return hash >>> 0;
+  }
+
+  /**
+   * "Today's Discovery" — every visitor on the same UTC calendar day sees
+   * the same public, detail-eligible record, with no server write and no
+   * dependency on Math.random. The pool is sorted by id first so the pick is
+   * stable regardless of the array order the API happened to return, and
+   * `dateStr` is injectable so tests don't depend on the real clock.
+   */
+  function pickDailyEntity(entities, { dateStr = new Date().toISOString().slice(0, 10) } = {}) {
+    const pool = detailEligible(entities).slice().sort((a, b) => a.id.localeCompare(b.id));
+    if (!pool.length) return null;
+    const index = fnv1aHash(dateStr) % pool.length;
+    return pool[index];
+  }
+
   root.AntiochiaArchiveStore = Object.freeze({
     DETAIL_TYPES,
     loadAllPublicEntities,
@@ -92,6 +119,7 @@
     byId,
     bySlug,
     pickRandomEntity,
+    pickDailyEntity,
     detailEligible,
   });
 })(typeof window !== "undefined" ? window : globalThis);

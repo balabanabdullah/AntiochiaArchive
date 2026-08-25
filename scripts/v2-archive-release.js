@@ -17,7 +17,7 @@
 import { createLocalMappedV2Store } from "../backend/v2/stores/localMappedV2Store.js";
 import { isPublic } from "../backend/v2/serializers/publicVisibility.js";
 import { serializePublicEntity } from "../backend/v2/serializers/publicSerializer.js";
-import { PRODUCTION_ORIGIN, escapeHtml, safeHttpUrl, localized } from "./archive-release.js";
+import { PRODUCTION_ORIGIN, SITE_NAME, escapeHtml, safeHttpUrl, localized, truncateDescription, socialMetaTags } from "./archive-release.js";
 
 // Path segment -> domain entityType, mirroring backend/v2/routes/v2Routes.js's
 // TYPE_ROUTES (media/source excluded: they are never standalone detail-page
@@ -149,6 +149,7 @@ function pageNavigation(activeNavKey) {
     { navKey: "gallery", href: "/pages/gallery.html", label: "Gallery" },
     { navKey: "map", href: "/pages/map.html", label: "Map" },
     { navKey: "collections", href: "/pages/collections.html", label: "Collections" },
+    { navKey: "discoverPage", href: "/pages/discover.html", label: "Explore the Archive" },
     { navKey: "proverbs", href: "/pages/proverbs.html", label: "Proverbs & Expressions" },
   ];
   return base.map(({ navKey, href, label }) => (
@@ -409,39 +410,58 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
   const placeById = new Map(entities.filter((item) => item.entityType === "place").map((place) => [place.id, place]));
 
   const title = localized(entity.title, "en", entity.slug);
+  const pageTitle = `${title} — ${SITE_NAME}`;
   const description = localized(entity.summary, "en");
+  const metaDescription = truncateDescription(description);
   const fact = v2EntityFact(entity, "en");
   const path = v2DetailPath(entity);
   const canonical = `${PRODUCTION_ORIGIN}${path}`;
   const media = entity.media;
+  const imageAlt = media?.path ? localized(media.alt, "en", title) : "";
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${canonical}#webpage`,
-    url: canonical,
-    name: `${title} — AntiochiaArchive`,
-    description,
-    inLanguage: ["tr", "en", "ar"],
-    isPartOf: { "@id": `${PRODUCTION_ORIGIN}/#website` },
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${canonical}#webpage`,
+        url: canonical,
+        name: pageTitle,
+        description,
+        inLanguage: ["tr", "en", "ar"],
+        isPartOf: { "@id": `${PRODUCTION_ORIGIN}/#website` },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonical}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: `${PRODUCTION_ORIGIN}/` },
+          { "@type": "ListItem", position: 2, name: typeInfo.label, item: `${PRODUCTION_ORIGIN}${typeInfo.href}` },
+          { "@type": "ListItem", position: 3, name: title, item: canonical },
+        ],
+      },
+    ],
   };
-  if (media?.path) jsonLd.primaryImageOfPage = safeHttpUrl(`${PRODUCTION_ORIGIN}${media.path}`) || `${PRODUCTION_ORIGIN}${media.path}`;
+  if (media?.path) jsonLd["@graph"][0].primaryImageOfPage = safeHttpUrl(`${PRODUCTION_ORIGIN}${media.path}`) || `${PRODUCTION_ORIGIN}${media.path}`;
 
   return `<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="${escapeHtml(description)}">
+  <meta name="description" content="${escapeHtml(metaDescription)}">
   <meta name="theme-color" content="#f2ead8">
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="${escapeHtml(title)} — AntiochiaArchive">
-  <meta property="og:description" content="${escapeHtml(description)}">
-  <meta property="og:url" content="${canonical}">
-  ${media?.path ? `<meta property="og:image" content="${PRODUCTION_ORIGIN}${escapeHtml(media.path)}">` : ""}
-  <title>${escapeHtml(title)} — AntiochiaArchive</title>
+  ${socialMetaTags({
+    title: pageTitle,
+    description: metaDescription,
+    url: canonical,
+    type: "article",
+    image: media?.path,
+    imageAlt,
+  })}
+  <title>${escapeHtml(pageTitle)}</title>
   <link rel="canonical" href="${canonical}">
   <link rel="stylesheet" href="${escapeHtml(stylesheet)}">
-  <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+  <script type="application/ld+json">${jsonForScript(jsonLd)}</script>
 </head>
 <body class="record-detail-page" data-entity-id="${escapeHtml(entity.id)}">
   <a class="skip-link" href="#main-content" data-i18n="a11y.skipLink">Skip to content</a>

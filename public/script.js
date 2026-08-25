@@ -2014,6 +2014,138 @@ function renderArchiveSummary() {
       </div>`).join("");
 }
 
+/* -------------------------------------------------------------------------
+   Discovery & Statistics page (/pages/discover.html) — every renderer here
+   reads only from the already-loaded public entity array (discoveryEntities,
+   the same set search/collections/random-discover already share) and is a
+   safe no-op when its container isn't on the current page.
+   ------------------------------------------------------------------------- */
+const V2_TYPE_HREF = Object.freeze({
+  historicalContext: "/pages/history.html",
+  community: "/pages/communities.html",
+  belief: "/pages/beliefs.html",
+  place: "/pages/places.html",
+  structure: "/pages/structures.html",
+  story: "/pages/stories.html",
+  music: "/pages/music.html",
+  proverb: "/pages/proverbs.html",
+});
+
+function initDiscoverPage() {
+  if (!document.querySelector("[data-discover-page]")) return;
+  ensureDiscoveryEntities().then(() => renderDiscoverPage());
+}
+
+function renderDiscoverPage() {
+  if (!discoveryEntities) return;
+  renderDiscoverTotal();
+  renderCategoryDistribution();
+  renderMapCoverage();
+  renderTodaysDiscovery();
+  renderCategoryExploreCards();
+}
+
+/** The single "N Cultural Records" headline figure — the sum of every DETAIL_TYPES count, never a separately-maintained number. */
+function renderDiscoverTotal() {
+  const el = document.querySelector("[data-discover-total]");
+  if (!el || !window.AntiochiaArchiveStore) return;
+  const total = window.AntiochiaArchiveStore.DETAIL_TYPES
+    .reduce((sum, type) => sum + window.AntiochiaArchiveStore.byType(discoveryEntities, type).length, 0);
+  el.textContent = String(total);
+}
+
+/**
+ * CSS-bar category distribution. Every DETAIL_TYPES row renders — including a
+ * genuine 0-count type (proverb today) — with a visible, always-present
+ * track so a 0% fill reads as "not yet populated," not a rendering error
+ * (see the brief's "must not look like a bug" zero-count guidance). Each bar
+ * carries a screen-reader label with the exact count and percentage, so the
+ * distribution is never conveyed by color/width alone.
+ */
+function renderCategoryDistribution() {
+  const container = document.querySelector("[data-category-distribution]");
+  if (!container || !window.AntiochiaArchiveStore) return;
+  const lang = currentLang;
+  const typeLabels = v2TypeLabels(lang);
+  const rows = window.AntiochiaArchiveStore.DETAIL_TYPES.map((type) => ({
+    type,
+    label: typeLabels[type] || type,
+    count: window.AntiochiaArchiveStore.byType(discoveryEntities, type).length,
+  })).sort((a, b) => b.count - a.count);
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  const srTemplate = resolveKey(lang, "discoverPage.distributionSr") || "";
+
+  container.innerHTML = rows.map((row) => {
+    const percent = total > 0 ? Math.round((row.count / total) * 100) : 0;
+    const srText = srTemplate
+      .replace("{label}", row.label)
+      .replace("{count}", String(row.count))
+      .replace("{percent}", String(percent));
+    return `<div class="distribution-row">
+        <span class="distribution-label">${escapeHtml(row.label)}</span>
+        <span class="distribution-bar-track" role="img" aria-label="${escapeHtml(srText)}">
+          <span class="distribution-bar-fill" style="width:${percent}%"></span>
+        </span>
+        <span class="distribution-count" aria-hidden="true">${row.count}</span>
+      </div>`;
+  }).join("");
+}
+
+/**
+ * "N of M public places can be shown on the map" — reuses the exact same
+ * coordinate-presence rule the map itself uses (getMappableEntities), so
+ * this figure can never drift from what the map page actually plots.
+ * Deliberately scoped to `place` only (never inflated with `structure`,
+ * which carries no coordinate field in the current schema).
+ */
+function renderMapCoverage() {
+  const el = document.querySelector("[data-map-coverage-text]");
+  if (!el || !window.AntiochiaArchiveStore || !window.AntiochiaArchiveMapCore) return;
+  const totalPlaces = window.AntiochiaArchiveStore.byType(discoveryEntities, "place").length;
+  const mappedPlaces = window.AntiochiaArchiveMapCore.getMappableEntities(discoveryEntities)
+    .filter((entity) => entity.entityType === "place").length;
+  const template = resolveKey(currentLang, "discoverPage.mapCoverageText") || "";
+  el.textContent = template.replace("{mapped}", String(mappedPlaces)).replace("{total}", String(totalPlaces));
+}
+
+/**
+ * "Today's Discovery" — a date-deterministic pick (see pickDailyEntity in
+ * archive-store.js): every visitor sees the same record on the same UTC
+ * calendar day, with no server write and no analytics. Distinct from the
+ * "Discover a Record" random button, which re-picks on every click.
+ */
+function renderTodaysDiscovery() {
+  const container = document.querySelector("[data-todays-discovery]");
+  if (!container || !window.AntiochiaArchiveStore) return;
+  const entity = window.AntiochiaArchiveStore.pickDailyEntity(discoveryEntities);
+  container.innerHTML = entity ? genericEntityCardHtml(entity, currentLang, v2TypeLabels(currentLang)) : "";
+}
+
+/**
+ * Real-count category cards linking into each category page. A type with 0
+ * public records (proverb today) still renders its card — per the brief's
+ * "0 kayıt" rule — never a fake sample, always a real link to that type's
+ * own (correctly empty-stated) public page.
+ */
+function renderCategoryExploreCards() {
+  const container = document.querySelector("[data-category-explore]");
+  if (!container || !window.AntiochiaArchiveStore) return;
+  const lang = currentLang;
+  const typeLabels = v2TypeLabels(lang);
+  const descriptions = resolveKey(lang, "discoverPage.categoryDescriptions") || {};
+  container.innerHTML = window.AntiochiaArchiveStore.DETAIL_TYPES.map((type) => {
+    const count = window.AntiochiaArchiveStore.byType(discoveryEntities, type).length;
+    const label = escapeHtml(typeLabels[type] || type);
+    const desc = escapeHtml(descriptions[type] || "");
+    const href = escapeHtml(V2_TYPE_HREF[type] || "#");
+    return `<a class="category-explore-card" href="${href}">
+        <span class="category-explore-count">${count}</span>
+        <h3 class="category-explore-title">${label}</h3>
+        ${desc ? `<p class="category-explore-desc">${desc}</p>` : ""}
+      </a>`;
+  }).join("");
+}
+
 /** Re-renders every discovery feature already present on this page in the new language. Each renderer is itself a safe no-op when its container or data isn't there — same idiom as renderArchiveSections(). */
 function renderDiscoveryFeatures() {
   renderHomepageTimeline();
@@ -2024,6 +2156,7 @@ function renderDiscoveryFeatures() {
   renderArchiveSummary();
   renderDiscoverButtonLabel();
   renderMusicFeature(currentLang);
+  renderDiscoverPage();
 }
 
 /* ==========================================================================
@@ -2111,6 +2244,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initRandomDiscover();
   initArchiveSummary();
   initMusicFeature();
+  initDiscoverPage();
 
   /* Contribution map intentionally disabled until submissions have location data. */
 });

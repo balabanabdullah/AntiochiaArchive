@@ -513,3 +513,45 @@ test("REAL DATA: the fixed 'entity'-as-jargon artefacts (this round's content-qu
     assert.ok(!ARTEFACT_RE.test(text), `${id}.${field}.${lang} regressed a fixed 'entity' authoring artefact back into public output`);
   }
 });
+
+test("generateV2DetailDocument carries a BreadcrumbList alongside WebPage, and full Open Graph + Twitter Card metadata", () => {
+  for (const entity of FIXTURE_ENTITIES.filter((e) => V2_DETAIL_TYPES.includes(e.entityType))) {
+    const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v.js", archiveStoreScript: "/as.js", searchScript: "/se.js", musicScript: "/m.js", appScript: "/a.js", entities: FIXTURE_ENTITIES });
+    assert.match(html, /"@type":"BreadcrumbList"/, `${entity.id}: missing BreadcrumbList`);
+    assert.match(html, /<meta property="og:site_name" content="AntiochiaArchive">/);
+    assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
+    assert.match(html, /<meta name="twitter:title" content="[^"]+">/);
+  }
+});
+
+test("generateV2DetailDocument: a public-safe entity.media.path is used as og:image with no invented dimensions; an entity with no media falls back to the branded 1200x630 card", () => {
+  const withMedia = FIXTURE_ENTITIES.find((e) => e.id === "structure-0005");
+  const withoutMedia = FIXTURE_ENTITIES.find((e) => e.id === "belief-0002");
+
+  const htmlWithMedia = generateV2DetailDocument({ entity: withMedia, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v.js", archiveStoreScript: "/as.js", searchScript: "/se.js", musicScript: "/m.js", appScript: "/a.js", entities: FIXTURE_ENTITIES });
+  assert.ok(htmlWithMedia.includes(`<meta property="og:image" content="https://antiochia-app-6939593871.europe-west1.run.app${withMedia.media.path}">`));
+  assert.doesNotMatch(htmlWithMedia, /og:image:width/, "must not invent dimensions for a real record image");
+
+  const htmlWithoutMedia = generateV2DetailDocument({ entity: withoutMedia, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v.js", archiveStoreScript: "/as.js", searchScript: "/se.js", musicScript: "/m.js", appScript: "/a.js", entities: FIXTURE_ENTITIES });
+  assert.match(htmlWithoutMedia, /<meta property="og:image" content="https:\/\/antiochia-app-6939593871\.europe-west1\.run\.app\/images\/social\/og-default\.png">/);
+  assert.match(htmlWithoutMedia, /<meta property="og:image:width" content="1200">/);
+  assert.match(htmlWithoutMedia, /<meta property="og:image:height" content="630">/);
+});
+
+test("generateV2DetailDocument escapes a hostile title so a literal </script> can never truncate the JSON-LD <script> element", () => {
+  const hostile = { id: "hostile-2", slug: "hostile-2", entityType: "belief", status: "published", title: { en: '"><script>alert(1)</script>' }, summary: { en: "d" } };
+  const html = generateV2DetailDocument({ entity: hostile, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v.js", archiveStoreScript: "/as.js", searchScript: "/se.js", musicScript: "/m.js", appScript: "/a.js", entities: [hostile] });
+  const ldJsonPayload = html.match(/<script type="application\/ld\+json">([^]*?)<\/script>/)[1];
+  assert.ok(!ldJsonPayload.includes("</script>"), "a literal </script> inside the JSON-LD payload would truncate the script element early");
+  assert.doesNotMatch(html, /<img src=x onerror=alert\(1\)>/);
+});
+
+test("v2 social metadata: og:url always equals the canonical URL, and never leaks a dev/localhost URL", () => {
+  for (const entity of FIXTURE_ENTITIES.filter((e) => V2_DETAIL_TYPES.includes(e.entityType))) {
+    const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v.js", archiveStoreScript: "/as.js", searchScript: "/se.js", musicScript: "/m.js", appScript: "/a.js", entities: FIXTURE_ENTITIES });
+    const ogUrl = html.match(/<meta property="og:url" content="([^"]+)">/)[1];
+    const canonical = html.match(/<link rel="canonical" href="([^"]+)">/)[1];
+    assert.equal(ogUrl, canonical, `${entity.id}: og:url must equal the canonical URL`);
+    assert.doesNotMatch(html, /localhost|127\.0\.0\.1/, `${entity.id}: leaked a dev URL`);
+  }
+});

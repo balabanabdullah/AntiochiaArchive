@@ -1,5 +1,16 @@
 export const PRODUCTION_ORIGIN = "https://antiochia-app-6939593871.europe-west1.run.app";
 
+// Single authoritative brand identity for every social/SEO tag this module
+// (and v2-archive-release.js, which imports from here) emits — see
+// socialMetaTags() below. The default image is a purpose-built 1200x630
+// branded card (public/images/social/og-default.png); no per-entity raster
+// generation exists, so any page without its own public-safe image falls
+// back to this one rather than emitting a broken or missing og:image.
+export const SITE_NAME = "AntiochiaArchive";
+export const DEFAULT_SOCIAL_IMAGE = "/images/social/og-default.png";
+export const DEFAULT_SOCIAL_IMAGE_WIDTH = 1200;
+export const DEFAULT_SOCIAL_IMAGE_HEIGHT = 630;
+
 export const ARCHIVE_CATEGORIES = Object.freeze([
   "history",
   "stories",
@@ -86,6 +97,57 @@ export function validateReleaseArchive(archive) {
 
 export function recordDescription(record, language = "en") {
   return localized(record.body || record.desc || record.caption, language);
+}
+
+/**
+ * Cleans and bounds a meta description: strips any HTML, collapses
+ * whitespace, and — only past `max` characters — cuts on the last whole
+ * word rather than mid-word, so a long summary never renders an awkward
+ * truncation in a Google/social preview. Short text is returned untouched.
+ */
+export function truncateDescription(value, { max = 170 } = {}) {
+  const clean = String(value ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  const trimmed = lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut;
+  return `${trimmed.trimEnd()}…`;
+}
+
+/**
+ * The single source of every Open Graph + Twitter Card tag this project
+ * emits, for both static category pages (via the batch head-injection in
+ * scripts/inject-social-meta.mjs) and generated detail pages (below). A
+ * page with its own public-safe `image` (already rights-gated by the
+ * caller — see recordMedia()/entity.media — before it ever reaches here)
+ * gets that image with no invented width/height (see DEFAULT_SOCIAL_IMAGE
+ * comment above); a page with none gets the branded 1200x630 fallback with
+ * its real, verified dimensions. `url` must already be the page's own
+ * absolute canonical URL — this function never guesses or rewrites it.
+ */
+export function socialMetaTags({ title, description, url, type = "website", image, imageAlt }) {
+  const absoluteImage = image
+    ? (safeHttpUrl(image) || `${PRODUCTION_ORIGIN}${image}`)
+    : `${PRODUCTION_ORIGIN}${DEFAULT_SOCIAL_IMAGE}`;
+  const resolvedAlt = imageAlt || title;
+  const dimensions = image ? "" : `
+  <meta property="og:image:width" content="${DEFAULT_SOCIAL_IMAGE_WIDTH}">
+  <meta property="og:image:height" content="${DEFAULT_SOCIAL_IMAGE_HEIGHT}">`;
+  return `<meta property="og:site_name" content="${escapeHtml(SITE_NAME)}">
+  <meta property="og:type" content="${escapeHtml(type)}">
+  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:url" content="${escapeHtml(url)}">
+  <meta property="og:image" content="${escapeHtml(absoluteImage)}">
+  <meta property="og:image:alt" content="${escapeHtml(resolvedAlt)}">${dimensions}
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="tr_TR">
+  <meta property="og:locale:alternate" content="ar_AR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escapeHtml(title)}">
+  <meta name="twitter:description" content="${escapeHtml(description)}">
+  <meta name="twitter:image" content="${escapeHtml(absoluteImage)}">
+  <meta name="twitter:image:alt" content="${escapeHtml(resolvedAlt)}">`;
 }
 
 export function recordTaxonomy(record, language = "en") {
@@ -176,40 +238,59 @@ export function generateDetailDocument({ category, record, stylesheet, langScrip
   if (!categoryInfo) throw new TypeError(`Unknown category: ${category}.`);
 
   const title = localized(record.title, "en", record.id);
+  const pageTitle = `${title} — ${SITE_NAME}`;
   const description = recordDescription(record, "en");
+  const metaDescription = truncateDescription(description);
   const taxonomy = recordTaxonomy(record, "en");
   const path = recordDetailPath(record);
   const canonical = `${PRODUCTION_ORIGIN}${path}`;
   const media = recordMedia(record);
   const metadata = record.imageMetadata || {};
+  const imageAlt = media ? localized(metadata.alt, "en", title) : "";
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "@id": `${canonical}#webpage`,
-    url: canonical,
-    name: `${title} — AntiochiaArchive`,
-    description,
-    inLanguage: ["tr", "en", "ar"],
-    isPartOf: { "@id": `${PRODUCTION_ORIGIN}/#website` },
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${canonical}#webpage`,
+        url: canonical,
+        name: pageTitle,
+        description,
+        inLanguage: ["tr", "en", "ar"],
+        isPartOf: { "@id": `${PRODUCTION_ORIGIN}/#website` },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonical}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: `${PRODUCTION_ORIGIN}/` },
+          { "@type": "ListItem", position: 2, name: categoryInfo.label, item: `${PRODUCTION_ORIGIN}${categoryInfo.href}` },
+          { "@type": "ListItem", position: 3, name: title, item: canonical },
+        ],
+      },
+    ],
   };
-  if (media) jsonLd.primaryImageOfPage = `${PRODUCTION_ORIGIN}${media}`;
+  if (media) jsonLd["@graph"][0].primaryImageOfPage = `${PRODUCTION_ORIGIN}${media}`;
 
   return `<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="${escapeHtml(description)}">
+  <meta name="description" content="${escapeHtml(metaDescription)}">
   <meta name="theme-color" content="#f2ead8">
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="${escapeHtml(title)} — AntiochiaArchive">
-  <meta property="og:description" content="${escapeHtml(description)}">
-  <meta property="og:url" content="${canonical}">
-  ${media ? `<meta property="og:image" content="${PRODUCTION_ORIGIN}${escapeHtml(media)}">` : ""}
-  <title>${escapeHtml(title)} — AntiochiaArchive</title>
+  ${socialMetaTags({
+    title: pageTitle,
+    description: metaDescription,
+    url: canonical,
+    type: "article",
+    image: media,
+    imageAlt,
+  })}
+  <title>${escapeHtml(pageTitle)}</title>
   <link rel="canonical" href="${canonical}">
   <link rel="stylesheet" href="${escapeHtml(stylesheet)}">
-  <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+  <script type="application/ld+json">${jsonForScript(jsonLd)}</script>
 </head>
 <body class="record-detail-page" data-record-id="${escapeHtml(record.id)}">
   <a class="skip-link" href="#main-content" data-i18n="a11y.skipLink">Skip to content</a>

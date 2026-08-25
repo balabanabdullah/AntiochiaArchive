@@ -27,6 +27,7 @@ const publicPages = [
   { file: "pages/methodology.html", url: `${productionOrigin}/pages/methodology.html`, types: ["WebPage"] },
   { file: "pages/map.html", url: `${productionOrigin}/pages/map.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/collections.html", url: `${productionOrigin}/pages/collections.html`, types: ["CollectionPage", "BreadcrumbList"] },
+  { file: "pages/discover.html", url: `${productionOrigin}/pages/discover.html`, types: ["CollectionPage", "BreadcrumbList"] },
   // Results vary by query string, so this is registered like contributions.html:
   // a real public page with no stable structured-data claim to make about it.
   { file: "pages/search.html", url: `${productionOrigin}/pages/search.html`, types: [] },
@@ -34,6 +35,11 @@ const publicPages = [
 
 const privatePages = ["pages/admin.html", "pages/submissions.html"];
 const structuredUrls = new Set(publicPages.filter((page) => page.types.length).map((page) => page.url));
+// The homepage's WebSite SearchAction legitimately targets /pages/search.html
+// even though that page carries no structured data of its own (types: []) —
+// it's still a real, existing public page, so it's a valid cross-page
+// reference target.
+structuredUrls.add(`${productionOrigin}/pages/search.html`);
 const archive = JSON.parse(read("data/archive.json"));
 validateReleaseArchive(archive);
 flattenArchive(archive).forEach(({ record }) => structuredUrls.add(`${productionOrigin}${recordDetailPath(record)}`));
@@ -109,7 +115,11 @@ function nodesByType(documents, expectedType) {
 function validateStructuredUrls(documents, file) {
   walk(documents, (value) => {
     if (typeof value !== "string" || !value.startsWith(productionOrigin)) return;
-    const withoutFragment = value.split("#", 1)[0];
+    // SearchAction's target is a URL *template* (RFC 6570), not a page
+    // reference — {search_term_string} is meant to be substituted by the
+    // consumer, so only the base page (before "?") needs to be a real,
+    // known public URL.
+    const withoutFragment = value.split("#", 1)[0].split("?", 1)[0];
     check(structuredUrls.has(withoutFragment), `${file}: JSON-LD points to an unknown public URL: ${value}`);
   });
 }
@@ -132,6 +142,26 @@ function validatePublicPage(page) {
   check(attributeContent(html, "property", "og:url") === page.url, `${page.file}: og:url does not match its canonical URL`);
   check(h1Count === 1, `${page.file}: expected exactly one h1, found ${h1Count}`);
 
+  // Open Graph + Twitter Card — required on every indexable public page
+  // (never on admin/submissions, which validatePrivatePages() covers
+  // separately and which must publish no social metadata at all).
+  const ogSiteName = attributeContent(html, "property", "og:site_name");
+  const ogImage = attributeContent(html, "property", "og:image");
+  const twitterCard = attributeContent(html, "name", "twitter:card");
+  const twitterTitle = attributeContent(html, "name", "twitter:title");
+  const twitterDescription = attributeContent(html, "name", "twitter:description");
+  const twitterImage = attributeContent(html, "name", "twitter:image");
+  check(ogSiteName === "AntiochiaArchive", `${page.file}: missing or incorrect og:site_name`);
+  check(/^https:\/\//.test(ogImage), `${page.file}: og:image must be an absolute https URL`);
+  check(twitterCard === "summary_large_image", `${page.file}: missing or incorrect twitter:card`);
+  check(twitterTitle, `${page.file}: missing twitter:title`);
+  check(twitterDescription, `${page.file}: missing twitter:description`);
+  check(/^https:\/\//.test(twitterImage), `${page.file}: twitter:image must be an absolute https URL`);
+  // Duplicate-meta guard (section 63): the batch injector must never run twice.
+  check((html.match(/property="og:site_name"/g) || []).length === 1, `${page.file}: duplicate og:site_name`);
+  check((html.match(/property="og:image"\s/g) || []).length === 1, `${page.file}: duplicate og:image`);
+  check((html.match(/rel="canonical"/g) || []).length === 1, `${page.file}: duplicate canonical link`);
+
   const documents = jsonLdDocuments(html, page.file);
   const types = schemaTypes(documents);
   documents.forEach((document) => check(document["@context"] === "https://schema.org", `${page.file}: JSON-LD must use the Schema.org context`));
@@ -144,6 +174,9 @@ function validatePublicPage(page) {
     check(website?.url === page.url, `${page.file}: WebSite URL is incorrect`);
     check(typeof website?.description === "string" && website.description.length > 0, `${page.file}: WebSite description is missing`);
     check(["tr", "en", "ar"].every((language) => website?.inLanguage?.includes(language)), `${page.file}: WebSite languages are incomplete`);
+    check(website?.potentialAction?.["@type"] === "SearchAction", `${page.file}: WebSite is missing SearchAction`);
+    check(website?.potentialAction?.target === `${productionOrigin}/pages/search.html?q={search_term_string}`, `${page.file}: SearchAction target does not match the real /pages/search.html?q= contract`);
+    check(website?.potentialAction?.["query-input"] === "required name=search_term_string", `${page.file}: SearchAction query-input is malformed`);
   }
 
   if (page.types.includes("BreadcrumbList")) {
@@ -168,6 +201,8 @@ function validatePrivatePages() {
     const robots = attributeContent(html, "name", "robots").toLowerCase();
     check(robots.includes("noindex") && robots.includes("nofollow"), `${file}: missing noindex,nofollow`);
     check(jsonLdDocuments(html, file).length === 0, `${file}: administrative page must not publish JSON-LD`);
+    check(!attributeContent(html, "property", "og:image"), `${file}: private page must not publish a social preview image`);
+    check(!attributeContent(html, "name", "twitter:card"), `${file}: private page must not publish Twitter Card metadata`);
   }
 }
 
@@ -191,6 +226,10 @@ function validateGeneratedDetails() {
     check(/<p class="record-detail-summary"[^>]*>[^<]+<\/p>/.test(html), `${record.id}: primary summary is not present in static HTML`);
     const documents = jsonLdDocuments(html, record.id);
     check(schemaTypes(documents).has("WebPage"), `${record.id}: missing WebPage JSON-LD`);
+    check(schemaTypes(documents).has("BreadcrumbList"), `${record.id}: missing BreadcrumbList JSON-LD`);
+    check(attributeContent(html, "property", "og:site_name") === "AntiochiaArchive", `${record.id}: missing og:site_name`);
+    check(/^https:\/\//.test(attributeContent(html, "property", "og:image")), `${record.id}: og:image must be an absolute https URL`);
+    check(attributeContent(html, "name", "twitter:card") === "summary_large_image", `${record.id}: missing twitter:card`);
     count += 1;
   }
   return count;

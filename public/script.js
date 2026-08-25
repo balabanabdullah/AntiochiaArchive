@@ -527,6 +527,7 @@ function renderArchiveV2DetailLink(item, lang) {
 function v2CardCategory(entityType, item) {
   if (entityType === "structure") return item.structureType || "all";
   if (entityType === "music") return item.genre || "all";
+  if (entityType === "proverb") return item.dialect || item.language || "all";
   const tags = Array.isArray(item.tags) ? item.tags : [];
   if (entityType === "story") return item.storyCategory || tags[0] || "all";
   return tags[0] || "all";
@@ -724,6 +725,41 @@ function renderV2Music(items, lang) {
   }).join("");
 }
 
+/**
+ * originalText/transliteration are plain strings (one canonical local-form
+ * expression per record, not per-language — see backend/v2/schemas/proverb.js);
+ * culturalMeaning/literalMeaning are multilingual. The expression itself
+ * (originalText) is the visually dominant element per the card design brief
+ * — never auto-transliterated, rendered exactly as the canonical record has it.
+ * A zero-count public proverb list renders a polished empty state rather than
+ * fabricated sample cards (see V2-ARCHITECTURE.md "No production migration
+ * yet" — proverb stays at 0 until separately reviewed content work).
+ */
+function renderV2Proverbs(items, lang) {
+  if (!items.length) {
+    const message = resolveKey(lang, "proverbs.empty") || "";
+    return `<p class="proverbs-empty-state">${escapeHtml(message)}</p>`;
+  }
+  return items.map((item) => {
+    const expression = item.originalText || localizedMetadataValue(item.title, lang, item.slug || item.id);
+    const meaning = localizedMetadataValue(item.culturalMeaning, lang, "") || localizedMetadataValue(item.literalMeaning, lang, "");
+    const meta = [item.dialect, item.language ? item.language.toUpperCase() : ""].filter(Boolean).join(" · ");
+    const cat = v2CardCategory("proverb", item);
+    const searchStr = v2SearchText(
+      item, item.originalText || "", item.transliteration || "", item.dialect || "",
+      localizedMetadataValue(item.literalMeaning, lang, ""), localizedMetadataValue(item.translations, lang, ""),
+    );
+    return `
+    <article class="proverb-card" data-reveal data-search="${searchStr}" data-category="${escapeHtml(cat)}" data-entity-id="${escapeHtml(item.id)}">
+      <span class="proverb-badge" data-i18n="proverbs.subtitle">Mettule</span>
+      <p class="proverb-expression" dir="auto">${escapeHtml(expression)}</p>
+      ${meaning ? `<p class="proverb-meaning">${escapeHtml(meaning)}</p>` : ""}
+      ${meta ? `<p class="proverb-meta">${escapeHtml(meta)}</p>` : ""}
+      ${renderArchiveV2DetailLink(item, lang)}
+    </article>`;
+  }).join("");
+}
+
 function renderV2Communities(items, lang) {
   return items.map((item) => {
     const svg = buildSvg(V2_DEFAULT_SVG_TYPE.community);
@@ -773,6 +809,7 @@ const V2_ENTITY_TYPE_NAV_KEY = Object.freeze({
   structure: "structures",
   story: "stories",
   music: "music",
+  proverb: "proverbs",
 });
 
 function relatedEntityCompactCard(entity, lang) {
@@ -890,13 +927,14 @@ const V2_SECTION_RENDERERS = Object.freeze([
   { id: "structures-grid-container", fn: renderV2Structures, key: "structure", typeRoute: "structures" },
   { id: "stories-grid-container", fn: renderV2Stories, key: "story", typeRoute: "stories" },
   { id: "music-list-container", fn: renderV2Music, key: "music", typeRoute: "music" },
+  { id: "proverbs-list-container", fn: renderV2Proverbs, key: "proverb", typeRoute: "proverbs" },
 ]);
 
 // Every card class across both v1 and v2 sections — defined once and reused
 // by both the "mark newly rendered cards is-visible" step below and
 // applyCombinedFilters(), so the two can never drift out of sync with each
 // other again (they used to be two separately hardcoded copies).
-const ALL_CARD_SELECTORS = ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card, .gallery-card, .community-card, .place-card";
+const ALL_CARD_SELECTORS = ".timeline-card, .story-card, .struct-card, .belief-card, .music-track-card, .gallery-card, .community-card, .place-card, .proverb-card";
 
 function getV1SectionRenderers() {
   return V1_SECTION_RENDERERS.filter(({ id }) => document.getElementById(id));
@@ -994,6 +1032,10 @@ function renderDynamicFilterBars(lang) {
   document.querySelectorAll(".filter-bar-wrap[data-dynamic-filter]").forEach((wrap) => {
     const entityType = wrap.getAttribute("data-dynamic-filter");
     const items = archiveDataV2[entityType] || [];
+    // A zero-record type (e.g. proverb before any is published) gets no
+    // filter controls at all rather than a lone meaningless "All" button.
+    wrap.hidden = items.length === 0;
+    if (!items.length) return;
     const btnGroup = wrap.querySelector(".filter-bar");
     const select = wrap.querySelector(".filter-select");
     if (!btnGroup || !select) return;
@@ -1190,6 +1232,7 @@ function v2DetailFact(entity, lang) {
   if (entity.entityType === "historicalContext") return localizedMetadataValue(entity.period?.label, lang, "");
   if (entity.entityType === "structure") return entity.structureType || "";
   if (entity.entityType === "music") return entity.genre || "";
+  if (entity.entityType === "proverb") return entity.dialect || (entity.language ? entity.language.toUpperCase() : "");
   if (entity.entityType === "story") return entity.storyCategory || (Array.isArray(entity.tags) ? entity.tags[0] : "") || "";
   if (entity.entityType === "place") {
     const officialName = localizedMetadataValue(entity.officialName, lang, "");
@@ -1683,6 +1726,13 @@ function rerenderMapFeature() {
  * archive render + every language switch), matching rerenderMapFeature()'s
  * pattern — the actual "wait for data, then do the first render" trigger is
  * initMusicFeature() below.
+ *
+ * Also drives the proverb archive's audio badges/player: proverb entities
+ * carry the same public `audioMediaIds` field (backend/v2/serializers/
+ * publicSerializer.js) under the same `rightsStatus === "cleared"` gate, so
+ * this reuses AntiochiaArchiveMusic/AntiochiaArchiveMusicDom (both already
+ * entity-type-agnostic) rather than duplicating the rights-gated resolution
+ * logic for a second content type.
  */
 function renderMusicFeature(lang) {
   if (!discoveryEntities || !window.AntiochiaArchiveMusic) return;
@@ -1694,17 +1744,25 @@ function renderMusicFeature(lang) {
     window.AntiochiaArchiveMusicDom?.annotateAudioBadges(listContainer, eligible, resolveKey(lang, "music.audioBadge") || "");
   }
 
-  const audioSection = document.querySelector("[data-music-audio-section]");
+  const proverbsListContainer = document.getElementById("proverbs-list-container");
+  if (proverbsListContainer) {
+    const proverbEntities = discoveryEntities.filter((e) => e.entityType === "proverb");
+    const eligible = window.AntiochiaArchiveMusic.musicIdsWithPlayableAudio(proverbEntities, discoveryEntities);
+    window.AntiochiaArchiveMusicDom?.annotateAudioBadges(proverbsListContainer, eligible, resolveKey(lang, "proverbs.audioBadge") || "");
+  }
+
+  const audioSection = document.querySelector("[data-music-audio-section], [data-proverb-audio-section]");
   if (audioSection) {
     const data = readV2DetailPageData();
-    if (data?.entity?.entityType === "music") {
+    if (data?.entity?.entityType === "music" || data?.entity?.entityType === "proverb") {
+      const isProverb = data.entity.entityType === "proverb";
       const playable = window.AntiochiaArchiveMusic.resolvePlayableAudio(data.entity, discoveryEntities);
       window.AntiochiaArchiveMusicDom?.renderAudioSection(audioSection, playable, {
         duration: resolveKey(lang, "music.duration") || "Duration",
         credit: resolveKey(lang, "provenance.sourceLabel") || "Source",
         author: resolveKey(lang, "provenance.photoBy") || "Credit",
         license: resolveKey(lang, "provenance.license") || "License",
-        trackLabelTemplate: resolveKey(lang, "music.trackLabel") || "Track {n}",
+        trackLabelTemplate: resolveKey(lang, isProverb ? "proverbs.audio" : "music.trackLabel") || "Track {n}",
       });
     }
   }
@@ -1712,8 +1770,9 @@ function renderMusicFeature(lang) {
 
 function initMusicFeature() {
   const listContainer = document.getElementById("music-list-container");
-  const audioSection = document.querySelector("[data-music-audio-section]");
-  if (!listContainer && !audioSection) return;
+  const proverbsListContainer = document.getElementById("proverbs-list-container");
+  const audioSection = document.querySelector("[data-music-audio-section], [data-proverb-audio-section]");
+  if (!listContainer && !proverbsListContainer && !audioSection) return;
   ensureDiscoveryEntities().then((entities) => {
     if (entities) renderMusicFeature(currentLang);
   });

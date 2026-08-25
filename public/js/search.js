@@ -73,6 +73,19 @@
     if (typeof entity.structureType === "string") parts.push(entity.structureType);
     if (typeof entity.genre === "string") parts.push(entity.genre);
     if (typeof entity.storyCategory === "string") parts.push(entity.storyCategory);
+    // proverb: originalText/transliteration are plain strings (a single
+    // canonical local-form expression, not a per-language object — see
+    // backend/v2/schemas/proverb.js); the rest are multilingual meaning/
+    // translation fields. Preserved verbatim (no auto-transliteration).
+    if (typeof entity.originalText === "string") parts.push(entity.originalText);
+    if (typeof entity.transliteration === "string") parts.push(entity.transliteration);
+    if (typeof entity.language === "string") parts.push(entity.language);
+    if (typeof entity.dialect === "string") parts.push(entity.dialect);
+    collectMultilingualText(entity.literalMeaning, parts);
+    collectMultilingualText(entity.culturalMeaning, parts);
+    collectMultilingualText(entity.translations, parts);
+    collectMultilingualText(entity.usageContext, parts);
+    collectMultilingualText(entity.example, parts);
     parts.push(entity.entityType, entity.slug);
     return parts.filter(Boolean).join(" ␟ ");
   }

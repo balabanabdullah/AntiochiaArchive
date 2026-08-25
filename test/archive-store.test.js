@@ -19,13 +19,13 @@ test("byType/byId/bySlug are simple, order-preserving lookups", () => {
   assert.equal(bySlug(entities, "missing"), null);
 });
 
-test("detailEligible keeps only the 7 types with a static detail page — never media/source", () => {
+test("detailEligible keeps only the 8 types with a static detail page — never media/source", () => {
   const entities = [
     entity("h1", "historicalContext"), entity("m1", "media"), entity("s1", "source"),
     entity("p1", "proverb"), entity("pl1", "place"),
   ];
-  assert.deepEqual(detailEligible(entities).map((e) => e.id), ["h1", "pl1"]);
-  assert.deepEqual(DETAIL_TYPES, ["historicalContext", "community", "belief", "place", "structure", "story", "music"]);
+  assert.deepEqual(detailEligible(entities).map((e) => e.id), ["h1", "p1", "pl1"]);
+  assert.deepEqual(DETAIL_TYPES, ["historicalContext", "community", "belief", "place", "structure", "story", "music", "proverb"]);
 });
 
 test("pickRandomEntity never returns the excluded (currently-viewed) entity", () => {

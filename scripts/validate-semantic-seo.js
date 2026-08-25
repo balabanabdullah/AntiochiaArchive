@@ -21,6 +21,7 @@ const publicPages = [
   { file: "pages/communities.html", url: `${productionOrigin}/pages/communities.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/places.html", url: `${productionOrigin}/pages/places.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/music.html", url: `${productionOrigin}/pages/music.html`, types: ["CollectionPage", "BreadcrumbList"] },
+  { file: "pages/proverbs.html", url: `${productionOrigin}/pages/proverbs.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/gallery.html", url: `${productionOrigin}/pages/gallery.html`, types: ["CollectionPage", "BreadcrumbList"] },
   { file: "pages/contributions.html", url: `${productionOrigin}/pages/contributions.html`, types: [] },
   { file: "pages/methodology.html", url: `${productionOrigin}/pages/methodology.html`, types: ["WebPage"] },

@@ -11,6 +11,7 @@ const HTML_ENTRIES = Object.freeze([
   "pages/communities.html",
   "pages/places.html",
   "pages/music.html",
+  "pages/proverbs.html",
   "pages/gallery.html",
   "pages/contributions.html",
   "pages/submissions.html",

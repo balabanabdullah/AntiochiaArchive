@@ -121,6 +121,7 @@ export default defineConfig({
         communities:   "pages/communities.html",
         places:        "pages/places.html",
         music:         "pages/music.html",
+        proverbs:      "pages/proverbs.html",
         admin:         "pages/admin.html",
         gallery:       "pages/gallery.html",
         submissions:   "pages/submissions.html",

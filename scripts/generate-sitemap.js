@@ -23,6 +23,7 @@ const urls = [
   `${PRODUCTION_ORIGIN}/pages/map.html`,
   `${PRODUCTION_ORIGIN}/pages/collections.html`,
   `${PRODUCTION_ORIGIN}/pages/search.html`,
+  `${PRODUCTION_ORIGIN}/pages/proverbs.html`,
   ...v2SitemapUrls(v2Entities),
 ];
 
@@ -38,4 +39,4 @@ ${uniqueUrls.map((url) => `  <url><loc>${url}</loc></url>`).join("\n")}
 
 await writeFile(resolve(distRoot, "sitemap.xml"), xml, "utf8");
 
-console.log(`Generated sitemap.xml with ${uniqueUrls.length} URLs (${sitemapUrls(archive).length} v1 + 5 v2/discovery category pages + ${v2Entities.length} v2 detail pages).`);
+console.log(`Generated sitemap.xml with ${uniqueUrls.length} URLs (${sitemapUrls(archive).length} v1 + 6 v2/discovery category pages + ${v2Entities.length} v2 detail pages).`);

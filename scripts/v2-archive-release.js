@@ -20,8 +20,12 @@ import { serializePublicEntity } from "../backend/v2/serializers/publicSerialize
 import { PRODUCTION_ORIGIN, escapeHtml, safeHttpUrl, localized } from "./archive-release.js";
 
 // Path segment -> domain entityType, mirroring backend/v2/routes/v2Routes.js's
-// TYPE_ROUTES (proverb/media/source excluded: proverb has 0 public records
-// today, and media/source are never standalone detail-page content).
+// TYPE_ROUTES (media/source excluded: they are never standalone detail-page
+// content — see backend/v2/schemas/media.js). proverb has 0 public records
+// today (see V2-ARCHITECTURE.md "No production migration yet") but is
+// included here as static-generation infrastructure: a published proverb
+// gets a real detail page the moment one exists, with zero further code
+// changes, exactly like every other type in this list.
 export const V2_DETAIL_TYPES = Object.freeze([
   "historicalContext",
   "community",
@@ -30,6 +34,7 @@ export const V2_DETAIL_TYPES = Object.freeze([
   "structure",
   "story",
   "music",
+  "proverb",
 ]);
 
 export const V2_TYPE_INFO = Object.freeze({
@@ -40,6 +45,7 @@ export const V2_TYPE_INFO = Object.freeze({
   structure: { href: "/pages/structures.html", navKey: "structures", label: "Structures" },
   story: { href: "/pages/stories.html", navKey: "stories", label: "Stories" },
   music: { href: "/pages/music.html", navKey: "music", label: "Music" },
+  proverb: { href: "/pages/proverbs.html", navKey: "proverbs", label: "Proverbs & Expressions" },
 });
 
 export function v2DetailPath(entity) {
@@ -87,6 +93,7 @@ export function v2EntityFact(entity, language = "en") {
   if (entity.entityType === "historicalContext") return localized(entity.period?.label, language);
   if (entity.entityType === "structure") return entity.structureType || "";
   if (entity.entityType === "music") return entity.genre || "";
+  if (entity.entityType === "proverb") return entity.dialect || (entity.language ? entity.language.toUpperCase() : "");
   if (entity.entityType === "story") return entity.storyCategory || (Array.isArray(entity.tags) ? entity.tags[0] : "") || "";
   if (entity.entityType === "place") {
     const officialName = localized(entity.officialName, language);
@@ -142,6 +149,7 @@ function pageNavigation(activeNavKey) {
     { navKey: "gallery", href: "/pages/gallery.html", label: "Gallery" },
     { navKey: "map", href: "/pages/map.html", label: "Map" },
     { navKey: "collections", href: "/pages/collections.html", label: "Collections" },
+    { navKey: "proverbs", href: "/pages/proverbs.html", label: "Proverbs & Expressions" },
   ];
   return base.map(({ navKey, href, label }) => (
     `<a href="${href}" data-i18n="nav.${navKey}"${navKey === activeNavKey ? ' class="is-active"' : ""}>${label}</a>`
@@ -232,11 +240,15 @@ function metadataPanelMarkup(entity, language, placeById) {
     rows.push(["detail.languagesLabel", "Languages", escapeHtml(entity.languages.join(", ").toUpperCase())]);
   }
 
-  // dialect/originalLanguage are public fields on music (and proverb, not yet
-  // rendered) — a free-text cultural dialect label plus the ISO-ish language
-  // code already used elsewhere on the site (tr/en/ar), never fabricated.
+  // dialect/originalLanguage are public fields on music and story — a
+  // free-text cultural dialect label plus the ISO-ish language code already
+  // used elsewhere on the site (tr/en/ar), never fabricated.
   if (entity.dialect) rows.push(["detail.dialect", "Dialect", escapeHtml(entity.dialect)]);
   if (entity.originalLanguage) rows.push(["detail.originalLanguage", "Original Language", escapeHtml(entity.originalLanguage.toUpperCase())]);
+  // proverb.language is the same tr/en/ar controlled vocabulary as
+  // originalLanguage above, just under its own schema field name.
+  if (entity.entityType === "proverb" && entity.language) rows.push(["detail.language", "Language", escapeHtml(entity.language.toUpperCase())]);
+  if (entity.entityType === "proverb" && entity.transliteration) rows.push(["detail.transliteration", "Transliteration", escapeHtml(entity.transliteration)]);
 
   if (!rows.length && !entity.evidenceType) return "";
   return `<section class="record-detail-section record-metadata-section" aria-labelledby="record-metadata-heading">
@@ -316,23 +328,68 @@ function musicTextSectionMarkup(entity, language) {
 }
 
 /**
- * Hidden placeholder for the real audio player — only emitted for a music
- * entity that actually carries audioMediaIds. Populated client-side (see
+ * Hidden placeholder for the real audio player — only emitted for a music or
+ * proverb entity that actually carries audioMediaIds (both types share the
+ * same public `audioMediaIds` field and rights model — see
+ * backend/v2/serializers/publicSerializer.js). Populated client-side (see
  * renderMusicFeature() in public/script.js + public/js/music.js): resolving
  * an audioMediaIds entry to its `media` entity, and applying the rights gate
  * (rightsStatus === "cleared"), both require the full public entity set
  * (including `media`), which this static generator's own entity list never
  * includes (see V2_DETAIL_TYPES — media has no detail page and is
- * deliberately excluded from collectPublicV2Entities()). A music entity
- * with audioMediaIds that all turn out non-playable (unresolved rights,
+ * deliberately excluded from collectPublicV2Entities()). An entity with
+ * audioMediaIds that all turn out non-playable (unresolved rights,
  * unsupported format, or simply missing) is left `hidden` by the client —
  * this container never implies a player exists.
  */
-function musicAudioSectionMarkup(entity) {
-  if (entity.entityType !== "music" || !Array.isArray(entity.audioMediaIds) || !entity.audioMediaIds.length) return "";
-  return `<section class="record-detail-section record-audio-section" data-music-audio-section hidden aria-labelledby="record-audio-heading">
-              <h2 id="record-audio-heading" data-i18n="music.audio">Audio</h2>
+function audioSectionMarkup(entity) {
+  if (!["music", "proverb"].includes(entity.entityType) || !Array.isArray(entity.audioMediaIds) || !entity.audioMediaIds.length) return "";
+  const attr = entity.entityType === "proverb" ? "data-proverb-audio-section" : "data-music-audio-section";
+  const headingKey = entity.entityType === "proverb" ? "proverbs.audio" : "music.audio";
+  const headingFallback = entity.entityType === "proverb" ? "Audio Recording" : "Audio";
+  return `<section class="record-detail-section record-audio-section" ${attr} hidden aria-labelledby="record-audio-heading">
+              <h2 id="record-audio-heading" data-i18n="${headingKey}">${escapeHtml(headingFallback)}</h2>
               <div data-music-audio-container></div>
+            </section>`;
+}
+
+/**
+ * The proverb's local-form expression itself — the visually dominant
+ * element per the card/detail design brief. `originalText` is a single
+ * plain string (the canonical local-dialect form), never multilingual and
+ * never auto-transliterated (see backend/v2/schemas/proverb.js) — rendered
+ * exactly as the reviewed record has it, with dir="auto" so a Latin,
+ * Arabizi, or Arabic-script expression each get correct directionality
+ * regardless of the page's current UI language.
+ */
+function proverbExpressionMarkup(entity) {
+  if (entity.entityType !== "proverb" || !entity.originalText) return "";
+  return `<section class="record-detail-section record-proverb-expression-section" aria-labelledby="record-proverb-expression-heading">
+              <h2 id="record-proverb-expression-heading" hidden>Expression</h2>
+              <p class="record-proverb-expression" dir="auto">${escapeHtml(entity.originalText)}</p>
+            </section>`;
+}
+
+/**
+ * Proverb literal/cultural meaning, usage context, example, and translation
+ * — public multilingual text fields already on the entity itself (mirrors
+ * musicTextSectionMarkup's "bake real text in at build time" approach).
+ * Renders only the subsections that actually have content in this language;
+ * renders nothing at all for a proverb with none of them.
+ */
+function proverbTextSectionMarkup(entity, language) {
+  if (entity.entityType !== "proverb") return "";
+  const rows = [
+    ["detail.literalMeaning", "Literal Meaning", localized(entity.literalMeaning, language)],
+    ["detail.culturalMeaning", "Cultural Meaning", localized(entity.culturalMeaning, language)],
+    ["detail.usageContext", "Usage Context", localized(entity.usageContext, language)],
+    ["detail.example", "Example", localized(entity.example, language)],
+    ["proverbs.translation", "Translation", localized(entity.translations, language)],
+  ].filter(([, , text]) => text);
+  if (!rows.length) return "";
+  return `<section class="record-detail-section record-proverb-text-section" aria-labelledby="record-proverb-text-heading">
+              <h2 id="record-proverb-text-heading" hidden>Meaning &amp; Usage</h2>
+              ${rows.map(([key, fallback, text]) => `<h3 data-i18n="${key}">${escapeHtml(fallback)}</h3><p class="record-proverb-text-block">${escapeHtml(text)}</p>`).join("\n              ")}
             </section>`;
 }
 
@@ -435,10 +492,12 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
               <h2 id="record-about-heading" data-i18n="detail.aboutRecord">About this record</h2>
               <p data-detail-description>${escapeHtml(description)}</p>
             </section>
+            ${proverbExpressionMarkup(entity)}
             ${namesSectionMarkup(entity, "en")}
             ${metadataPanelMarkup(entity, "en", placeById)}
-            ${musicAudioSectionMarkup(entity)}
+            ${audioSectionMarkup(entity)}
             ${musicTextSectionMarkup(entity, "en")}
+            ${proverbTextSectionMarkup(entity, "en")}
             ${locationPreviewMarkup(entity)}
             ${shareControlsMarkup(canonical, title)}
           </div>
@@ -464,7 +523,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
   <script src="${escapeHtml(v2ApiScript)}"></script>
   ${archiveStoreScript ? `<script src="${escapeHtml(archiveStoreScript)}"></script>` : ""}
   ${searchScript ? `<script src="${escapeHtml(searchScript)}"></script>` : ""}
-  ${entity.entityType === "music" && Array.isArray(entity.audioMediaIds) && entity.audioMediaIds.length && musicScript ? `<script src="${escapeHtml(musicScript)}"></script>` : ""}
+  ${["music", "proverb"].includes(entity.entityType) && Array.isArray(entity.audioMediaIds) && entity.audioMediaIds.length && musicScript ? `<script src="${escapeHtml(musicScript)}"></script>` : ""}
   <script src="${escapeHtml(appScript)}"></script>
   <button id="back-to-top" class="back-to-top" type="button" data-i18n-aria="backToTop" aria-label="Back to Top"><span class="back-to-top-icon" aria-hidden="true">↑</span><span class="back-to-top-text" data-i18n="backToTop">Back to Top</span></button>
 </body>

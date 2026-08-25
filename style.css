@@ -1319,6 +1319,108 @@ html[dir="rtl"] .story-card:hover .story-link-arrow {
 }
 
 /* --------------------------------------------------------------------------
+   11a2. Proverbs & Expressions Section (#proverbs) — "Mettule"
+   -------------------------------------------------------------------------- */
+.proverbs-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+
+.proverb-card {
+  background: var(--clr-paper-light);
+  border: 1px solid var(--clr-line-strong);
+  border-top: 3px solid var(--clr-plum);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  transition: transform var(--dur-mid) var(--ease), border-color var(--dur-mid) var(--ease);
+}
+.proverb-card:hover {
+  transform: translateY(-3px);
+  border-top-color: var(--clr-red);
+}
+
+.proverb-badge {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--clr-plum);
+}
+
+/* The local-form expression itself — visually dominant per the card design
+   brief. dir="auto" (set inline, see renderV2Proverbs in script.js) lets a
+   Latin/Arabizi/Arabic-script expression each get correct directionality
+   regardless of the page's current UI language. */
+.proverb-expression {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  line-height: 1.35;
+  color: var(--clr-ink);
+}
+
+.proverb-meaning {
+  font-size: 0.92rem;
+  font-weight: 300;
+  color: var(--clr-ink-muted);
+}
+
+.proverb-meta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--clr-olive);
+}
+
+.proverbs-empty-state {
+  grid-column: 1 / -1;
+  padding: var(--sp-6) var(--sp-4);
+  text-align: center;
+  color: var(--clr-ink-muted);
+  background: var(--clr-paper-light);
+  border: 1px dashed var(--clr-line-strong);
+  border-radius: var(--radius-md);
+}
+
+/* Proverb detail page: the expression as a large standalone statement,
+   and its literal/cultural meaning, usage, example & translation text —
+   both server-rendered at build time, mirroring the music lyrics/transcript
+   pattern (.record-music-text-section below). */
+.record-proverb-expression-section {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--clr-paper-light);
+  border-left: 3px solid var(--clr-plum);
+}
+html[dir="rtl"] .record-proverb-expression-section {
+  border-left: 0;
+  border-right: 3px solid var(--clr-plum);
+}
+.record-proverb-expression {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  line-height: 1.4;
+  color: var(--clr-ink);
+}
+
+.record-proverb-text-section h3 {
+  margin-top: var(--sp-4);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--clr-red-dark);
+}
+.record-proverb-text-section h3:first-child { margin-top: 0; }
+.record-proverb-text-block {
+  white-space: pre-line;
+  line-height: 1.8;
+  color: var(--clr-ink);
+}
+
+/* --------------------------------------------------------------------------
    11b. Communities Section (#communities) & Places Section (#places)
    -------------------------------------------------------------------------- */
 .section-communities {
@@ -1938,7 +2040,8 @@ html[dir="rtl"] .back-to-top {
   .music-list,
   .communities-grid,
   .places-grid,
-  .gallery-grid {
+  .gallery-grid,
+  .proverbs-list {
     grid-template-columns: 1fr;
   }
 
@@ -2361,6 +2464,13 @@ html[dir="rtl"] .back-to-top {
   align-items: center;
   gap: var(--sp-2);
   position: relative;
+}
+/* A zero-record type (e.g. proverb before any is published) gets no filter
+   controls at all — see renderDynamicFilterBars() in public/script.js,
+   which sets [hidden] here. The [hidden] attribute alone loses to the
+   .filter-bar-wrap { display: flex } rule above without this override. */
+.filter-bar-wrap[hidden] {
+  display: none;
 }
 
 .filter-bar {

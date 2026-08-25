@@ -71,6 +71,12 @@ const FIXTURES = {
       title: { tr: "Fann", en: "Fann — Oral Poetry" },
       summary: { tr: "Özet." }, genre: "oral poetry / vocal performance" },
   ],
+  proverb: [
+    { id: "proverb-0001", slug: "el-eli-yikar", entityType: "proverb", status: "published",
+      title: { tr: "El eli yıkar", en: "One hand washes the other" },
+      originalText: "El eli yıkar, iki el de yüzü yıkar", dialect: "Samandağ", language: "tr",
+      culturalMeaning: { en: "Mutual help benefits everyone involved." } },
+  ],
 };
 
 const RENDER_FN_BY_TYPE = {
@@ -81,6 +87,7 @@ const RENDER_FN_BY_TYPE = {
   structure: "renderV2Structures",
   story: "renderV2Stories",
   music: "renderV2Music",
+  proverb: "renderV2Proverbs",
 };
 
 const CARD_CLASS_BY_TYPE = {
@@ -91,6 +98,7 @@ const CARD_CLASS_BY_TYPE = {
   structure: "struct-card",
   story: "story-card",
   music: "music-track-card",
+  proverb: "proverb-card",
 };
 
 for (const [type, fixtures] of Object.entries(FIXTURES)) {
@@ -174,6 +182,31 @@ test("music cards derive data-category from genre", () => {
   context.items = FIXTURES.music;
   const html = vm.runInContext('renderV2Music(items, "en")', context);
   assert.match(html, /data-category="oral poetry \/ vocal performance"/);
+});
+
+test("proverb cards derive data-category from dialect", () => {
+  const context = createRendererContext();
+  context.items = FIXTURES.proverb;
+  const html = vm.runInContext('renderV2Proverbs(items, "en")', context);
+  assert.match(html, /data-category="Samandağ"/);
+});
+
+test("proverb cards render the local-form expression (originalText) as the dominant text, escaped against XSS", () => {
+  const context = createRendererContext();
+  context.items = [{ ...FIXTURES.proverb[0], originalText: '<script>alert(1)</script>' }];
+  const html = vm.runInContext('renderV2Proverbs(items, "en")', context);
+  assert.match(html, /class="proverb-expression"/);
+  assert.ok(!html.includes("<script>alert(1)</script>"), "originalText must be HTML-escaped, never rendered raw");
+  assert.match(html, /&lt;script&gt;/);
+});
+
+test("renderV2Proverbs: zero public proverbs renders a polished empty state — never a fabricated sample card", () => {
+  const context = createRendererContext();
+  context.items = [];
+  const html = vm.runInContext('renderV2Proverbs(items, "en")', context);
+  assert.match(html, /class="proverbs-empty-state"/);
+  assert.ok(!html.includes("proverb-card"), "must render no card at all when the public count is 0");
+  assert.match(html, /no published proverb or expression records yet/i);
 });
 
 test("place cards show officialName only when it differs from the title, never duplicating identical text", () => {

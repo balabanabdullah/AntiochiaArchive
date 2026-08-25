@@ -28,6 +28,7 @@
     "structure",
     "story",
     "music",
+    "proverb",
   ]);
 
   let cachedPromise = null;

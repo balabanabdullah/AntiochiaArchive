@@ -246,6 +246,88 @@ test("dialect/originalLanguage render as metadata rows only for an entity that a
   assert.doesNotMatch(htmlWithout, /detail\.originalLanguage/);
 });
 
+test("a proverb entity with audioMediaIds gets a hidden, client-populated audio-section placeholder (data-proverb-audio-section) and loads music.js; one without gets neither", () => {
+  const withAudio = {
+    id: "proverb-0099", slug: "sample-proverb", entityType: "proverb", status: "published",
+    title: { en: "Sample Proverb" }, summary: { en: "S" }, originalText: "Sample expression",
+    audioMediaIds: ["media-0001"],
+  };
+  const htmlWith = generateV2DetailDocument({
+    entity: withAudio, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", musicScript: "/m.js", appScript: "/a.js",
+  });
+  assert.match(htmlWith, /data-proverb-audio-section/);
+  assert.match(htmlWith, /<section class="record-detail-section record-audio-section" data-proverb-audio-section hidden/);
+  assert.match(htmlWith, /<script src="\/m\.js"><\/script>/);
+
+  const withoutAudio = { ...withAudio, id: "proverb-0098", audioMediaIds: [] };
+  const htmlWithout = generateV2DetailDocument({
+    entity: withoutAudio, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", musicScript: "/m.js", appScript: "/a.js",
+  });
+  assert.doesNotMatch(htmlWithout, /data-proverb-audio-section/);
+  assert.doesNotMatch(htmlWithout, /<script src="\/m\.js"><\/script>/, "music.js must not load on a proverb page with nothing for it to do");
+});
+
+test("a proverb's expression (originalText) renders as a dominant, escaped section — real text on first paint, never auto-transliterated", () => {
+  const entity = {
+    id: "proverb-0097", slug: "with-expression", entityType: "proverb", status: "published",
+    title: { en: "T" }, summary: { en: "S" }, originalText: "İ7ki 7ala ma bitzid <script>alert(1)</script>",
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /record-proverb-expression-section/);
+  assert.match(html, /class="record-proverb-expression" dir="auto"/);
+  assert.match(html, /İ7ki 7ala ma bitzid &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
+
+  const withoutExpression = { ...entity, id: "proverb-0096", originalText: undefined };
+  const htmlWithout = generateV2DetailDocument({ entity: withoutExpression, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(htmlWithout, /record-proverb-expression-section/);
+});
+
+test("a proverb's literalMeaning/culturalMeaning/usageContext/example/translations are server-rendered as real text, escaped, and omitted per-field when absent", () => {
+  const entity = {
+    id: "proverb-0095", slug: "with-meaning", entityType: "proverb", status: "published",
+    title: { en: "T" }, summary: { en: "S" }, originalText: "Expr",
+    literalMeaning: { en: "Literal <script>alert(1)</script>" },
+    culturalMeaning: { en: "Cultural meaning text" },
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /record-proverb-text-section/);
+  assert.match(html, /data-i18n="detail\.literalMeaning"/);
+  assert.match(html, /Literal &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
+  assert.match(html, /data-i18n="detail\.culturalMeaning"/);
+  assert.doesNotMatch(html, /data-i18n="detail\.usageContext"/, "an absent field must render no subsection at all");
+  assert.doesNotMatch(html, /data-i18n="detail\.example"/);
+  assert.doesNotMatch(html, /data-i18n="proverbs\.translation"/);
+
+  const noText = { ...entity, id: "proverb-0094", literalMeaning: undefined, culturalMeaning: undefined };
+  const htmlNoText = generateV2DetailDocument({ entity: noText, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(htmlNoText, /record-proverb-text-section/);
+});
+
+test("proverb language/transliteration render as metadata rows only for an entity that actually carries them, never fabricated", () => {
+  const entity = {
+    id: "proverb-0093", slug: "with-language", entityType: "proverb", status: "published",
+    title: { en: "T" }, summary: { en: "S" }, originalText: "Expr", language: "ar", transliteration: "Latinized form",
+  };
+  const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.match(html, /data-i18n="detail\.language"/);
+  assert.match(html, />AR</);
+  assert.match(html, /data-i18n="detail\.transliteration"/);
+  assert.match(html, />Latinized form</);
+
+  const withoutLanguage = { ...entity, id: "proverb-0092", language: undefined, transliteration: undefined };
+  const htmlWithout = generateV2DetailDocument({ entity: withoutLanguage, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });
+  assert.doesNotMatch(htmlWithout, /detail\.language/);
+  assert.doesNotMatch(htmlWithout, /detail\.transliteration/);
+});
+
+test("V2_DETAIL_TYPES/V2_TYPE_INFO include proverb, so a published proverb gets a real /archive-v2/{slug}/ static page with zero further code changes", () => {
+  assert.ok(V2_DETAIL_TYPES.includes("proverb"));
+  assert.equal(V2_TYPE_INFO.proverb.href, "/pages/proverbs.html");
+  assert.equal(V2_TYPE_INFO.proverb.navKey, "proverbs");
+});
+
 test("metadata panel (period/type/evidence) is entirely omitted when the entity carries none of those fields", () => {
   const entity = { id: "belief-0100", slug: "no-metadata", entityType: "belief", status: "published", title: { en: "T" }, summary: { en: "S" } };
   const html = generateV2DetailDocument({ entity, stylesheet: "/s.css", langScript: "/l.js", v2ApiScript: "/v2.js", appScript: "/a.js" });

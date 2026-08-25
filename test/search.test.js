@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-globalThis.AntiochiaArchiveStore = { DETAIL_TYPES: ["historicalContext", "community", "belief", "place", "structure", "story", "music"] };
+globalThis.AntiochiaArchiveStore = { DETAIL_TYPES: ["historicalContext", "community", "belief", "place", "structure", "story", "music", "proverb"] };
 await import("../public/js/search.js");
 
 const { normalizeSearchText, buildSearchIndex, searchEntities, displayTitle } = globalThis.AntiochiaArchiveSearch;
@@ -57,7 +57,7 @@ test("relevance ranks a title starting with the query above a mid-string match",
   assert.equal(results[0].id, "start");
 });
 
-test("buildSearchIndex only includes the 7 detail-eligible entity types — never media/source", () => {
+test("buildSearchIndex only includes the 8 detail-eligible entity types — never media/source", () => {
   const entities = [
     { id: "m1", entityType: "media", slug: undefined, title: {}, summary: {} },
     { id: "src1", entityType: "source", title: { en: "Some Antioch source" } },
@@ -85,4 +85,48 @@ test("limit caps the number of returned results", () => {
 test("displayTitle falls back through en -> tr -> ar -> slug, never 'undefined'", () => {
   assert.equal(displayTitle({ title: { tr: "Türkçe" }, slug: "x" }, "en"), "Türkçe");
   assert.equal(displayTitle({ title: {}, slug: "fallback-slug" }, "en"), "fallback-slug");
+});
+
+test("a proverb is searchable by its local-form expression (originalText) and transliteration, preserved exactly (never auto-transliterated)", () => {
+  const entities = [
+    {
+      id: "prov1", entityType: "proverb", slug: "il-kseyr-saying", title: { en: "A local saying" }, summary: {},
+      originalText: "Il_Kseyr 7ala tayybe", transliteration: "il-kseyr hala tayibe",
+    },
+  ];
+  const index = buildSearchIndex(entities);
+  assert.deepEqual(searchEntities(index, "Il_Kseyr").map((e) => e.id), ["prov1"]);
+  assert.deepEqual(searchEntities(index, "tayybe").map((e) => e.id), ["prov1"]);
+  assert.deepEqual(searchEntities(index, "hala").map((e) => e.id), ["prov1"], "transliteration must also be searchable");
+});
+
+test("a proverb is searchable by dialect, language, and multilingual meaning/translation fields", () => {
+  const entities = [
+    {
+      id: "prov2", entityType: "proverb", slug: "meaning-search", title: { en: "T" }, summary: {},
+      dialect: "Samandağ", language: "ar",
+      literalMeaning: { en: "washes the hand" }, culturalMeaning: { tr: "karşılıklı yardımlaşma" },
+      translations: { en: "mutual benefit proverb" }, usageContext: { en: "used at communal gatherings" },
+      example: { en: "spoken during a barn raising" },
+    },
+  ];
+  const index = buildSearchIndex(entities);
+  assert.deepEqual(searchEntities(index, "Samandağ").map((e) => e.id), ["prov2"]);
+  assert.deepEqual(searchEntities(index, "karşılıklı").map((e) => e.id), ["prov2"]);
+  assert.deepEqual(searchEntities(index, "mutual benefit").map((e) => e.id), ["prov2"]);
+  assert.deepEqual(searchEntities(index, "communal gatherings").map((e) => e.id), ["prov2"]);
+  assert.deepEqual(searchEntities(index, "barn raising").map((e) => e.id), ["prov2"]);
+});
+
+test("draft/inReview proverb entities are never in the search index (index is built only from the already-public entity set passed in)", () => {
+  // buildSearchIndex has no publication-status awareness of its own — it only
+  // ever sees whatever entities the caller already fetched from the public
+  // /api/v2 endpoints, which never include a draft/inReview record. This
+  // documents that contract rather than re-testing the backend gate.
+  const entities = [
+    { id: "prov3", entityType: "proverb", slug: "public-proverb", title: { en: "Public" }, summary: {}, originalText: "Public expr" },
+  ];
+  const index = buildSearchIndex(entities);
+  assert.equal(index.length, 1);
+  assert.equal(searchEntities(index, "public").length, 1);
 });

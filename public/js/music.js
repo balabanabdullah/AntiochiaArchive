@@ -102,7 +102,7 @@
     })[char]);
   }
 
-  /** Adds/removes the "has audio" badge + class on already-rendered music cards (data-entity-id, see renderV2Music in script.js). Never adds a badge for anything but a genuinely playable asset. */
+  /** Adds/removes the "has audio" badge + class on already-rendered cards (data-entity-id — music cards from renderV2Music, proverb cards from renderV2Proverbs, both in script.js). Never adds a badge for anything but a genuinely playable asset. */
   function annotateAudioBadges(container, playableIdSet, badgeLabel) {
     if (!container) return;
     container.querySelectorAll("[data-entity-id]").forEach((card) => {
@@ -116,7 +116,9 @@
           badge.className = "track-audio-badge";
           badge.setAttribute("data-audio-badge", "");
           badge.innerHTML = `<span aria-hidden="true">♪</span> <span data-audio-badge-label></span>`;
-          card.querySelector(".track-info")?.prepend(badge);
+          // Music cards wrap their text in .track-info; other card layouts
+          // (e.g. proverb cards) prepend directly onto the card itself.
+          (card.querySelector(".track-info") || card).prepend(badge);
         }
         const labelEl = badge.querySelector("[data-audio-badge-label]");
         if (labelEl) labelEl.textContent = badgeLabel || "";

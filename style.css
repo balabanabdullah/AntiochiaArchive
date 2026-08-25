@@ -63,6 +63,41 @@
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 16px;
+
+  /* Semantic color aliases — thin wrappers around the palette above, so new
+     work can reason in "role" terms without renaming or duplicating the
+     existing --clr-* tokens every other rule in this file already depends
+     on. See "1a. Semantic Tokens" below. */
+  --color-bg:            var(--clr-paper);
+  --color-surface:       var(--clr-paper-light);
+  --color-surface-warm:  var(--clr-paper-deep);
+  --color-text:          var(--clr-ink);
+  --color-text-muted:    var(--clr-ink-muted);
+  --color-primary:       var(--clr-red);
+  --color-primary-hover: var(--clr-red-dark);
+  --color-accent:        var(--clr-plum);
+  --color-border:        var(--clr-line-strong);
+  --color-border-soft:   var(--clr-line);
+
+  /* Shadows — consolidating the handful of box-shadow values already
+     repeated verbatim across cards/menus/focus rings into three named
+     levels. Existing literal box-shadow declarations are left as-is; new
+     work should reach for these instead of a new one-off value. */
+  --shadow-soft:     0 4px 16px rgba(28, 24, 20, 0.06);
+  --shadow-card:     0 10px 24px rgba(28, 24, 20, 0.1);
+  --shadow-elevated: 0 20px 40px rgba(28, 24, 20, 0.14);
+
+  /* Type scale — for new editorial hierarchy work (hero/section/card
+     titles). Existing component-level font-size declarations are
+     untouched; retrofitting every one of the ~200 existing rules to this
+     scale would be a large, unrelated rewrite this round doesn't need. */
+  --text-xs:   0.72rem;
+  --text-sm:   0.86rem;
+  --text-base: 1rem;
+  --text-lg:   1.15rem;
+  --text-xl:   1.5rem;
+  --text-2xl:  clamp(1.8rem, 3vw, 2.4rem);
+  --text-hero: clamp(2.6rem, 6vw, 4.2rem);
 }
 
 /* --------------------------------------------------------------------------
@@ -162,7 +197,13 @@ section[id] {
   background: rgba(242, 234, 216, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--clr-line);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-mid) var(--ease), box-shadow var(--dur-mid) var(--ease);
+}
+.site-header:not(.is-scrolled) { border-bottom-color: var(--clr-line); }
+.site-header.is-scrolled {
+  border-bottom-color: var(--clr-line-strong);
+  box-shadow: var(--shadow-soft);
 }
 
 .header-inner {
@@ -320,12 +361,14 @@ html[dir="rtl"] .nav-primary a::after { --origin: 100% 50%; }
 }
 
 .lang-btn {
-  padding: 5px 8px;
-  border-radius: 3px;
+  min-width: 32px;
+  padding: 8px;
+  border-radius: 4px;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   color: var(--clr-ink-muted);
+  text-align: center;
   transition: color var(--dur-fast), background var(--dur-fast);
 }
 .lang-btn[aria-pressed="true"] {
@@ -337,24 +380,28 @@ html[dir="rtl"] .nav-primary a::after { --origin: 100% 50%; }
   background: var(--clr-paper-deep);
 }
 
-/* Contribute CTA */
+/* Contribute CTA — a filled primary pill (same brand-red family as
+   .btn-cta-primary elsewhere), deliberately modest in size so it reads as
+   "the one clear thing to do here" rather than an ad banner. */
 .btn-contribute {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 18px;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--color-primary);
   font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--clr-ink);
-  border: 1.5px solid var(--clr-ink);
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  color: #fff;
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .btn-contribute:hover,
 .btn-contribute:focus-visible {
-  background: var(--clr-ink);
-  color: var(--clr-paper);
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
 }
 
 /* Hamburger Button */
@@ -453,6 +500,42 @@ html[dir="rtl"] .nav-primary a::after { --origin: 100% 50%; }
 .mobile-nav a:focus-visible {
   color: var(--clr-red);
   padding-inline-start: var(--sp-2);
+}
+
+/* Group labels ("Archive" / "Discover") inside the mobile menu — a plain
+   heading, not a link, so it reads as a section divider rather than a
+   dead tap target. aria-hidden because the group is already implied by
+   the links that follow it; screen-reader users get the same flat list
+   order they've always had. */
+.mobile-nav-group-label {
+  margin-top: var(--sp-3);
+  padding: 0 4px 6px;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--clr-ink-muted);
+}
+.mobile-nav-group-label:first-of-type { margin-top: 0; }
+
+.mobile-nav-lang {
+  padding: var(--sp-3) 4px;
+}
+.mobile-nav-lang .lang-switcher { gap: 8px; }
+.mobile-nav-lang .lang-btn {
+  min-width: 56px;
+  min-height: 44px;
+  font-size: 0.8rem;
+  border: 1px solid var(--clr-line-strong);
+}
+.mobile-nav-lang .lang-btn[aria-pressed="true"] { border-color: var(--clr-ink); }
+
+.mobile-nav-contribute {
+  justify-content: center;
+  margin-top: var(--sp-2);
+  padding-block: 14px;
+  font-size: 0.86rem;
 }
 
 body.nav-open { overflow: hidden; }
@@ -1561,11 +1644,29 @@ html[dir="rtl"] .record-proverb-expression-section {
   margin-bottom: var(--sp-3);
 }
 
+.contribute-text {
+  padding-inline-start: var(--sp-3);
+  border-inline-start: 3px solid var(--color-accent);
+}
+
 .contribute-text p {
   font-size: 1rem;
   font-weight: 300;
   line-height: 1.85;
   color: var(--clr-ink-muted);
+}
+
+.contribute-trust-note {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--clr-line);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--clr-ink-muted);
+}
+.contribute-trust-note::before {
+  content: "✓ ";
+  color: var(--clr-olive);
 }
 
 /* Form */
@@ -1703,8 +1804,8 @@ html[dir="rtl"] .record-proverb-expression-section {
 
 .footer-top {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: var(--sp-6);
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: var(--sp-5);
   margin-bottom: var(--sp-6);
 }
 
@@ -1935,11 +2036,11 @@ html[dir="rtl"] .back-to-top {
     gap: var(--sp-5);
   }
 
-  .footer-inner {
-    grid-template-columns: 1fr;
-    gap: var(--sp-3);
+  .footer-top {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-4);
   }
-  .footer-links { justify-content: flex-start; }
+  .footer-brand-wrap { grid-column: 1 / -1; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
 }
 
@@ -3729,6 +3830,7 @@ html[dir="rtl"] .music-audio-item .music-audio-facts {
 .archive-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 84px; }
 .archive-stat-count { font-family: var(--font-serif); font-size: clamp(1.8rem, 3.4vw, 2.6rem); color: var(--clr-red); line-height: 1; }
 .archive-stat-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--clr-ink-muted); }
+.archive-summary-link { display: flex; justify-content: center; margin: var(--sp-4) auto 0; }
 
 /* --------------------------------------------------------------------------
    25. Explore Grid (Section C — quick access to discovery features)
@@ -3749,7 +3851,7 @@ html[dir="rtl"] .music-audio-item .music-audio-facts {
 .explore-grid-card:hover,
 .explore-grid-card:focus-visible {
   transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(28, 24, 20, 0.1);
+  box-shadow: var(--shadow-card);
   border-color: var(--clr-line-strong);
 }
 .explore-grid-icon { display: inline-block; margin-bottom: var(--sp-2); font-size: 1.6rem; color: var(--clr-red); }
@@ -3841,11 +3943,17 @@ a.timeline-rail-card:hover,
    27. Map (mini preview + full /pages/map.html)
    -------------------------------------------------------------------------- */
 .section-map-preview { padding: clamp(3rem, 6vw, 5rem) 0; background: var(--clr-paper); }
+.map-preview-stat {
+  margin-bottom: var(--sp-3);
+  color: var(--clr-ink-muted);
+  font-size: 0.92rem;
+}
 .map-preview-container {
   height: 380px;
   border: 1px solid var(--clr-line-strong);
   background: var(--clr-paper-deep);
 }
+.map-preview-cta { margin-top: var(--sp-3); }
 
 .section-map { padding-block: clamp(2.4rem, 5vw, 4rem); }
 
@@ -4060,7 +4168,7 @@ html[dir="rtl"] .record-location-link { flex-direction: row-reverse; }
   border: 1px solid var(--clr-line);
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-.collection-preview-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(28, 24, 20, 0.1); }
+.collection-preview-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
 
 .collection-card-icon { display: inline-block; margin-bottom: var(--sp-2); font-size: 1.4rem; color: var(--clr-plum); }
 .collection-card-title { margin-bottom: 4px; font-family: var(--font-serif); font-size: 1.25rem; font-weight: 500; color: var(--clr-ink); }
@@ -4155,9 +4263,31 @@ a.generic-entity-card:hover,
    31. Methodology Teaser (Section J)
    -------------------------------------------------------------------------- */
 .section-methodology-teaser { padding: clamp(2.6rem, 5vw, 4rem) 0; background: var(--clr-paper-deep); border-top: 1px solid var(--clr-line); }
-.methodology-teaser-inner { max-width: 680px; text-align: center; margin-inline: auto; }
+.methodology-teaser-inner { max-width: 920px; text-align: center; margin-inline: auto; }
 .methodology-teaser-inner h2 { font-family: var(--font-serif); font-size: clamp(1.4rem, 2.8vw, 1.9rem); color: var(--clr-red-dark); margin: 6px 0; }
-.methodology-teaser-inner p { color: var(--clr-ink-muted); margin-bottom: var(--sp-3); }
+.methodology-teaser-inner > p { color: var(--clr-ink-muted); margin-bottom: var(--sp-4); max-width: 640px; margin-inline: auto; }
+
+.trust-signals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  text-align: start;
+}
+.trust-signal h3 {
+  margin-bottom: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--clr-ink);
+}
+.trust-signal p { font-size: 0.82rem; color: var(--clr-ink-muted); margin: 0; }
+.trust-signal-languages {
+  margin-top: 6px !important;
+  font-family: var(--font-serif);
+  font-size: 0.9rem !important;
+  color: var(--clr-ink) !important;
+}
 
 /* --------------------------------------------------------------------------
    32. Search Results Page
@@ -4335,7 +4465,7 @@ a.generic-entity-card:hover,
 .category-explore-card:hover,
 .category-explore-card:focus-visible {
   transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(28, 24, 20, 0.1);
+  box-shadow: var(--shadow-card);
   border-color: var(--clr-line-strong);
 }
 .category-explore-count { display: block; font-family: var(--font-serif); font-size: 1.8rem; color: var(--clr-red); line-height: 1; margin-bottom: 6px; }
@@ -4360,7 +4490,7 @@ a.generic-entity-card:hover,
 .quicklink-card:hover,
 .quicklink-card:focus-visible {
   transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(28, 24, 20, 0.1);
+  box-shadow: var(--shadow-card);
   border-color: var(--clr-line-strong);
 }
 .quicklink-card h3 { margin-bottom: 4px; font-family: var(--font-serif); font-size: 1.15rem; color: var(--clr-ink); font-weight: 500; }

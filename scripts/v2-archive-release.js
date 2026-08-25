@@ -137,24 +137,51 @@ function mediaMarkup(entity, language = "en") {
         </aside>` : ""}`;
 }
 
-function pageNavigation(activeNavKey) {
-  const base = [
-    { navKey: "history", href: "/pages/history.html", label: "History" },
-    { navKey: "stories", href: "/pages/stories.html", label: "Stories" },
-    { navKey: "structures", href: "/pages/structures.html", label: "Structures" },
-    { navKey: "beliefs", href: "/pages/beliefs.html", label: "Beliefs" },
-    { navKey: "communities", href: "/pages/communities.html", label: "Communities" },
-    { navKey: "places", href: "/pages/places.html", label: "Places" },
-    { navKey: "music", href: "/pages/music.html", label: "Music" },
-    { navKey: "gallery", href: "/pages/gallery.html", label: "Gallery" },
-    { navKey: "map", href: "/pages/map.html", label: "Map" },
-    { navKey: "collections", href: "/pages/collections.html", label: "Collections" },
-    { navKey: "discoverPage", href: "/pages/discover.html", label: "Explore the Archive" },
-    { navKey: "proverbs", href: "/pages/proverbs.html", label: "Proverbs & Expressions" },
-  ];
-  return base.map(({ navKey, href, label }) => (
-    `<a href="${href}" data-i18n="nav.${navKey}"${navKey === activeNavKey ? ' class="is-active"' : ""}>${label}</a>`
-  )).join("\n          ");
+const ARCHIVE_NAV_ITEMS = [
+  { navKey: "history", href: "/pages/history.html", label: "History" },
+  { navKey: "communities", href: "/pages/communities.html", label: "Communities" },
+  { navKey: "beliefs", href: "/pages/beliefs.html", label: "Beliefs" },
+  { navKey: "places", href: "/pages/places.html", label: "Places" },
+  { navKey: "structures", href: "/pages/structures.html", label: "Structures" },
+  { navKey: "stories", href: "/pages/stories.html", label: "Stories" },
+  { navKey: "music", href: "/pages/music.html", label: "Music" },
+  { navKey: "proverbs", href: "/pages/proverbs.html", label: "Proverbs &amp; Expressions" },
+  { navKey: "gallery", href: "/pages/gallery.html", label: "Gallery" },
+];
+const DISCOVER_NAV_ITEMS = [
+  { navKey: "map", href: "/pages/map.html", label: "Map" },
+  { navKey: "timeline", href: "/index.html#timeline", label: "Timeline" },
+  { navKey: "collections", href: "/pages/collections.html", label: "Collections" },
+  { navKey: "discoverPage", href: "/pages/discover.html", label: "Explore the Archive" },
+];
+
+function navLink({ navKey, href, label }, activeNavKey) {
+  return `<a href="${href}" data-i18n="nav.${navKey}"${navKey === activeNavKey ? ' class="is-active"' : ""}>${label}</a>`;
+}
+
+/**
+ * Desktop nav-primary: Archive + Discover collapsed into the same two
+ * dropdowns the hand-authored pages use (see index.html / VISUAL REDESIGN
+ * round) — reuses the existing .nav-discover CSS/JS verbatim (no new
+ * styling or script for detail pages). Replaces the old flat 12-item list,
+ * which measurably overflowed the header at common desktop widths.
+ */
+function desktopNavPrimary(activeNavKey) {
+  const archiveLinks = ARCHIVE_NAV_ITEMS.map((item) => `            ${navLink(item, activeNavKey)}`).join("\n");
+  const discoverLinks = DISCOVER_NAV_ITEMS.map((item) => `            ${navLink(item, activeNavKey)}`).join("\n");
+  return `<div class="nav-discover" data-nav-discover>
+          <button type="button" class="nav-discover-trigger" aria-expanded="false" aria-controls="nav-archive-menu" data-i18n="nav.archive">Archive</button>
+          <div class="nav-discover-menu" id="nav-archive-menu">
+${archiveLinks}
+          </div>
+        </div>
+        <div class="nav-discover" data-nav-discover>
+          <button type="button" class="nav-discover-trigger" aria-expanded="false" aria-controls="nav-discover-menu" data-i18n="nav.discover">Discover</button>
+          <div class="nav-discover-menu" id="nav-discover-menu">
+${discoverLinks}
+          </div>
+        </div>
+        <a href="/pages/methodology.html" data-i18n="nav.methodology"${activeNavKey === "methodology" ? ' class="is-active"' : ""}>Methodology</a>`;
 }
 
 function jsonForScript(value) {
@@ -470,7 +497,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
       <a class="brand" href="/index.html" aria-label="AntiochiaArchive home"><span class="brand-mark" aria-hidden="true">A</span><span>AntiochiaArchive</span></a>
       <nav class="nav-primary" aria-label="Primary navigation">
         <a href="/index.html" data-i18n="nav.home">Home</a>
-        ${pageNavigation(typeInfo.navKey)}
+        ${desktopNavPrimary(typeInfo.navKey)}
       </nav>
       <div class="header-actions">
         <div class="search-box">
@@ -482,14 +509,20 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
           <button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button>
           <button class="lang-btn" type="button" data-lang="ar" aria-pressed="false">AR</button>
         </div>
+        <a class="btn-contribute" href="/index.html#contribute"><span data-i18n="actions.contribute">Contribute</span><span aria-hidden="true">＋</span></a>
         <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
       </div>
     </div>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true"><div class="container mobile-nav-inner">
       <div class="mobile-nav-search"><input class="search-input-field" type="search" autocomplete="off" placeholder="Search..." aria-label="Search archive" data-i18n-placeholder="search.placeholder" data-i18n-aria="a11y.searchArchive"></div>
       <a href="/index.html" data-i18n="nav.home">Home</a>
-      ${pageNavigation(typeInfo.navKey)}
-      <a href="/index.html#contribute" data-i18n="actions.contribute">Contribute</a>
+      <p class="mobile-nav-group-label" data-i18n="nav.archive" aria-hidden="true">Archive</p>
+      ${ARCHIVE_NAV_ITEMS.map((item) => navLink(item, typeInfo.navKey)).join("\n      ")}
+      <p class="mobile-nav-group-label" data-i18n="nav.discover" aria-hidden="true">Discover</p>
+      ${DISCOVER_NAV_ITEMS.map((item) => navLink(item, typeInfo.navKey)).join("\n      ")}
+      <a href="/pages/methodology.html" data-i18n="nav.methodology"${typeInfo.navKey === "methodology" ? ' class="is-active"' : ""}>Methodology</a>
+      <div class="mobile-nav-lang"><div class="lang-switcher" role="group" aria-label="Choose language"><button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button><button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button><button class="lang-btn" type="button" data-lang="ar" aria-pressed="false">AR</button></div></div>
+      <a class="btn-contribute mobile-nav-contribute" href="/index.html#contribute"><span data-i18n="actions.contribute">Contribute</span><span aria-hidden="true">＋</span></a>
     </div></nav>
   </header>
   <main id="main-content">
@@ -536,7 +569,9 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
   </main>
   <footer class="site-footer" role="contentinfo"><div class="container"><div class="footer-top">
     <div class="footer-brand-wrap"><a class="footer-brand" href="/index.html"><span class="brand-mark" aria-hidden="true">A</span><span class="brand-name">AntiochiaArchive</span></a><p class="footer-about" data-i18n="footerAbout">A living digital memory preserving the voices, images, oral histories, and shared places of Antioch.</p></div>
-    <div class="footer-nav-col"><h2 class="footer-heading" data-i18n="footer.links.about">Navigation</h2><nav class="footer-nav">${pageNavigation(typeInfo.navKey)}<a href="/pages/methodology.html" data-i18n="nav.methodology">Methodology</a></nav></div>
+    <div class="footer-nav-col"><h4 class="footer-heading" data-i18n="footer.headings.archive">Archive</h4><nav class="footer-nav">${ARCHIVE_NAV_ITEMS.map((item) => navLink(item, typeInfo.navKey)).join("")}</nav></div>
+    <div class="footer-nav-col"><h4 class="footer-heading" data-i18n="footer.headings.discover">Discover</h4><nav class="footer-nav">${DISCOVER_NAV_ITEMS.map((item) => navLink(item, typeInfo.navKey)).join("")}</nav></div>
+    <div class="footer-social-col"><h4 class="footer-heading" data-i18n="footer.headings.contribute">Contribute</h4><div class="footer-social-links"><a class="social-link" href="/index.html#contribute"><span data-i18n="actions.contribute">Contribute</span></a><a class="social-link${typeInfo.navKey === "methodology" ? " is-active" : ""}" href="/pages/methodology.html"><span data-i18n="nav.methodology">Methodology</span></a></div></div>
   </div><div class="footer-bottom"><p>© 2026 <span data-i18n="copyright">AntiochiaArchive. Open source, open memory.</span></p><p class="coords-line">36.2021° N · 36.1608° E</p></div></div></footer>
   <script id="v2-record-data" type="application/json">${jsonForScript({ entity })}</script>
   <script src="${escapeHtml(langScript)}"></script>

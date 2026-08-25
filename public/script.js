@@ -347,6 +347,15 @@ function initBackToTopButton() {
   });
 }
 
+/** Adds a subtle border/shadow to the sticky header once the page has scrolled — a plain class toggle, no layout work per frame. */
+function initHeaderScrollShadow() {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+  const toggle = () => header.classList.toggle("is-scrolled", window.scrollY > 4);
+  toggle();
+  window.addEventListener("scroll", toggle, { passive: true });
+}
+
 /* ==========================================================================
    SVG Builders (used by archive renderers)
    ========================================================================== */
@@ -2031,8 +2040,17 @@ const V2_TYPE_HREF = Object.freeze({
   proverb: "/pages/proverbs.html",
 });
 
+// Any page carrying at least one of these containers gets the discover-family
+// renderers triggered on load — not just the dedicated /pages/discover.html
+// (marked by data-discover-page). This is what lets the homepage reuse
+// renderTodaysDiscovery() verbatim for its own "Today from the Archive"
+// section: each sub-renderer already no-ops safely when its own specific
+// container is absent, so a page with only one of these present still
+// renders correctly with zero extra wiring.
+const DISCOVER_FAMILY_SELECTOR = "[data-discover-page], [data-discover-total], [data-category-distribution], [data-map-coverage-text], [data-todays-discovery], [data-category-explore]";
+
 function initDiscoverPage() {
-  if (!document.querySelector("[data-discover-page]")) return;
+  if (!document.querySelector(DISCOVER_FAMILY_SELECTOR)) return;
   ensureDiscoveryEntities().then(() => renderDiscoverPage());
 }
 
@@ -2207,6 +2225,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Back to top button --- */
   initBackToTopButton();
+
+  /* --- Header scroll shadow --- */
+  initHeaderScrollShadow();
 
   /* --- Load saved or detected language --- */
   const saved    = (() => { try { return localStorage.getItem("aa-lang"); } catch (_) { return null; } })();

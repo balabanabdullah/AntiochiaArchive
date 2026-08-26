@@ -156,7 +156,7 @@ const DISCOVER_NAV_ITEMS = [
 ];
 
 function navLink({ navKey, href, label }, activeNavKey) {
-  return `<a href="${href}" data-i18n="nav.${navKey}"${navKey === activeNavKey ? ' class="is-active"' : ""}>${label}</a>`;
+  return `<a href="${href}" data-i18n="nav.${navKey}"${navKey === activeNavKey ? ' class="is-active" aria-current="page"' : ""}>${label}</a>`;
 }
 
 /**
@@ -181,7 +181,7 @@ ${archiveLinks}
 ${discoverLinks}
           </div>
         </div>
-        <a href="/pages/methodology.html" data-i18n="nav.methodology"${activeNavKey === "methodology" ? ' class="is-active"' : ""}>Methodology</a>`;
+        <a href="/pages/methodology.html" data-i18n="nav.methodology"${activeNavKey === "methodology" ? ' class="is-active" aria-current="page"' : ""}>Methodology</a>`;
 }
 
 function jsonForScript(value) {
@@ -555,7 +555,7 @@ export function generateV2DetailDocument({ entity, stylesheet, langScript, v2Api
       ${ARCHIVE_NAV_ITEMS.map((item) => navLink(item, typeInfo.navKey)).join("\n      ")}
       <p class="mobile-nav-group-label" data-i18n="nav.discover" aria-hidden="true">Discover</p>
       ${DISCOVER_NAV_ITEMS.map((item) => navLink(item, typeInfo.navKey)).join("\n      ")}
-      <a href="/pages/methodology.html" data-i18n="nav.methodology"${typeInfo.navKey === "methodology" ? ' class="is-active"' : ""}>Methodology</a>
+      <a href="/pages/methodology.html" data-i18n="nav.methodology"${typeInfo.navKey === "methodology" ? ' class="is-active" aria-current="page"' : ""}>Methodology</a>
       <div class="mobile-nav-lang"><div class="lang-switcher" role="group" aria-label="Choose language"><button class="lang-btn" type="button" data-lang="tr" aria-pressed="false">TR</button><button class="lang-btn" type="button" data-lang="en" aria-pressed="true">EN</button><button class="lang-btn" type="button" data-lang="ar" aria-pressed="false">AR</button></div></div>
       <a class="btn-contribute mobile-nav-contribute" href="/index.html#contribute"><span data-i18n="actions.contribute">Contribute</span><span aria-hidden="true">＋</span></a>
     </div></nav>

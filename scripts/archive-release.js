@@ -165,7 +165,7 @@ export function recordDetailPath(record) {
 
 function pageNavigation(activeCategory) {
   return ARCHIVE_CATEGORIES.map((category) => (
-    `<a href="${CATEGORY_INFO[category].href}" data-i18n="nav.${category}"${category === activeCategory ? ' class="is-active"' : ""}>${CATEGORY_INFO[category].label}</a>`
+    `<a href="${CATEGORY_INFO[category].href}" data-i18n="nav.${category}"${category === activeCategory ? ' class="is-active" aria-current="page"' : ""}>${CATEGORY_INFO[category].label}</a>`
   )).join("\n          ");
 }
 

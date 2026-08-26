@@ -76,7 +76,7 @@
         <div class="nav-discover" data-nav-discover>
           <button type="button" class="nav-discover-trigger" aria-expanded="false" aria-controls="nav-archive-menu" data-i18n="nav.archive">Archive</button>
           <div class="nav-discover-menu" id="nav-archive-menu">
-            <a href="/pages/history.html" data-i18n="nav.history" class="is-active">History</a>
+            <a href="/pages/history.html" data-i18n="nav.history" class="is-active" aria-current="page">History</a>
             <a href="/pages/communities.html" data-i18n="nav.communities">Communities</a>
             <a href="/pages/beliefs.html" data-i18n="nav.beliefs">Beliefs</a>
             <a href="/pages/places.html" data-i18n="nav.places">Places</a>
@@ -136,7 +136,7 @@
         </div>
         <a href="../index.html" data-i18n="nav.home">Home</a>
         <p class="mobile-nav-group-label" data-i18n="nav.archive" aria-hidden="true">Archive</p>
-        <a href="history.html" data-i18n="nav.history" class="is-active">History</a>
+        <a href="history.html" data-i18n="nav.history" class="is-active" aria-current="page">History</a>
         <a href="communities.html" data-i18n="nav.communities">Communities</a>
         <a href="beliefs.html" data-i18n="nav.beliefs">Beliefs</a>
         <a href="places.html" data-i18n="nav.places">Places</a>
@@ -202,6 +202,7 @@
           </select>
         </div>
 
+        <h2 class="sr-only" data-i18n="pages.history.title">History of Antioch</h2>
         <div class="history-timeline" id="history-timeline-container" aria-live="polite">
           <!-- dynamically populated from /api/v2/historical-contexts -->
         </div>
@@ -243,7 +244,7 @@
         <div class="footer-nav-col">
           <h4 class="footer-heading" data-i18n="footer.headings.archive">Archive</h4>
           <nav class="footer-nav" aria-label="Footer archive navigation">
-            <a href="history.html" data-i18n="nav.history" class="is-active">History</a>
+            <a href="history.html" data-i18n="nav.history" class="is-active" aria-current="page">History</a>
             <a href="communities.html" data-i18n="nav.communities">Communities</a>
             <a href="beliefs.html" data-i18n="nav.beliefs">Beliefs</a>
             <a href="places.html" data-i18n="nav.places">Places</a>

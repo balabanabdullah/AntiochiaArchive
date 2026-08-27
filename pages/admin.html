@@ -171,6 +171,21 @@
     .admin-badge-draft { background: #e5e3f0; color: var(--admin-navy); }
     .admin-badge-archived, .admin-badge-rejected { background: #f1f1f1; color: #52525b; }
     .admin-badge-approved { background: #dbeafe; color: #1e40af; }
+    /* Legacy V1 / Canonical V2 (Section 17) — deliberately distinct from the
+       workflow-status badges above so the two concepts never look related. */
+    .admin-badge-legacy { background: #fde68a; color: #78350f; }
+    .admin-badge-canonical { background: #d1fae5; color: #065f46; }
+
+    /* ── Draft state block (Section 15-16) ────────────────────────────────── */
+    .admin-draft-state { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0; padding: 8px 10px; background: var(--admin-bg); border-radius: 6px; }
+    .admin-draft-state > div { min-width: 120px; }
+    .admin-draft-state dt { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--admin-ink-muted); font-weight: 700; margin-bottom: 2px; }
+    .admin-draft-state dd { margin: 0; font-size: 0.86rem; }
+    .admin-draft-history { list-style: none; margin: 8px 0 0; padding: 8px 10px; background: var(--admin-bg); border-radius: 6px; font-size: 0.78rem; display: grid; gap: 4px; }
+    .admin-draft-diff { margin: 8px 0; }
+    .admin-diff-table td { font-size: 0.82rem; }
+    .admin-diff-before { color: #991b1b; text-decoration: line-through; }
+    .admin-diff-after { color: #166534; }
 
     /* ── Records filter bar / table ───────────────────────────────────────── */
     .admin-filter-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
@@ -433,6 +448,11 @@
               <option value="draft">Taslak</option>
               <option value="archived">Arşivlenmiş</option>
             </select>
+            <select id="admin-records-origin-filter" aria-label="Köken filtresi">
+              <option value="">Köken: Tümü</option>
+              <option value="canonical">Yalnızca Canonical V2</option>
+              <option value="legacy">Yalnızca Legacy V1</option>
+            </select>
             <button type="button" class="btn-admin btn-admin-primary" id="admin-records-new-btn">＋ Yeni Kayıt</button>
           </div>
           <div class="table-container">
@@ -441,6 +461,41 @@
               <tbody id="admin-records-tbody"><tr><td colspan="6" class="admin-muted">Yükleniyor…</td></tr></tbody>
             </table>
           </div>
+        </section>
+
+        <!-- Media (Section 11-12, 28) -->
+        <section data-admin-panel="media" hidden>
+          <h1 class="admin-panel-heading">Medya</h1>
+          <p class="admin-panel-sub">Görsel, ses, video ve belge kayıtları — haklar durumu ve kaynak bilgisiyle birlikte. Ses/görsel dosya yükleme bu sürümde desteklenmiyor; yalnızca mevcut kayıtların metadata'sı düzenlenebilir.</p>
+          <div class="admin-filter-toolbar">
+            <select id="admin-media-type-filter" aria-label="Medya türü filtresi">
+              <option value="">Tür: Tümü</option>
+              <option value="image">Görsel</option>
+              <option value="audio">Ses</option>
+              <option value="video">Video</option>
+              <option value="document">Belge</option>
+            </select>
+            <select id="admin-media-rights-filter" aria-label="Haklar durumu filtresi">
+              <option value="">Haklar: Tümü</option>
+              <option value="cleared">Temiz (Yayına Hazır)</option>
+              <option value="pendingReview">İncelemede</option>
+              <option value="unknown">Bilinmiyor</option>
+              <option value="restricted">Kısıtlı</option>
+              <option value="doNotPublish">Yayınlanmasın</option>
+            </select>
+            <button type="button" class="btn-admin btn-admin-primary" id="admin-media-new-btn">＋ Yeni Medya</button>
+          </div>
+          <div id="admin-media-list"></div>
+        </section>
+
+        <!-- Sources (Section 9-10, 27) -->
+        <section data-admin-panel="sources" hidden>
+          <h1 class="admin-panel-heading">Kaynaklar</h1>
+          <p class="admin-panel-sub">Kayıtların editoryal/tarihsel kanıtları.</p>
+          <div class="admin-filter-toolbar">
+            <button type="button" class="btn-admin btn-admin-primary" id="admin-sources-new-btn">＋ Yeni Kaynak</button>
+          </div>
+          <div id="admin-sources-list"></div>
         </section>
 
         <!-- Relationships -->
@@ -454,6 +509,18 @@
         <section data-admin-panel="drafts" hidden>
           <h1 class="admin-panel-heading">Değişiklikler</h1>
           <p class="admin-panel-sub">Taslak → İncelemeye Hazır → Onaylandı → Uygulandı. Onaylanan değişiklikler yalnızca dışa aktarılan paket, geliştirici tarafından <code>npm run editorial:apply</code> ile canonical veriye işlenince sitede görünür.</p>
+          <details class="editor-section" style="margin-bottom: var(--sp-3);">
+            <summary>Bu durumlar ne anlama geliyor? (Yardım)</summary>
+            <div class="editor-section-body">
+              <p><strong>Taslak:</strong> Henüz incelemeye gönderilmemiş bir öneri. İçeriği serbestçe düzenlenebilir.</p>
+              <p><strong>İncelemeye Hazır:</strong> Editör tarafından incelemeye sunuldu. İçeriği hâlâ düzenlenebilir.</p>
+              <p><strong>Onaylandı:</strong> İnceleme tamamlandı — ancak canonical veri henüz değişmedi ve herkese açık site hâlâ eskisi gibi.</p>
+              <p><strong>Harici Uygulama Tamamlandı:</strong> Bir geliştirici değişiklik paketini dışa aktarıp <code>scripts/apply-editorial-changes.js</code> ile canonical veriye işlediğini ve normal commit/deploy sürecini tamamladığını bildirdi. Bu panel bunu doğrulayamaz — yalnızca bir işaretlemedir.</p>
+              <p><strong>Reddedildi:</strong> Öneri uygulanmayacak; taslağa geri alınabilir.</p>
+              <p><strong>Arşivlendi (kayıt durumu):</strong> Kayıt silinmez, yalnızca herkese açık görünürlükten çıkarılmak üzere önerilir.</p>
+              <p><strong>LEGACY V1 / CANONICAL V2:</strong> LEGACY V1, eski arşiv veri setinden otomatik taşınan bir kaydı; CANONICAL V2, elle incelenip yazılmış güncel bir kaydı belirtir.</p>
+            </div>
+          </details>
           <div class="admin-filter-toolbar">
             <select id="admin-drafts-status-filter">
               <option value="">Tüm Durumlar</option>
@@ -734,8 +801,8 @@
   </div>
 
   <!-- Toast Notification Container (shared) -->
-  <div class="toast-container" id="admin-toast-container"></div>
-  <div class="toast-container" id="toast-container"></div>
+  <div class="toast-container" id="admin-toast-container" role="status" aria-live="polite"></div>
+  <div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
 
   <!-- Scripts -->
   <script src="/admin-session.js"></script>

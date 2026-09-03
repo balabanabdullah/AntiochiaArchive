@@ -85,6 +85,15 @@ export const MEDIA_ROLES = Object.freeze([
   "aiGeneratedIllustration",
 ]);
 
+// Which storage backend actually holds the bytes at media.originalStoragePath
+// (Section 35 — "DB stores storageDriver, storageKey, never an absolute local
+// path as portable canonical metadata"). originalStoragePath already plays
+// the "storageKey" role described there — an opaque, driver-relative key,
+// never an OS absolute path — this field just records which driver resolves
+// it. Optional and defaults to "local" at the repository layer (see
+// backend/media/mediaStorage.js) so existing records need no backfill.
+export const MEDIA_STORAGE_DRIVERS = Object.freeze(["local", "gcs", "s3"]);
+
 // Mirrors the v1 SOURCE_TYPES list (dataModel.js) as an independent v2 copy
 // so the two domains can evolve separately.
 export const SOURCE_TYPES = Object.freeze([
@@ -96,4 +105,18 @@ export const SOURCE_TYPES = Object.freeze([
   "institutionalRecord",
   "website",
   "other",
+]);
+
+// Editorial classification of a source's evidentiary weight — NOT a claim
+// about the truth of the source's content (see source.js's
+// qualityClassification field docs). Separate from SOURCE_TYPES (what kind
+// of document it is) and from RIGHTS_STATUS (media reuse permission).
+export const SOURCE_QUALITY_CLASSIFICATIONS = Object.freeze([
+  "primary",
+  "academic",
+  "institutional",
+  "localHistory",
+  "oralHistory",
+  "popular",
+  "unverified",
 ]);

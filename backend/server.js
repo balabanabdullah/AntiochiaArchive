@@ -11,8 +11,13 @@ import { backupHandlers, preventBackupCaching } from "./backupController.js";
 import v2Router from "./v2/routes/v2Routes.js";
 import { initializeV2Store } from "./v2/stores/v2Store.js";
 import adminEditorialRouter from "./admin/adminRoutes.js";
+import adminContentRouter from "./admin/adminContentRoutes.js";
 import { requireAdminAny } from "./admin/adminSession.js";
 import { initializeEditorialStore, getSelectedEditorialStoreName } from "./admin/editorialStore.js";
+import { publicPageJsonRouter, publicPageHtmlRouter } from "./pages/pageRoutes.js";
+import v2DetailRouter from "./v2/routes/v2DetailRoutes.js";
+import mediaRouter from "./media/mediaRoutes.js";
+import { runtimeSitemapHandler, sitemapIndexHandler } from "./v2/render/runtimeSitemap.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
@@ -91,6 +96,49 @@ app.use("/api/admin/editorial", (_req, res, next) => {
 
 // v2 domain foundation: read-only, additive, and does not alter any v1 route above.
 app.use("/api/v2", v2Router);
+
+// Direct-publish admin content API (Section 5-14 of the "no-code CMS"
+// round) — separate namespace from /api/admin/editorial above; see
+// admin/adminContentRoutes.js's header for why the two coexist. Mounted
+// unconditionally: the router itself 409s cleanly when V2_DATA_STORE is not
+// "sqlite", so mounting it never changes behavior for an existing
+// local/firestore/memory/empty deployment.
+app.use("/api/admin/content", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  next();
+}, adminContentRouter);
+
+// Public CMS page routes (Section 17-18) — JSON for programmatic/mobile
+// use, plus a full server-rendered HTML page at /sayfa/:slug for the
+// public site (see pages/pageRenderer.js for why this is rendered here
+// rather than by the separate static frontend). Pages only exist at all
+// when V2_DATA_STORE=sqlite (see pageRoutes.js's own guard, which 404s
+// cleanly rather than throwing when the SQLite connection was never
+// opened) — harmless to mount unconditionally.
+app.use("/api/pages", publicPageJsonRouter);
+app.use("/sayfa", publicPageHtmlRouter);
+
+// Runtime cultural-entity detail fallback (Section 1-3 of the "no-code CMS
+// hard-requirement" round) — nginx tries the pre-built static file at this
+// exact path first (see nginx/default.conf's error_page fallback) and only
+// reaches this route when no static file exists for the slug, OR always
+// reaches it first when that fallback is configured store-first — either
+// way, this route is what makes a brand-new or just-edited SQLite entity
+// publicly visible with zero rebuild. Store-agnostic (works against
+// whichever V2Store is active) — see v2/render/entityDetailRenderer.js.
+app.use("/archive-v2", v2DetailRouter);
+
+// Controlled local media serving (Section 11) — never a static directory,
+// never a raw filesystem path in the URL, rights-gated. See media/mediaRoutes.js.
+app.use("/media", mediaRouter);
+
+// Single, coherent runtime sitemap strategy (Section 6/7) — see
+// v2/render/runtimeSitemap.js's header for the full design and the
+// staleness bug this round found and fixed in the static sitemap.
+app.get("/sitemap-runtime.xml", runtimeSitemapHandler);
+app.get("/sitemap-index.xml", sitemapIndexHandler);
 
 app.get("/api/contribute", (_req, res) => {
   res.json({ status: "active", endpoint: "POST /api/contribute" });

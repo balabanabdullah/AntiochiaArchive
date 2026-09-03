@@ -1,4 +1,4 @@
-import { SOURCE_TYPES } from "../constants/vocabularies.js";
+import { SOURCE_TYPES, SOURCE_QUALITY_CLASSIFICATIONS } from "../constants/vocabularies.js";
 import { isHttpUrl, isNonEmptyString, isObject, validateEnum } from "./shared.js";
 
 export const SOURCE_ENTITY_TYPE = "source";
@@ -35,6 +35,16 @@ export function validateSourceEntity(entity) {
 
   const typeError = validateEnum(entity.type, "source.type", SOURCE_TYPES);
   if (typeError) return { valid: false, error: typeError };
+
+  // Editorial classification of evidentiary weight (Section 21) — optional,
+  // additive, and deliberately not a "truth" rating: an "unverified" source
+  // can still be correct, and a "primary" source can still be wrong about a
+  // detail. It only tells an editor what KIND of evidence this is, the same
+  // way SOURCE_TYPES says what kind of document it is.
+  const qualityError = validateEnum(
+    entity.qualityClassification, "source.qualityClassification", SOURCE_QUALITY_CLASSIFICATIONS,
+  );
+  if (qualityError) return { valid: false, error: qualityError };
 
   for (const field of SOURCE_TEXT_FIELDS) {
     if (entity[field] != null && typeof entity[field] !== "string") {

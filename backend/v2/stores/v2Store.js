@@ -35,17 +35,30 @@
 // writes." Selecting it in production without also bundling those files
 // (the state before this was addressed) would crash the backend at startup;
 // see the Dockerfile comment for why that gap existed and how it's closed.
+//
+// `sqlite` is the odd one out: unlike every store above, it is genuinely
+// WRITABLE (through backend/admin/contentService.js — never through this
+// module or any V2Store method) — see sqliteV2Store.js's header for why
+// that split exists. Selecting it requires backend/db/sqliteConnection.js's
+// initializeSqlite() to have already run (see server.js); it never reads or
+// writes data/v2/*.json.
 
 import { emptyV2Store } from "./emptyV2Store.js";
 import { memoryV2Store } from "./memoryV2Store.js";
 import { firestoreV2Store } from "./firestoreV2Store.js";
 import { localMappedV2Store } from "./localMappedV2Store.js";
+import { sqliteV2Store } from "./sqliteV2Store.js";
 
 const stores = Object.freeze({
   empty: emptyV2Store,
   memory: memoryV2Store,
   firestore: firestoreV2Store,
   local: localMappedV2Store,
+  // The first genuinely writable store — see sqliteV2Store.js's header.
+  // Selecting it requires the SQLite connection (backend/db/sqliteConnection.js)
+  // to already be initialized, exactly like `local` requires the JSON files
+  // it reads to already be present on disk.
+  sqlite: sqliteV2Store,
 });
 
 let selectedStore = emptyV2Store;
@@ -73,4 +86,18 @@ export function getV2Store() {
 
 export function getSelectedV2StoreName() {
   return selectedStoreName;
+}
+
+/**
+ * The ONE authoritative "is this deployment in the writable, no-code CMS
+ * runtime?" check (Section 16 — "avoid two independent switches that can
+ * contradict each other"). Every module that needs to know (admin content
+ * routes, page routes, media routes, the runtime sitemap) calls this
+ * instead of re-deriving its own `=== "sqlite"` string comparison, so
+ * there is exactly one place this logic could ever be wrong. There is no
+ * separate `DB_DRIVER` switch anywhere in this codebase — see
+ * db/sqliteConnection.js's header for that clarification.
+ */
+export function isSqliteRuntimeActive() {
+  return getSelectedV2StoreName() === "sqlite";
 }

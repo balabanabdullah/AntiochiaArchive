@@ -416,6 +416,7 @@
         <button class="admin-nav-item" type="button" data-admin-view="media">Medya</button>
         <button class="admin-nav-item" type="button" data-admin-view="sources">Kaynaklar</button>
         <button class="admin-nav-item" type="button" data-admin-view="relationships">İlişkiler</button>
+        <button class="admin-nav-item" type="button" data-admin-view="pages" hidden>Sayfalar</button>
         <div class="admin-nav-divider"></div>
         <button class="admin-nav-item" type="button" data-admin-view="drafts">Değişiklikler</button>
         <button class="admin-nav-item" type="button" data-admin-view="submissions">Gönderimler</button>
@@ -501,8 +502,37 @@
         <!-- Relationships -->
         <section data-admin-panel="relationships" hidden>
           <h1 class="admin-panel-heading">İlişkiler</h1>
-          <p class="admin-panel-sub">Kayıtlar arası ilişkiler — bu sürümde yalnızca görüntüleme; yeni ilişki önerisi desteklenmiyor.</p>
+          <p class="admin-panel-sub" id="admin-relationships-sub">Kayıtlar arası ilişkiler — bu sürümde yalnızca görüntüleme; yeni ilişki önerisi desteklenmiyor.</p>
+          <form id="admin-relationship-form" class="admin-filter-toolbar" hidden style="align-items:flex-end;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" for="admin-rel-source">Kaynak Kayıt</label>
+              <input class="form-input" id="admin-rel-source" list="admin-rel-entity-options" placeholder="Başlık veya ID yazın…" autocomplete="off" required>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" for="admin-rel-type">İlişki Türü</label>
+              <select class="form-select" id="admin-rel-type" required></select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" for="admin-rel-target">Hedef Kayıt</label>
+              <input class="form-input" id="admin-rel-target" list="admin-rel-entity-options" placeholder="Başlık veya ID yazın…" autocomplete="off" required>
+            </div>
+            <datalist id="admin-rel-entity-options"></datalist>
+            <button type="submit" class="btn-admin btn-admin-primary">İlişki Ekle</button>
+          </form>
+          <p id="admin-rel-preview" class="admin-muted" hidden></p>
           <div id="admin-relationships-list"></div>
+        </section>
+
+        <!-- Pages (CMS) — only meaningful when V2_DATA_STORE=sqlite; the
+             sidebar button and this section stay hidden otherwise (see
+             refreshDashboard's contentAuthority check). -->
+        <section data-admin-panel="pages" hidden>
+          <h1 class="admin-panel-heading">Sayfalar</h1>
+          <p class="admin-panel-sub">Kod yazmadan yeni bir herkese açık sayfa oluşturun ve yayınlayın. Yayınlanan sayfalar <code>/sayfa/&lt;slug&gt;/</code> adresinde anında görünür — yeniden derleme veya dağıtım gerekmez.</p>
+          <div class="admin-filter-toolbar">
+            <button type="button" class="btn-admin btn-admin-primary" id="admin-pages-new-btn">＋ Yeni Sayfa</button>
+          </div>
+          <div id="admin-pages-list"></div>
         </section>
 
         <!-- Editorial changes -->
@@ -560,6 +590,17 @@
               <button class="btn-admin btn-admin-secondary" type="button" data-backup="submissions">Katkılar JSON Yedeği</button>
               <button class="btn-admin btn-admin-secondary" type="button" data-backup="full">Tam Yedek</button>
             </div>
+          </section>
+
+          <section class="backup-panel" id="admin-sqlite-backup-panel" aria-labelledby="sqlite-backup-heading" hidden style="flex-direction:column; align-items:stretch;">
+            <div>
+              <h2 id="sqlite-backup-heading">Çalışma Zamanı Veritabanı Yedekleri (SQLite)</h2>
+              <p>Bu makine yedekler kalıcı olarak başka bir yere kopyalanana kadar tek arıza noktasıdır. Yedekleri düzenli olarak bu bilgisayar dışına da kopyalamanız önerilir.</p>
+            </div>
+            <div class="backup-actions">
+              <button class="btn-admin btn-admin-primary" type="button" id="admin-sqlite-backup-create">Yedek Oluştur</button>
+            </div>
+            <div id="admin-sqlite-backups-list" style="margin-top: var(--sp-3);"></div>
           </section>
         </section>
 
@@ -619,7 +660,41 @@
         <div id="admin-editor-form-body"></div>
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--sp-4);">
           <button class="btn-admin btn-admin-secondary" type="button" id="admin-editor-cancel">İptal</button>
-          <button class="btn-admin btn-admin-primary" type="submit">Taslak Olarak Kaydet</button>
+          <button class="btn-admin btn-admin-primary" type="submit" id="admin-editor-submit">Taslak Olarak Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Media upload modal (Section 8-10) -->
+  <div class="modal-overlay" id="admin-media-upload-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Yeni Medya / Dosya Yükle</h2>
+        <button type="button" id="admin-media-upload-close" style="font-size: 1.5rem; color: var(--clr-ink-muted); cursor: pointer;">&times;</button>
+      </div>
+      <form id="admin-media-upload-form">
+        <div id="admin-media-upload-form-body"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--sp-4);">
+          <button class="btn-admin btn-admin-secondary" type="button" id="admin-media-upload-cancel">İptal</button>
+          <button class="btn-admin btn-admin-primary" type="submit" id="admin-media-upload-submit">Yükle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Page editor modal (Section 15-16 CMS pages) -->
+  <div class="modal-overlay" id="admin-page-editor-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="admin-page-editor-heading">Sayfa Düzenle</h2>
+        <button type="button" id="admin-page-editor-close" style="font-size: 1.5rem; color: var(--clr-ink-muted); cursor: pointer;">&times;</button>
+      </div>
+      <form id="admin-page-editor-form">
+        <div id="admin-page-editor-form-body"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--sp-4);">
+          <button class="btn-admin btn-admin-secondary" type="button" id="admin-page-editor-cancel">İptal</button>
+          <button class="btn-admin btn-admin-primary" type="submit" id="admin-page-editor-submit">Kaydet</button>
         </div>
       </form>
     </div>

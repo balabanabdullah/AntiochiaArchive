@@ -214,7 +214,9 @@
     else if (view === "media") loadMedia();
     else if (view === "sources") loadSources();
     else if (view === "relationships") loadRelationships();
+    else if (view === "pages") loadPages();
     else if (view === "drafts") loadDrafts();
+    else if (view === "backups") loadSqliteBackups();
     // submissions/backups/v1legacy panels are wired by their own init functions.
   }
 
@@ -231,6 +233,14 @@
     </p>`;
   }
 
+  // "editorial" (default): every write is a draft/proposal — see
+  // admin/editorialStore.js. "direct": V2_DATA_STORE=sqlite is active and
+  // Yayınla/Arşivle/Geri Yükle act immediately through
+  // admin/contentService.js — see the "no-code CMS" round's report. Read
+  // from the dashboard response so the UI never has to guess.
+  let contentAuthority = "editorial";
+  function isDirectContentAuthority() { return contentAuthority === "direct"; }
+
   async function refreshDashboard() {
     const container = document.getElementById("admin-dashboard-cards");
     const banner = document.getElementById("admin-storage-banner");
@@ -238,7 +248,14 @@
     container.innerHTML = `<p class="admin-muted">Yükleniyor…</p>`;
     try {
       const { data } = await Session.request("/dashboard");
-      if (banner) banner.innerHTML = editorialStoreBannerHtml(data.editorialStoreName);
+      contentAuthority = data.contentAuthority || "editorial";
+      document.querySelectorAll("[data-admin-view='pages']").forEach((el) => { el.hidden = !isDirectContentAuthority(); });
+      if (banner) {
+        banner.innerHTML = editorialStoreBannerHtml(data.editorialStoreName)
+          + (isDirectContentAuthority()
+            ? `<p class="admin-storage-banner admin-storage-banner-durable">İçerik Yetkisi: <strong>Doğrudan (SQLite) — Yayınla/Arşivle/Geri Yükle anında etkilidir.</strong></p>`
+            : `<p class="admin-storage-banner admin-storage-banner-ephemeral">İçerik Yetkisi: <strong>Editoryal Taslak — değişiklikler onay + harici uygulama gerektirir.</strong></p>`);
+      }
       const cards = [
         ["Toplam Kayıt", data.totalEntities],
         ["Yayında (Public)", data.publicEntities],
@@ -274,13 +291,53 @@
    */
   function recordActionsHtml(entity) {
     const isPublic = entity.status === "published";
-    const archiveBtn = isPublic
-      ? `<button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="archive-proposal" data-id="${escapeHtml(entity.id)}" data-type="${escapeHtml(entity.entityType)}">Arşivleme Teklifi Oluştur</button>`
-      : "";
+    const id = escapeHtml(entity.id);
+    const type = escapeHtml(entity.entityType);
+    const editBtn = `<button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="propose-edit" data-id="${id}" data-type="${type}">${isPublic && !isDirectContentAuthority() ? "Değişiklik Öner" : "Düzenle"}</button>`;
+
+    let statusBtns = "";
+    if (isDirectContentAuthority() && entity.status) {
+      // Section 38: an admin must be able to publish/archive/restore a
+      // record from this list with zero terminal/Git — these buttons call
+      // /api/admin/content directly and take effect immediately.
+      if (entity.status === "draft" || entity.status === "inReview") {
+        statusBtns += `<button type="button" class="btn-admin btn-admin-primary admin-row-action" data-action="direct-publish" data-id="${id}">Yayınla</button>`;
+      }
+      if (entity.status === "published") {
+        statusBtns += `<button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="direct-archive" data-id="${id}">Arşivle</button>`;
+      }
+      if (entity.status === "archived") {
+        statusBtns += `<button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="direct-restore" data-id="${id}">Geri Yükle</button>`;
+      }
+    } else if (isPublic) {
+      statusBtns = `<button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="archive-proposal" data-id="${id}" data-type="${type}">Arşivleme Teklifi Oluştur</button>`;
+    }
+
     return `
-      <button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="view" data-id="${escapeHtml(entity.id)}">Görüntüle</button>
-      <button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="propose-edit" data-id="${escapeHtml(entity.id)}" data-type="${escapeHtml(entity.entityType)}">${isPublic ? "Değişiklik Öner" : "Düzenle"}</button>
-      ${archiveBtn}`;
+      <button type="button" class="btn-admin btn-admin-secondary admin-row-action" data-action="view" data-id="${id}">Görüntüle</button>
+      ${editBtn}
+      ${statusBtns}`;
+  }
+
+  /**
+   * Direct-mode publish/archive/restore (Section 38) — immediate, through
+   * admin/contentService.js, never a draft. `fromArchived` picks the
+   * dedicated /restore endpoint (recorded in the audit log as "restore",
+   * not "publish"/"unpublish") whenever the record is actually coming out
+   * of archived — matching why contentService.js keeps restoreEntity as
+   * its own function instead of reusing the plain transition one.
+   */
+  async function directTransition(id, toStatus, { confirmText, successText, fromArchived = false } = {}) {
+    if (confirmText && !confirm(confirmText)) return;
+    try {
+      const endpoint = fromArchived ? `/entities/${encodeURIComponent(id)}/restore` : `/entities/${encodeURIComponent(id)}/transition`;
+      await Session.requestContent(endpoint, { method: "POST", body: JSON.stringify({ toStatus }) });
+      toast(successText || "Durum güncellendi.");
+      loadRecords();
+      refreshDashboard();
+    } catch (error) {
+      toast(reportError(error, "directTransition"), "error");
+    }
   }
 
   async function loadRecords(filter = {}, view = "records") {
@@ -320,6 +377,16 @@
       tbody.querySelectorAll("[data-action='view']").forEach((btn) => btn.addEventListener("click", () => viewEntity(btn.dataset.id)));
       tbody.querySelectorAll("[data-action='propose-edit']").forEach((btn) => btn.addEventListener("click", () => openEditorForExisting(btn.dataset.id, btn.dataset.type)));
       tbody.querySelectorAll("[data-action='archive-proposal']").forEach((btn) => btn.addEventListener("click", () => proposeArchive(btn.dataset.id, btn.dataset.type)));
+      tbody.querySelectorAll("[data-action='direct-publish']").forEach((btn) => btn.addEventListener("click", () => directTransition(btn.dataset.id, "published", { successText: "Kayıt yayınlandı." })));
+      tbody.querySelectorAll("[data-action='direct-archive']").forEach((btn) => btn.addEventListener("click", () => directTransition(btn.dataset.id, "archived", {
+        confirmText: "Bu kayıt public siteden kaldırılacak ancak silinmeyecektir. Daha sonra geri yükleyebilirsiniz.\n\nDevam edilsin mi?",
+        successText: "Kayıt arşivlendi.",
+      })));
+      tbody.querySelectorAll("[data-action='direct-restore']").forEach((btn) => btn.addEventListener("click", () => directTransition(btn.dataset.id, "published", {
+        confirmText: "Kayıt 'Yayında' durumuna geri yüklenecek. Devam edilsin mi?",
+        successText: "Kayıt geri yüklendi.",
+        fromArchived: true,
+      })));
     } catch (error) {
       tbody.innerHTML = `<tr><td colspan="6" class="admin-error">${escapeHtml(reportError(error, "loadRecords"))}</td></tr>`;
     }
@@ -471,8 +538,24 @@
     return empty + values.map((v) => `<option value="${v}" ${v === selected ? "selected" : ""}>${escapeHtml(labels[v] || v)}</option>`).join("");
   }
 
+  // Section 7: editorial classification of evidentiary weight — explicitly
+  // NOT a truth/accuracy rating (see backend/v2/schemas/source.js's
+  // qualityClassification docs). Enum values are the exact
+  // SOURCE_QUALITY_CLASSIFICATIONS from backend/v2/constants/vocabularies.js —
+  // only the DISPLAYED label is Turkish.
+  const SOURCE_QUALITY_LIST = Object.freeze(["primary", "academic", "institutional", "localHistory", "oralHistory", "popular", "unverified"]);
+  const SOURCE_QUALITY_LABELS = Object.freeze({
+    primary: "Birincil Kaynak", academic: "Akademik", institutional: "Kurumsal",
+    localHistory: "Yerel Tarih", oralHistory: "Sözlü Tarih", popular: "Popüler Kaynak", unverified: "Doğrulanmamış",
+  });
+
   function sourceFieldsHtml(entity = {}) {
     return `
+      <div class="form-group">
+        <label class="form-label" for="field-source-quality">Kaynak Kalite Sınıflandırması</label>
+        <select class="form-select" id="field-source-quality">${selectOptionsHtml(SOURCE_QUALITY_LIST, SOURCE_QUALITY_LABELS, entity.qualityClassification || "", { includeEmpty: true })}</select>
+        <small class="form-help">Kaynak türü, bilginin doğruluk garantisi değildir; editoryal sınıflandırmadır. Sistem otomatik olarak kalite ataması yapmaz — bu alanı yalnızca siz belirlersiniz.</small>
+      </div>
       <div class="form-row-two">
         <div class="form-group"><label class="form-label" for="field-source-type">Tür / Type</label>
           <select class="form-select" id="field-source-type">${selectOptionsHtml(SOURCE_TYPES_LIST, SOURCE_TYPE_LABELS, entity.type || "other")}</select></div>
@@ -491,6 +574,8 @@
 
   function collectSourceFields() {
     const out = { type: val("field-source-type") || "other" };
+    const quality = val("field-source-quality");
+    if (quality) out.qualityClassification = quality;
     for (const [id, field] of [
       ["field-source-title", "title"], ["field-source-author", "author"], ["field-source-publisher", "publisher"],
       ["field-source-year", "year"], ["field-source-url", "url"], ["field-source-locator", "locator"],
@@ -513,7 +598,6 @@
         <div class="form-group"><label class="form-label" for="field-media-rights-status">Haklar Durumu / Rights Status</label>
           <select class="form-select" id="field-media-rights-status">${selectOptionsHtml(RIGHTS_STATUS_LIST, RIGHTS_STATUS_LABELS, entity.rightsStatus || "unknown")}</select>
           <small class="form-help">"Temiz (Yayına Hazır)" dışındaki her durum, yayın için uyarı üretir.</small></div>
-        <div class="form-group"><label class="form-label" for="field-media-storage-path">Depolama Yolu / Storage Path</label><input class="form-input" id="field-media-storage-path" value="${escapeHtml(entity.originalStoragePath || "")}"></div>
         <div class="form-group"><label class="form-label" for="field-media-source">Kaynak / Source</label><input class="form-input" id="field-media-source" value="${escapeHtml(entity.source || "")}"></div>
         <div class="form-group"><label class="form-label" for="field-media-author">Yazar / Author</label><input class="form-input" id="field-media-author" value="${escapeHtml(entity.author || "")}"></div>
         <div class="form-group"><label class="form-label" for="field-media-license">Lisans / License</label><input class="form-input" id="field-media-license" value="${escapeHtml(entity.license || "")}"></div>
@@ -523,7 +607,7 @@
         <input type="checkbox" id="field-media-ai-generated" ${entity.aiGenerated ? "checked" : ""}>
         <span>Yapay zekâ ile oluşturulmuş / AI-generated</span>
       </label>
-      <p class="form-help">Dosya yükleme bu sürümde desteklenmiyor — yalnızca zaten var olan bir dosyanın metadata'sı düzenlenir. Bkz. round raporu, "Known Limitations".</p>`;
+      <p class="admin-readonly-value">Dosya: <code>${escapeHtml(entity.originalFilename || entity.originalStoragePath || "(dosya yok)")}</code> — bu ekrandan değiştirilemez; yeni dosya için "＋ Yeni Medya" ile ayrı bir kayıt yükleyin.</p>`;
   }
 
   function collectMediaFields() {
@@ -613,6 +697,78 @@
     return list.length ? list : undefined;
   }
 
+  /* ---------------------------------------------------------------------- */
+  /* Media linking (Section 10) — searchable, no raw-ID typing required for */
+  /* an entity/page to reference an uploaded media record.                  */
+  /* ---------------------------------------------------------------------- */
+
+  let mediaEntityIndex = []; // [{id, label}] — populated on demand, mirrors relationshipEntityIndex's pattern
+
+  async function ensureMediaEntityIndexLoaded() {
+    if (mediaEntityIndex.length) return;
+    try {
+      const { data } = await Session.requestContent("/entities?type=media");
+      mediaEntityIndex = data.map((m) => ({ id: m.id, label: `${m.originalFilename || m.mediaType} (${m.id})` }));
+      const datalist = document.getElementById("admin-media-link-options");
+      if (datalist) datalist.innerHTML = mediaEntityIndex.map((m) => `<option value="${escapeHtml(m.label)}">`).join("");
+    } catch (error) {
+      reportError(error, "ensureMediaEntityIndexLoaded");
+    }
+  }
+
+  function resolveMediaEntityId(inputValue) {
+    const value = inputValue.trim();
+    const match = mediaEntityIndex.find((m) => m.label === value);
+    if (match) return match.id;
+    const idMatch = value.match(/\(([^()]+)\)\s*$/);
+    return idMatch ? idMatch[1] : value;
+  }
+
+  function mediaLinkListEditorHtml(fieldId, label, currentIds = []) {
+    const chips = (currentIds || []).map((id) => mediaLinkChipHtml(fieldId, id)).join("");
+    return `<div class="form-group" data-media-link-list="${fieldId}">
+      <label class="form-label">${escapeHtml(label)}</label>
+      <div class="admin-name-list" data-media-link-rows="${fieldId}">${chips}</div>
+      <div style="display:flex; gap:6px;">
+        <input class="form-input" type="text" list="admin-media-link-options" placeholder="Medya ara (dosya adı veya ID)…" data-media-link-input="${fieldId}" autocomplete="off">
+        <button type="button" class="btn-admin btn-admin-secondary" data-media-link-add="${fieldId}">+ Ekle</button>
+      </div>
+      <datalist id="admin-media-link-options"></datalist>
+    </div>`;
+  }
+
+  function mediaLinkChipHtml(fieldId, id) {
+    const known = mediaEntityIndex.find((m) => m.id === id);
+    return `<div class="admin-name-row" data-media-link-row data-media-id="${escapeHtml(id)}">
+      <span class="admin-readonly-value" style="flex:1;">${escapeHtml(known ? known.label : id)}</span>
+      <button type="button" class="btn-admin btn-admin-danger admin-remove-name-row" aria-label="Kaldır">×</button>
+    </div>`;
+  }
+
+  function wireMediaLinkListEditor(container) {
+    ensureMediaEntityIndexLoaded();
+    container.querySelectorAll("[data-media-link-add]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fieldId = btn.dataset.mediaLinkAdd;
+        const input = container.querySelector(`[data-media-link-input="${fieldId}"]`);
+        const id = resolveMediaEntityId(input.value);
+        if (!id) return;
+        const rows = container.querySelector(`[data-media-link-rows="${fieldId}"]`);
+        if ([...rows.children].some((row) => row.dataset.mediaId === id)) { input.value = ""; return; }
+        rows.insertAdjacentHTML("beforeend", mediaLinkChipHtml(fieldId, id));
+        wireRemoveButtons(rows);
+        input.value = "";
+      });
+    });
+    wireRemoveButtons(container);
+  }
+
+  function collectMediaLinkIds(fieldId) {
+    const rows = document.querySelectorAll(`[data-media-link-rows="${fieldId}"] [data-media-link-row]`);
+    const ids = [...rows].map((row) => row.dataset.mediaId).filter(Boolean);
+    return ids.length ? ids : undefined;
+  }
+
   function coordinateEditorHtml(coordinates) {
     return `<div class="form-group">
       <label class="form-label">Koordinatlar</label>
@@ -661,10 +817,7 @@
       parts.push(multilingualInputHtml("lyrics", "Sözler / Lyrics", entity.lyrics || {}, "textarea"));
       parts.push(multilingualInputHtml("transcript", "Transkript", entity.transcript || {}, "textarea"));
       parts.push(multilingualInputHtml("translations", "Çeviri", entity.translations || {}, "textarea"));
-      const audioIds = (entity.audioMediaIds || []).join(", ") || "(bağlı ses kaydı yok)";
-      parts.push(`<div class="form-group"><label class="form-label">Bağlı Ses Kayıtları (audioMediaIds)</label>
-        <p class="admin-readonly-value">${escapeHtml(audioIds)}</p>
-        <small class="form-help">Ses dosyası bağlama bu sürümde desteklenmiyor — bkz. Medya bölümü notu.</small></div>`);
+      parts.push(mediaLinkListEditorHtml("audioMediaIds", "Bağlı Ses Kayıtları", entity.audioMediaIds));
     } else if (entityType === "proverb") {
       parts.push(`<div class="form-group"><label class="form-label">Özgün İfade</label><input class="form-input" id="field-original-text" value="${escapeHtml(entity.originalText || "")}"></div>`);
       parts.push(`<div class="form-row-two">
@@ -675,8 +828,26 @@
       parts.push(multilingualInputHtml("literalMeaning", "Sözlük Anlamı", entity.literalMeaning || {}, "textarea"));
       parts.push(multilingualInputHtml("culturalMeaning", "Kültürel Anlam / Bağlam", entity.culturalMeaning || {}, "textarea"));
       parts.push(multilingualInputHtml("translations", "Çeviri", entity.translations || {}, "textarea"));
+      // Section 11 of the "correctness pass" round: proverb.audioMediaIds
+      // is already schema-valid (backend/v2/schemas/proverb.js) and already
+      // rights-gated end to end (media/mediaRoutes.js, entityDetailRenderer.js)
+      // — it was simply never exposed here. No new schema field invented.
+      parts.push(mediaLinkListEditorHtml("audioMediaIds", "Bağlı Ses Kayıtları", entity.audioMediaIds));
     } else if (entityType === "structure") {
       parts.push(`<div class="form-group"><label class="form-label">Yapı Türü</label><input class="form-input" id="field-structure-type" value="${escapeHtml(entity.structureType || "")}"></div>`);
+      parts.push(mediaLinkListEditorHtml("mediaIds", "Bağlı Medya", entity.mediaIds));
+    } else if (entityType === "story") {
+      // Section 11: story.audioMediaIds/illustrationMediaIds are already
+      // schema-valid (backend/v2/schemas/story.js) but had no editor UI at
+      // all yet for this entity type in the direct-publish (SQLite) editor.
+      // Exposing only the existing media-linking capability here, per the
+      // round brief — story's other type-specific fields (storyCategory,
+      // themes, storyPlaceId, period, recordingDate, transcript,
+      // translations) remain editable only via the separate
+      // proposal/editorial flow; adding a full story editor UI here would
+      // be the "massive redesign" the brief says not to do.
+      parts.push(mediaLinkListEditorHtml("audioMediaIds", "Bağlı Ses Kayıtları", entity.audioMediaIds));
+      parts.push(mediaLinkListEditorHtml("illustrationMediaIds", "Bağlı Görsel", entity.illustrationMediaIds));
     }
     return parts.join("\n");
   }
@@ -701,6 +872,7 @@
       const lyrics = collectMultilingual("lyrics"); if (lyrics) out.lyrics = lyrics;
       const transcript = collectMultilingual("transcript"); if (transcript) out.transcript = transcript;
       const translations = collectMultilingual("translations"); if (translations) out.translations = translations;
+      const audioMediaIds = collectMediaLinkIds("audioMediaIds"); if (audioMediaIds) out.audioMediaIds = audioMediaIds;
     } else if (entityType === "proverb") {
       if (val("field-original-text")) out.originalText = val("field-original-text");
       if (val("field-language")) out.language = val("field-language");
@@ -709,8 +881,13 @@
       const literalMeaning = collectMultilingual("literalMeaning"); if (literalMeaning) out.literalMeaning = literalMeaning;
       const culturalMeaning = collectMultilingual("culturalMeaning"); if (culturalMeaning) out.culturalMeaning = culturalMeaning;
       const translations = collectMultilingual("translations"); if (translations) out.translations = translations;
+      const audioMediaIds = collectMediaLinkIds("audioMediaIds"); if (audioMediaIds) out.audioMediaIds = audioMediaIds;
     } else if (entityType === "structure") {
       if (val("field-structure-type")) out.structureType = val("field-structure-type");
+      const mediaIds = collectMediaLinkIds("mediaIds"); if (mediaIds) out.mediaIds = mediaIds;
+    } else if (entityType === "story") {
+      const audioMediaIds = collectMediaLinkIds("audioMediaIds"); if (audioMediaIds) out.audioMediaIds = audioMediaIds;
+      const illustrationMediaIds = collectMediaLinkIds("illustrationMediaIds"); if (illustrationMediaIds) out.illustrationMediaIds = illustrationMediaIds;
     }
     return out;
   }
@@ -764,11 +941,19 @@
       `;
     }
     body.querySelectorAll('[data-name-list]').forEach(wireNameListEditor);
+    body.querySelectorAll('[data-media-link-list]').forEach(() => wireMediaLinkListEditor(body));
     if (entityType === "place") initCoordinateMap(entity.coordinates);
 
     editorDirty = false;
     body.addEventListener("input", () => { editorDirty = true; });
     body.addEventListener("change", () => { editorDirty = true; });
+
+    const submitBtn = document.getElementById("admin-editor-submit");
+    if (submitBtn) {
+      submitBtn.textContent = !isDirectContentAuthority() ? (isNew ? "Taslak Olarak Kaydet" : "Değişiklik Önerisi Kaydet")
+        : isNew ? "Taslak Olarak Oluştur"
+        : "Kaydet";
+    }
 
     const modal = document.getElementById("admin-editor-modal");
     modal.classList.add("open");
@@ -817,6 +1002,31 @@
     return out;
   }
 
+  async function submitEditorDirect({ mode, entityType, baseEntity, proposedChanges, flat }) {
+    if (mode === "create") {
+      proposedChanges.id = val("field-id");
+      if (!flat) proposedChanges.slug = val("field-slug");
+      const created = await Session.requestContent("/entities", { method: "POST", body: JSON.stringify({ entityType, fields: proposedChanges }) });
+      toast("Yeni kayıt oluşturuldu (Taslak).");
+      return created;
+    }
+
+    // Status is a separate concern from content edits in contentService.js
+    // (editEntity() rejects a status field outright) — split it out here
+    // and apply it, if changed, through the correct transition/restore
+    // endpoint after the content edit succeeds.
+    const { status: requestedStatus, ...contentFields } = proposedChanges;
+    if (Object.keys(contentFields).length) {
+      await Session.requestContent(`/entities/${encodeURIComponent(baseEntity.id)}`, { method: "PATCH", body: JSON.stringify({ fields: contentFields }) });
+    }
+    if (!flat && requestedStatus && requestedStatus !== baseEntity.status) {
+      const fromArchived = baseEntity.status === "archived";
+      const endpoint = fromArchived ? `/entities/${encodeURIComponent(baseEntity.id)}/restore` : `/entities/${encodeURIComponent(baseEntity.id)}/transition`;
+      await Session.requestContent(endpoint, { method: "POST", body: JSON.stringify({ toStatus: requestedStatus }) });
+    }
+    toast("Kayıt güncellendi.");
+  }
+
   async function submitEditor(event) {
     event.preventDefault();
     const { mode, entityType, baseEntity } = editorState;
@@ -826,18 +1036,22 @@
       : { ...collectCommonFields(), ...collectTypeSpecificFields(entityType) };
 
     try {
-      if (mode === "create") {
+      if (isDirectContentAuthority()) {
+        await submitEditorDirect({ mode, entityType, baseEntity, proposedChanges, flat });
+        loadRecords();
+      } else if (mode === "create") {
         proposedChanges.id = val("field-id");
         if (!flat) proposedChanges.slug = val("field-slug");
         await Session.request("/drafts", { method: "POST", body: JSON.stringify({ kind: "create", entityType, proposedChanges }) });
         toast("Yeni kayıt taslağı oluşturuldu.");
+        loadDrafts();
       } else {
         await Session.request("/drafts", { method: "POST", body: JSON.stringify({ kind: "edit", entityType, entityId: baseEntity.id, proposedChanges }) });
         toast("Değişiklik önerisi taslak olarak kaydedildi.");
+        loadDrafts();
       }
       editorDirty = false;
       closeEditor({ force: true });
-      loadDrafts();
       refreshDashboard();
     } catch (error) {
       toast(reportError(error, "submitEditor"), "error");
@@ -1145,8 +1359,119 @@
   function initMediaFilters() {
     document.getElementById("admin-media-type-filter")?.addEventListener("change", (e) => loadMedia({ mediaType: e.target.value }));
     document.getElementById("admin-media-rights-filter")?.addEventListener("change", (e) => loadMedia({ rightsStatus: e.target.value }));
-    document.getElementById("admin-media-new-btn")?.addEventListener("click", () => openEditorForNew("media"));
+    document.getElementById("admin-media-new-btn")?.addEventListener("click", () => {
+      // Real file upload (Section 8) only exists in direct/SQLite mode — an
+      // editorial-mode deployment keeps its existing, unrelated "propose a
+      // media entity draft" behavior (no file, metadata only), unchanged.
+      if (isDirectContentAuthority()) openMediaUploadModal(); else openEditorForNew("media");
+    });
     document.getElementById("admin-sources-new-btn")?.addEventListener("click", () => openEditorForNew("source"));
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Media upload (Section 8-10) — direct/SQLite mode only.                  */
+  /* ---------------------------------------------------------------------- */
+
+  const UPLOAD_ACCEPT = ".jpg,.jpeg,.png,.webp,.mp3,.wav,.m4a,.ogg,.pdf";
+  let mediaUploadTriggerEl = null;
+
+  function renderMediaUploadForm() {
+    const body = document.getElementById("admin-media-upload-form-body");
+    body.innerHTML = `
+      <div class="form-group">
+        <label class="form-label" for="field-upload-file">Dosya (jpg, jpeg, png, webp, mp3, wav, m4a, ogg, pdf)</label>
+        <input class="form-input" type="file" id="field-upload-file" accept="${UPLOAD_ACCEPT}" required>
+      </div>
+      <div class="form-row-two">
+        <div class="form-group"><label class="form-label" for="field-upload-role">Köken / Role</label>
+          <select class="form-select" id="field-upload-role">${selectOptionsHtml(MEDIA_ROLES_LIST, MEDIA_ROLE_LABELS, "realArchiveMedia")}</select></div>
+        <div class="form-group"><label class="form-label" for="field-upload-rights-status">Haklar Durumu / Rights Status</label>
+          <select class="form-select" id="field-upload-rights-status">${selectOptionsHtml(RIGHTS_STATUS_LIST, RIGHTS_STATUS_LABELS, "unknown")}</select></div>
+        <div class="form-group"><label class="form-label" for="field-upload-source">Kaynak / Source</label><input class="form-input" id="field-upload-source"></div>
+        <div class="form-group"><label class="form-label" for="field-upload-author">Yazar / Author</label><input class="form-input" id="field-upload-author"></div>
+        <div class="form-group"><label class="form-label" for="field-upload-license">Lisans / License</label><input class="form-input" id="field-upload-license"></div>
+      </div>
+      <div class="form-group"><label class="form-label" for="field-upload-rights-note">Haklar Notu / Rights Note</label><textarea class="form-textarea" id="field-upload-rights-note"></textarea></div>
+      <label class="checkbox-row" for="field-upload-ai-generated">
+        <input type="checkbox" id="field-upload-ai-generated">
+        <span>Yapay zekâ ile oluşturulmuş / AI-generated</span>
+      </label>
+      <p class="admin-storage-banner admin-storage-banner-ephemeral">Yalnızca <strong>"Temiz (Yayına Hazır)"</strong> olarak işaretlenen medya herkese açık sitede görünür/çalınabilir olur. Diğer tüm durumlar (Bilinmiyor, İncelemede, Kısıtlı, Yayınlanmasın) dosyayı otomatik olarak herkese kapalı tutar.</p>
+    `;
+  }
+
+  function openMediaUploadModal(triggerEl = document.activeElement) {
+    mediaUploadTriggerEl = triggerEl;
+    renderMediaUploadForm();
+    const modal = document.getElementById("admin-media-upload-modal");
+    modal.classList.add("open");
+    modal.querySelector("input")?.focus();
+  }
+
+  function closeMediaUploadModal() {
+    document.getElementById("admin-media-upload-modal").classList.remove("open");
+    document.getElementById("admin-media-upload-form").reset();
+    mediaUploadTriggerEl?.focus();
+    mediaUploadTriggerEl = null;
+  }
+
+  /**
+   * Multipart upload — deliberately NOT routed through
+   * Session.requestContent (which always sets Content-Type: application/
+   * json and JSON.stringifies the body). This mirrors that helper's own
+   * CSRF-cookie-attachment logic by hand for the one request in this file
+   * that must send FormData instead.
+   */
+  async function submitMediaUpload(event) {
+    event.preventDefault();
+    const fileInput = document.getElementById("field-upload-file");
+    const file = fileInput.files?.[0];
+    if (!file) { toast("Bir dosya seçin.", "error"); return; }
+
+    const fields = {
+      mediaRole: val("field-upload-role"),
+      rightsStatus: val("field-upload-rights-status"),
+      source: val("field-upload-source") || undefined,
+      author: val("field-upload-author") || undefined,
+      license: val("field-upload-license") || undefined,
+      rightsNote: val("field-upload-rights-note") || undefined,
+      aiGenerated: document.getElementById("field-upload-ai-generated").checked,
+    };
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fields", JSON.stringify(fields));
+
+    const submitBtn = document.getElementById("admin-media-upload-submit");
+    submitBtn.disabled = true;
+    try {
+      const csrfMatch = document.cookie.match(/(?:^|; )aa_admin_csrf=([^;]*)/);
+      const response = await fetch("/api/admin/content/media/upload", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: csrfMatch ? { "X-CSRF-Token": decodeURIComponent(csrfMatch[1]) } : {},
+        body: formData,
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || `Yükleme başarısız (${response.status}).`);
+      toast(data.duplicate ? "Bu dosya zaten yüklenmiş — mevcut kayıt kullanıldı." : "Medya yüklendi.");
+      closeMediaUploadModal();
+      loadMedia();
+      refreshDashboard();
+    } catch (error) {
+      toast(reportError(error, "submitMediaUpload"), "error");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  function initMediaUploadModal() {
+    document.getElementById("admin-media-upload-form")?.addEventListener("submit", submitMediaUpload);
+    document.getElementById("admin-media-upload-close")?.addEventListener("click", closeMediaUploadModal);
+    document.getElementById("admin-media-upload-cancel")?.addEventListener("click", closeMediaUploadModal);
+    document.getElementById("admin-media-upload-modal")?.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMediaUploadModal();
+    });
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1171,12 +1496,13 @@
       const { data } = await Session.request("/entities?type=source");
       if (!data.length) { container.innerHTML = `<p class="admin-muted">Kaynak bulunamadı.</p>`; return; }
       container.innerHTML = `
-        <p class="admin-muted" style="margin-bottom: var(--sp-3);">Not: kaynak kalite sınıflandırması (Birincil / Akademik / Kurumsal / Yerel Tarih / Sözlü Tarih / Popüler / Doğrulanmamış) bu sürümde desteklenmiyor — canonical şemada henüz karşılığı yok. Bkz. round raporu, "Known Limitations".</p>
-        <table class="admin-table"><thead><tr><th>Başlık</th><th>ID</th><th>Tür</th><th>Yazar</th><th>Yıl</th><th>URL</th><th>İşlemler</th></tr></thead><tbody>
+        <p class="admin-muted" style="margin-bottom: var(--sp-3);">Kaynak kalite sınıflandırması bilginin doğruluk garantisi değildir; editoryal sınıflandırmadır. Sistem otomatik atama yapmaz.</p>
+        <table class="admin-table"><thead><tr><th>Başlık</th><th>ID</th><th>Tür</th><th>Kalite</th><th>Yazar</th><th>Yıl</th><th>URL</th><th>İşlemler</th></tr></thead><tbody>
         ${data.map((s) => `<tr>
           <td class="cell-title">${escapeHtml(s.title || "(başlıksız)")}</td>
           <td class="cell-id">${escapeHtml(s.id)}${originBadgeHtml(s)}</td>
           <td>${escapeHtml(SOURCE_TYPE_LABELS[s.type] || s.type || "—")}</td>
+          <td>${s.qualityClassification ? `<span class="admin-badge admin-badge-draft">${escapeHtml(SOURCE_QUALITY_LABELS[s.qualityClassification] || s.qualityClassification)}</span>` : `<span class="admin-muted">—</span>`}</td>
           <td>${escapeHtml(s.author || "—")}</td>
           <td>${escapeHtml(s.year || "—")}</td>
           <td>${s.url ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">Bağlantı</a>` : "—"}</td>
@@ -1195,19 +1521,378 @@
   /* Relationships (read-only)                                               */
   /* ---------------------------------------------------------------------- */
 
+  const RELATIONSHIP_TYPES_LIST = Object.freeze([
+    "associatedWith", "locatedIn", "hasBelief", "practicedBy", "hasSite", "narratedBy",
+    "originatesFrom", "performedBy", "spokenIn", "documents", "depicts", "relatedTo",
+  ]);
+  let relationshipEntityIndex = []; // [{id, label}] — populated in direct mode for the datalist + preview lookup
+
   async function loadRelationships() {
     const container = document.getElementById("admin-relationships-list");
     if (!container) return;
     container.innerHTML = `<p class="admin-muted">Yükleniyor…</p>`;
+
+    const form = document.getElementById("admin-relationship-form");
+    const sub = document.getElementById("admin-relationships-sub");
+    if (form) form.hidden = !isDirectContentAuthority();
+    if (sub) sub.textContent = isDirectContentAuthority()
+      ? "Kayıtlar arası ilişkiler. Aşağıdaki formla doğrudan ekleyebilir veya kaldırabilirsiniz."
+      : "Kayıtlar arası ilişkiler — bu sürümde yalnızca görüntüleme; yeni ilişki önerisi desteklenmiyor.";
+
     try {
-      const { data } = await Session.request("/relationships");
+      const { data } = await (isDirectContentAuthority() ? Session.requestContent("/relationships") : Session.request("/relationships"));
+      if (isDirectContentAuthority()) await populateRelationshipEntityIndex();
+
       if (!data.length) { container.innerHTML = `<p class="admin-muted">İlişki kaydı bulunamadı.</p>`; return; }
-      container.innerHTML = `<table class="admin-table"><thead><tr><th>Kaynak</th><th>Tür</th><th>Hedef</th><th>Durum</th></tr></thead><tbody>
-        ${data.map((r) => `<tr><td><code>${escapeHtml(r.sourceId)}</code></td><td>${escapeHtml(r.type)}</td><td><code>${escapeHtml(r.targetId)}</code></td><td>${statusBadge(r.status)}</td></tr>`).join("")}
+      const labelFor = (id) => relationshipEntityIndex.find((e) => e.id === id)?.label || id;
+      container.innerHTML = `<table class="admin-table"><thead><tr><th>Kaynak</th><th>Tür</th><th>Hedef</th><th>Durum</th>${isDirectContentAuthority() ? "<th></th>" : ""}</tr></thead><tbody>
+        ${data.map((r) => `<tr>
+          <td>${escapeHtml(labelFor(r.sourceId))}</td><td>${escapeHtml(r.type)}</td><td>${escapeHtml(labelFor(r.targetId))}</td><td>${statusBadge(r.status)}</td>
+          ${isDirectContentAuthority() ? `<td><button type="button" class="btn-admin btn-admin-danger" data-remove-relationship="${escapeHtml(r.id)}">Kaldır</button></td>` : ""}
+        </tr>`).join("")}
       </tbody></table>`;
+      container.querySelectorAll("[data-remove-relationship]").forEach((btn) => btn.addEventListener("click", () => removeRelationshipDirect(btn.dataset.removeRelationship)));
     } catch (error) {
       container.innerHTML = `<p class="admin-error">${escapeHtml(reportError(error, "loadRelationships"))}</p>`;
     }
+  }
+
+  async function populateRelationshipEntityIndex() {
+    try {
+      const { data } = await Session.requestContent("/entities");
+      relationshipEntityIndex = data.map((e) => ({ id: e.id, label: `${localized(e.title, e.id)} (${e.id})` }));
+      const datalist = document.getElementById("admin-rel-entity-options");
+      if (datalist) datalist.innerHTML = relationshipEntityIndex.map((e) => `<option value="${escapeHtml(e.label)}">`).join("");
+    } catch (error) {
+      reportError(error, "populateRelationshipEntityIndex");
+    }
+  }
+
+  /** The datalist shows "Title (id)" — accept either that exact label or a bare id typed directly. */
+  function resolveRelationshipEntityId(inputValue) {
+    const value = inputValue.trim();
+    const match = relationshipEntityIndex.find((e) => e.label === value);
+    if (match) return match.id;
+    const idMatch = value.match(/\(([^()]+)\)\s*$/);
+    if (idMatch && relationshipEntityIndex.some((e) => e.id === idMatch[1])) return idMatch[1];
+    return relationshipEntityIndex.some((e) => e.id === value) ? value : value;
+  }
+
+  async function removeRelationshipDirect(id) {
+    if (!confirm("Bu ilişkiyi kaldırmak istediğinizden emin misiniz? Kayıtların kendisi etkilenmez.")) return;
+    try {
+      await Session.requestContent(`/relationships/${encodeURIComponent(id)}`, { method: "DELETE" });
+      toast("İlişki kaldırıldı.");
+      loadRelationships();
+    } catch (error) {
+      toast(reportError(error, "removeRelationshipDirect"), "error");
+    }
+  }
+
+  function initRelationshipForm() {
+    const form = document.getElementById("admin-relationship-form");
+    const typeSelect = document.getElementById("admin-rel-type");
+    if (typeSelect) typeSelect.innerHTML = RELATIONSHIP_TYPES_LIST.map((t) => `<option value="${t}">${t}</option>`).join("");
+
+    const preview = document.getElementById("admin-rel-preview");
+    async function updatePreview() {
+      const sourceId = resolveRelationshipEntityId(document.getElementById("admin-rel-source").value);
+      const targetId = resolveRelationshipEntityId(document.getElementById("admin-rel-target").value);
+      const type = typeSelect.value;
+      if (!sourceId || !targetId || !type) { preview.hidden = true; return; }
+      try {
+        const { data } = await Session.requestContent(`/relationships/preview?type=${encodeURIComponent(type)}&sourceId=${encodeURIComponent(sourceId)}&targetId=${encodeURIComponent(targetId)}`);
+        preview.hidden = false;
+        preview.textContent = `Önizleme: ${data.summary}`;
+      } catch {
+        preview.hidden = true;
+      }
+    }
+    form?.querySelectorAll("input, select").forEach((el) => el.addEventListener("change", updatePreview));
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const sourceId = resolveRelationshipEntityId(document.getElementById("admin-rel-source").value);
+      const targetId = resolveRelationshipEntityId(document.getElementById("admin-rel-target").value);
+      const type = typeSelect.value;
+      try {
+        await Session.requestContent("/relationships", { method: "POST", body: JSON.stringify({ type, sourceId, targetId }) });
+        toast("İlişki eklendi.");
+        form.reset();
+        preview.hidden = true;
+        loadRelationships();
+      } catch (error) {
+        toast(reportError(error, "createRelationship"), "error");
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Pages (CMS) — Section 15-19. Only reachable in direct-authority mode.   */
+  /* ---------------------------------------------------------------------- */
+
+  let pageEditorState = { mode: "create", basePage: null };
+  let pageEditorDirty = false;
+  let pageEditorTriggerEl = null;
+
+  const PAGE_STATUS_NEXT_ACTIONS = Object.freeze({
+    draft: [["inReview", "İncelemeye Gönder"], ["published", "Yayınla"]],
+    inReview: [["published", "Yayınla"], ["draft", "Taslağa Geri Al"]],
+    published: [["archived", "Yayından Kaldır / Arşivle"]],
+    archived: [], // handled via the dedicated restore buttons below
+  });
+
+  function pageCardHtml(page) {
+    const actions = (PAGE_STATUS_NEXT_ACTIONS[page.status] || []).map(([next, label]) => (
+      `<button type="button" class="btn-admin btn-admin-secondary" data-page-transition="${next}" data-page-id="${escapeHtml(page.id)}">${label}</button>`
+    )).join("");
+    const restoreActions = page.status === "archived"
+      ? `<button type="button" class="btn-admin btn-admin-secondary" data-page-restore="draft" data-page-id="${escapeHtml(page.id)}">Taslağa Geri Yükle</button>
+         <button type="button" class="btn-admin btn-admin-primary" data-page-restore="published" data-page-id="${escapeHtml(page.id)}">Yayına Geri Yükle</button>`
+      : "";
+    const publicLink = page.status === "published" ? `<a href="/sayfa/${encodeURIComponent(page.slug)}/" target="_blank" rel="noopener noreferrer">Canlı Görüntüle ↗</a>` : "";
+    return `<article class="admin-draft-card">
+      <header><span class="admin-draft-kind">Sayfa</span>${statusBadge(page.status)}</header>
+      <p><strong>${escapeHtml(localized(page.title, page.slug))}</strong> — <code>/sayfa/${escapeHtml(page.slug)}/</code></p>
+      <p class="admin-muted">${escapeHtml((page.updatedAt || "").slice(0, 16).replace("T", " "))} ${publicLink}</p>
+      <div class="admin-row-actions">
+        <button type="button" class="btn-admin btn-admin-secondary" data-page-edit="${escapeHtml(page.id)}">Düzenle</button>
+        ${actions}
+        ${restoreActions}
+        <button type="button" class="btn-admin btn-admin-danger" data-page-delete="${escapeHtml(page.id)}">Kalıcı Sil</button>
+      </div>
+    </article>`;
+  }
+
+  async function loadPages() {
+    const container = document.getElementById("admin-pages-list");
+    if (!container) return;
+    container.innerHTML = `<p class="admin-muted">Yükleniyor…</p>`;
+    try {
+      const { data } = await Session.requestContent("/pages");
+      if (!data.length) { container.innerHTML = `<p class="admin-muted">Henüz sayfa yok.</p>`; return; }
+      container.innerHTML = `<div class="admin-drafts-list">${data.map(pageCardHtml).join("")}</div>`;
+      container.querySelectorAll("[data-page-edit]").forEach((btn) => btn.addEventListener("click", () => openPageEditor(btn.dataset.pageEdit, btn)));
+      container.querySelectorAll("[data-page-transition]").forEach((btn) => btn.addEventListener("click", () => transitionPage(btn.dataset.pageId, btn.dataset.pageTransition)));
+      container.querySelectorAll("[data-page-restore]").forEach((btn) => btn.addEventListener("click", () => restorePageDirect(btn.dataset.pageId, btn.dataset.pageRestore)));
+      container.querySelectorAll("[data-page-delete]").forEach((btn) => btn.addEventListener("click", () => deletePageDirect(btn.dataset.pageDelete)));
+    } catch (error) {
+      container.innerHTML = `<p class="admin-error">${escapeHtml(reportError(error, "loadPages"))}</p>`;
+    }
+  }
+
+  async function transitionPage(id, toStatus) {
+    try {
+      await Session.requestContent(`/pages/${encodeURIComponent(id)}/transition`, { method: "POST", body: JSON.stringify({ toStatus }) });
+      toast(toStatus === "published" ? "Sayfa yayınlandı." : toStatus === "archived" ? "Sayfa arşivlendi." : "Durum güncellendi.");
+      loadPages();
+    } catch (error) {
+      toast(reportError(error, "transitionPage"), "error");
+    }
+  }
+
+  async function restorePageDirect(id, toStatus) {
+    if (!confirm("Sayfa geri yüklenecek. Devam edilsin mi?")) return;
+    try {
+      await Session.requestContent(`/pages/${encodeURIComponent(id)}/restore`, { method: "POST", body: JSON.stringify({ toStatus }) });
+      toast("Sayfa geri yüklendi.");
+      loadPages();
+    } catch (error) {
+      toast(reportError(error, "restorePageDirect"), "error");
+    }
+  }
+
+  async function deletePageDirect(id) {
+    if (!confirm("Bu sayfa KALICI olarak silinecek. Bu işlem geri alınamaz. Devam edilsin mi?")) return;
+    try {
+      await Session.requestContent(`/pages/${encodeURIComponent(id)}`, { method: "DELETE", body: JSON.stringify({ confirm: true }) });
+      toast("Sayfa kalıcı olarak silindi.");
+      loadPages();
+    } catch (error) {
+      toast(reportError(error, "deletePageDirect"), "error");
+    }
+  }
+
+  function pageMultilingualField(fieldId, label, values = {}, tag = "input") {
+    return multilingualInputHtml(fieldId, label, values, tag);
+  }
+
+  function renderPageEditor() {
+    const { mode, basePage } = pageEditorState;
+    const isNew = mode === "create";
+    const page = basePage || {};
+    document.getElementById("admin-page-editor-heading").textContent = isNew ? "Yeni Sayfa" : `Sayfa Düzenle — ${localized(page.title, page.slug)}`;
+
+    const slugHtml = isNew
+      ? `<div class="form-group"><label class="form-label" for="field-page-slug">URL (slug)</label><input class="form-input" id="field-page-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required placeholder="ör. hakkimizda"><small class="form-help">Yayınlanan sayfa şu adreste olacak: /sayfa/&lt;slug&gt;/</small></div>`
+      : `<p class="admin-readonly-value">URL: <code>/sayfa/${escapeHtml(page.slug)}/</code> (slug bu ekrandan değiştirilemez)</p>`;
+
+    const body = document.getElementById("admin-page-editor-form-body");
+    body.innerHTML = `
+      ${slugHtml}
+      ${pageMultilingualField("page-title", "Başlık", page.title || {})}
+      ${pageMultilingualField("page-summary", "Özet", page.summary || {}, "textarea")}
+      ${pageMultilingualField("page-content", "İçerik (paragraflar boş satırla ayrılır)", page.content || {}, "textarea")}
+      <details class="editor-section">
+        <summary>SEO</summary>
+        <div class="editor-section-body">
+          ${pageMultilingualField("page-seo-title", "SEO Başlık", page.seoTitle || {})}
+          ${pageMultilingualField("page-seo-description", "SEO Açıklama", page.seoDescription || {}, "textarea")}
+        </div>
+      </details>
+      <details class="editor-section">
+        <summary>Menü Ayarları</summary>
+        <div class="editor-section-body">
+          <label class="checkbox-row" for="field-page-show-nav">
+            <input type="checkbox" id="field-page-show-nav" ${page.showInNavigation ? "checked" : ""}>
+            <span>Menüde göster</span>
+          </label>
+          ${pageMultilingualField("page-nav-label", "Menü Etiketi", page.navigationLabel || {})}
+          <div class="form-row-two">
+            <div class="form-group"><label class="form-label" for="field-page-nav-group">Menü Grubu</label><input class="form-input" id="field-page-nav-group" value="${escapeHtml(page.navigationGroup || "")}"></div>
+            <div class="form-group"><label class="form-label" for="field-page-nav-order">Menü Sırası</label><input class="form-input" type="number" id="field-page-nav-order" value="${page.navigationOrder ?? ""}"></div>
+          </div>
+        </div>
+      </details>
+      <details class="editor-section">
+        <summary>Medya</summary>
+        <div class="editor-section-body">
+          ${mediaLinkListEditorHtml("page-mediaIds", "Bağlı Medya (ör. kapak görseli)", page.mediaIds)}
+        </div>
+      </details>
+    `;
+
+    body.querySelectorAll('[data-media-link-list]').forEach(() => wireMediaLinkListEditor(body));
+
+    pageEditorDirty = false;
+    body.addEventListener("input", () => { pageEditorDirty = true; });
+    body.addEventListener("change", () => { pageEditorDirty = true; });
+
+    const modal = document.getElementById("admin-page-editor-modal");
+    modal.classList.add("open");
+    modal.querySelector("input, textarea, select")?.focus();
+  }
+
+  function openPageEditor(id, triggerEl = document.activeElement) {
+    pageEditorTriggerEl = triggerEl;
+    if (!id) {
+      pageEditorState = { mode: "create", basePage: null };
+      renderPageEditor();
+      return;
+    }
+    Session.requestContent(`/pages/${encodeURIComponent(id)}`).then(({ data }) => {
+      pageEditorState = { mode: "edit", basePage: data };
+      renderPageEditor();
+    }).catch((error) => toast(reportError(error, "openPageEditor"), "error"));
+  }
+
+  function closePageEditor({ force = false } = {}) {
+    if (!force && pageEditorDirty && !confirm("Kaydedilmemiş değişiklikler var. Yine de kapatmak istiyor musunuz?")) return;
+    document.getElementById("admin-page-editor-modal").classList.remove("open");
+    pageEditorDirty = false;
+    pageEditorTriggerEl?.focus();
+    pageEditorTriggerEl = null;
+  }
+
+  function collectPageFields() {
+    const out = {
+      title: collectMultilingual("page-title"),
+      summary: collectMultilingual("page-summary"),
+      content: collectMultilingual("page-content"),
+      seoTitle: collectMultilingual("page-seo-title"),
+      seoDescription: collectMultilingual("page-seo-description"),
+      navigationLabel: collectMultilingual("page-nav-label"),
+      showInNavigation: document.getElementById("field-page-show-nav").checked,
+      navigationGroup: val("field-page-nav-group") || undefined,
+    };
+    const order = val("field-page-nav-order");
+    if (order !== "") out.navigationOrder = Number(order);
+    const mediaIds = collectMediaLinkIds("page-mediaIds"); if (mediaIds) out.mediaIds = mediaIds;
+    return out;
+  }
+
+  async function submitPageEditor(event) {
+    event.preventDefault();
+    const { mode, basePage } = pageEditorState;
+    const fields = collectPageFields();
+    try {
+      if (mode === "create") {
+        fields.slug = val("field-page-slug");
+        await Session.requestContent("/pages", { method: "POST", body: JSON.stringify(fields) });
+        toast("Sayfa oluşturuldu (Taslak).");
+      } else {
+        await Session.requestContent(`/pages/${encodeURIComponent(basePage.id)}`, { method: "PATCH", body: JSON.stringify({ fields }) });
+        toast("Sayfa güncellendi.");
+      }
+      pageEditorDirty = false;
+      closePageEditor({ force: true });
+      loadPages();
+    } catch (error) {
+      toast(reportError(error, "submitPageEditor"), "error");
+    }
+  }
+
+  function initPageEditor() {
+    document.getElementById("admin-page-editor-form")?.addEventListener("submit", submitPageEditor);
+    document.getElementById("admin-page-editor-close")?.addEventListener("click", () => closePageEditor());
+    document.getElementById("admin-page-editor-cancel")?.addEventListener("click", () => closePageEditor());
+    document.getElementById("admin-page-editor-modal")?.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closePageEditor();
+    });
+    document.getElementById("admin-pages-new-btn")?.addEventListener("click", () => openPageEditor(null));
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* SQLite runtime backups (Section 29-31) — direct-authority mode only.    */
+  /* ---------------------------------------------------------------------- */
+
+  async function loadSqliteBackups() {
+    const panel = document.getElementById("admin-sqlite-backup-panel");
+    const list = document.getElementById("admin-sqlite-backups-list");
+    if (!panel || !list) return;
+    panel.hidden = !isDirectContentAuthority();
+    if (!isDirectContentAuthority()) return;
+
+    list.innerHTML = `<p class="admin-muted">Yükleniyor…</p>`;
+    try {
+      const { data } = await Session.requestContent("/backups");
+      if (!data.length) { list.innerHTML = `<p class="admin-muted">Henüz yedek yok.</p>`; return; }
+      list.innerHTML = `<table class="admin-table"><thead><tr><th>Tarih</th><th>Neden</th><th>Medya Dosyası</th><th></th></tr></thead><tbody>
+        ${data.map((b) => `<tr>
+          <td>${escapeHtml((b.createdAt || "").slice(0, 16).replace("T", " "))}</td>
+          <td>${escapeHtml(b.reason)}</td>
+          <td>${b.mediaFileCount}</td>
+          <td><button type="button" class="btn-admin btn-admin-danger" data-restore-backup="${escapeHtml(b.id)}">Geri Yükle</button></td>
+        </tr>`).join("")}
+      </tbody></table>`;
+      list.querySelectorAll("[data-restore-backup]").forEach((btn) => btn.addEventListener("click", () => restoreSqliteBackup(btn.dataset.restoreBackup)));
+    } catch (error) {
+      list.innerHTML = `<p class="admin-error">${escapeHtml(reportError(error, "loadSqliteBackups"))}</p>`;
+    }
+  }
+
+  async function restoreSqliteBackup(id) {
+    if (!confirm(`Bu yedeğe (${id}) geri dönülecek. Bu andan sonraki tüm değişiklikler kaybolur (geri yükleme öncesi durum otomatik olarak ayrıca yedeklenir). Devam edilsin mi?`)) return;
+    try {
+      const { data } = await Session.requestContent(`/backups/${encodeURIComponent(id)}/restore`, { method: "POST", body: JSON.stringify({ confirm: true }) });
+      toast(`Geri yükleme tamamlandı. Güvenlik yedeği: ${data.preRestoreSafetyBackup}`);
+      loadSqliteBackups();
+      refreshDashboard();
+    } catch (error) {
+      toast(reportError(error, "restoreSqliteBackup"), "error");
+    }
+  }
+
+  function initSqliteBackupPanel() {
+    document.getElementById("admin-sqlite-backup-create")?.addEventListener("click", async () => {
+      try {
+        await Session.requestContent("/backups", { method: "POST", body: JSON.stringify({ reason: "manual" }) });
+        toast("Yedek oluşturuldu.");
+        loadSqliteBackups();
+      } catch (error) {
+        toast(reportError(error, "createSqliteBackup"), "error");
+      }
+    });
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1222,6 +1907,10 @@
     initMediaFilters();
     initEditorModal();
     initDraftsView();
+    initRelationshipForm();
+    initPageEditor();
+    initSqliteBackupPanel();
+    initMediaUploadModal();
 
     const authenticated = await Session.checkSession();
     if (authenticated) await showPanel(); else showLoginGate();

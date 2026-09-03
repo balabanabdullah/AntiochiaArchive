@@ -69,9 +69,36 @@ LABEL description="AntiochiaArchive — nginx static file server (production)"
 # it to the deployed backend URL until the services are consolidated.
 ENV BACKEND_UPSTREAM=http://127.0.0.1:5000
 
+# nginx/default.conf's /archive-v2/ location branches its request handling
+# on this variable. Defaults to "runtime-authoritative" — every request
+# goes to the backend and its response (200 or 404) is final, with NO
+# static-file fallback of any kind. This is required once
+# V2_DATA_STORE=sqlite is authoritative: falling back to a static file on
+# a backend 404 cannot distinguish "unknown slug" from "this entity was
+# just archived," which would publicly resurrect archived content (see the
+# "release-blocker" round's Section 1-3 and nginx/default.conf's header
+# comment for the exact bug this fixed). A deployment confirmed to be
+# running local/firestore/memory (never sqlite, where archiving-at-request-
+# time cannot happen) can set ARCHIVE_V2_ROUTING_MODE=deploy-authoritative
+# to restore the original, faster, static-file-first request ordering.
+# This MUST be a real env var (not left unset) — nginx's envsubst template
+# step only substitutes variables that are actually present in the
+# container environment; an unset one would reach nginx.conf as the
+# literal, unparseable text "${ARCHIVE_V2_ROUTING_MODE}".
+ENV ARCHIVE_V2_ROUTING_MODE=runtime-authoritative
+
 # Replace default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx/default.conf /etc/nginx/templates/default.conf.template
+
+# Selects the /archive-v2/ routing mode (ARCHIVE_V2_ROUTING_MODE) once at
+# container startup, before nginx's own bundled envsubst step — see
+# nginx/10-select-archive-v2-mode.sh and default.conf's "IMPLEMENTATION
+# NOTE" for why this can't be a runtime nginx `if`. docker-entrypoint.d
+# scripts run in lexical filename order; "10-" runs before the official
+# image's own "20-envsubst-on-templates.sh".
+COPY nginx/10-select-archive-v2-mode.sh /docker-entrypoint.d/10-select-archive-v2-mode.sh
+RUN chmod +x /docker-entrypoint.d/10-select-archive-v2-mode.sh
 
 # Copy the full Vite build output from stage 1
 # Expected layout inside /usr/share/nginx/html/:

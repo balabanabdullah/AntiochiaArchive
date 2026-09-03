@@ -99,6 +99,40 @@ export default defineConfig({
         target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000",
         changeOrigin: true,
       },
+      // Dynamic CMS pages (backend/pages/pageRoutes.js) — local-dev mirror
+      // of nginx/default.conf's /sayfa/ proxy block, so `npm run dev` can
+      // reach them exactly like production will once that config is
+      // deployed. See backend/PERSISTENCE.md "Runtime content database
+      // (SQLite)".
+      "/sayfa": {
+        target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000",
+        changeOrigin: true,
+      },
+      // Runtime cultural-entity detail fallback (backend/v2/routes/
+      // v2DetailRoutes.js). Unconditional in dev (unlike nginx's
+      // ARCHIVE_V2_ROUTING_MODE toggle in production, which defaults to the
+      // same always-backend-first behavior but can opt into static-first —
+      // see nginx/default.conf) because `vite dev` never serves the
+      // post-build dist/archive-v2/ files at all — this proxy is what
+      // makes /archive-v2/:slug/ work locally during `npm run dev` for the
+      // first time, dynamic entities included.
+      "/archive-v2": {
+        target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000",
+        changeOrigin: true,
+      },
+      // Controlled local media serving (backend/media/mediaRoutes.js).
+      "/media": {
+        target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/sitemap-runtime.xml": {
+        target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/sitemap-index.xml": {
+        target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000",
+        changeOrigin: true,
+      },
     },
     watch: {
       usePolling: true,

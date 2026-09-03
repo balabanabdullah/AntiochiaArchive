@@ -29,11 +29,20 @@ async function builtPathFor(href) {
   return resolve(distRoot, path.slice(1));
 }
 
+// "correctness pass" round, Section 6/7: sitemap.xml is build-time-static
+// and MUST NOT carry cultural-entity URLs any more — they are served live
+// from /sitemap-runtime.xml (backend/v2/render/runtimeSitemap.js) instead,
+// precisely so archiving an entity through Admin can never leave a stale
+// URL behind in a file that only updates on the next deploy. This
+// generator's static detail pages still exist (for performance/back-compat
+// — see entityDetailRenderer.js), but they are deliberately NOT listed in
+// the static sitemap; this asserts that invariant rather than the old,
+// now-incorrect, "sitemap must include every v2 URL" check.
 const sitemap = await readFile(resolve(distRoot, "sitemap.xml"), "utf8");
 const sitemapEntries = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-const expectedV2Urls = v2SitemapUrls(entities);
-for (const url of expectedV2Urls) {
-  check(sitemapEntries.includes(url), `Sitemap is missing v2 URL: ${url}`);
+const wouldBeV2Urls = v2SitemapUrls(entities);
+for (const url of wouldBeV2Urls) {
+  check(!sitemapEntries.includes(url), `sitemap.xml must not contain a v2 entity URL any more (found ${url}) — entity URLs belong only in /sitemap-runtime.xml.`);
 }
 
 for (const entity of entities) {

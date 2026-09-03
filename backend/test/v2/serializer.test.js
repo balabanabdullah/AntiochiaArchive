@@ -56,6 +56,37 @@ test("public serializer strips storage internals from media", () => {
   assert.equal(Object.hasOwn(output, "checksum"), false);
 });
 
+test("correctness pass, Section 3: a rights-cleared, locally-stored Admin-uploaded media entity (no legacy derivativeStoragePaths of its own) gets a synthesized public serving URL", () => {
+  const media = {
+    id: "media-1", entityType: "media", mediaType: "audio", mediaRole: "realArchiveMedia",
+    storageDriver: "local", originalStoragePath: "opaque-key-123.mp3", rightsStatus: "cleared",
+  };
+  const output = serializePublicEntity(media);
+  assert.deepEqual(output.derivativeStoragePaths, ["/media/media-1"]);
+  assert.equal(Object.hasOwn(output, "originalStoragePath"), false, "the real storage key itself must never reach the public API");
+});
+
+test("correctness pass, Section 3: an UNCLEARED Admin-uploaded media entity never gets a synthesized serving URL, even though the file physically exists", () => {
+  for (const rightsStatus of ["unknown", "pendingReview", "restricted", "doNotPublish"]) {
+    const media = {
+      id: "media-1", entityType: "media", mediaType: "audio", mediaRole: "realArchiveMedia",
+      storageDriver: "local", originalStoragePath: "opaque-key-123.mp3", rightsStatus,
+    };
+    const output = serializePublicEntity(media);
+    assert.equal(Object.hasOwn(output, "derivativeStoragePaths"), false, `${rightsStatus} media must not expose any servable path`);
+  }
+});
+
+test("correctness pass, Section 3: an existing legacy-migrated derivativeStoragePaths value is never overwritten by the synthesis", () => {
+  const media = {
+    id: "media-1", entityType: "media", mediaType: "image", mediaRole: "realArchiveMedia",
+    storageDriver: "local", originalStoragePath: "opaque-key.png", rightsStatus: "cleared",
+    derivativeStoragePaths: ["/images/legacy/example.webp"],
+  };
+  const output = serializePublicEntity(media);
+  assert.deepEqual(output.derivativeStoragePaths, ["/images/legacy/example.webp"]);
+});
+
 test("public serializer never exposes a nested consent record even if attached", () => {
   const story = {
     id: "story-2",

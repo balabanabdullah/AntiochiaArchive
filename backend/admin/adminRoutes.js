@@ -11,7 +11,7 @@
 // completely separate collection/table (see editorialStore.js's header).
 
 import { Router } from "express";
-import { getV2Store } from "../v2/stores/v2Store.js";
+import { getV2Store, isSqliteRuntimeActive } from "../v2/stores/v2Store.js";
 import { ENTITY_TYPES, PUBLICATION_STATUS } from "../v2/constants/vocabularies.js";
 import {
   requireAdminSession, loginRateLimit, createSession, destroySession, hasValidSession, verifyAdminToken,
@@ -85,6 +85,13 @@ router.get("/dashboard", async (req, res) => {
         // can honestly show whether drafts survive a restart. See
         // backend/PERSISTENCE.md "Editorial draft persistence".
         editorialStoreName: getSelectedEditorialStoreName(),
+        // Tells the admin panel whether "Yayınla" etc. call the new direct
+        // /api/admin/content/* endpoints (immediate, no external apply step
+        // — see admin/contentService.js) or must still go through this
+        // namespace's draft/approve/export/apply workflow. Never a secret —
+        // just which of the two content-authority models this deployment
+        // is running. See the "no-code CMS" round's report.
+        contentAuthority: isSqliteRuntimeActive() ? "direct" : "editorial",
       },
     });
   } catch (error) {

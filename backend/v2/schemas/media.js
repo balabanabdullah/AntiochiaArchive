@@ -1,4 +1,4 @@
-import { MEDIA_ROLES, MEDIA_TYPES, RIGHTS_STATUS } from "../constants/vocabularies.js";
+import { MEDIA_ROLES, MEDIA_TYPES, RIGHTS_STATUS, MEDIA_STORAGE_DRIVERS } from "../constants/vocabularies.js";
 import {
   isNonEmptyString,
   isObject,
@@ -36,10 +36,13 @@ export function validateMedia(entity) {
     return { valid: false, error: "media.originalStoragePath must be a non-empty string." };
   }
 
+  const storageDriverError = validateEnum(entity.storageDriver, "media.storageDriver", MEDIA_STORAGE_DRIVERS);
+  if (storageDriverError) return { valid: false, error: storageDriverError };
+
   const derivativesError = validateStringArray(entity.derivativeStoragePaths, "media.derivativeStoragePaths");
   if (derivativesError) return { valid: false, error: derivativesError };
 
-  for (const field of ["mimeType", "source", "author", "license", "rightsNote", "checksum"]) {
+  for (const field of ["mimeType", "source", "author", "license", "rightsNote", "checksum", "originalFilename"]) {
     if (entity[field] != null && typeof entity[field] !== "string") {
       return { valid: false, error: `media.${field} must be a string.` };
     }

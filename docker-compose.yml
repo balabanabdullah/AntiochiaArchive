@@ -56,6 +56,16 @@ services:
       - "8080:8080"
     environment:
       - BACKEND_UPSTREAM=http://antiochia-archive-backend:5000
+      # /archive-v2/ routing mode (see nginx/default.conf) —
+      # "runtime-authoritative" (the image's own default; safe for every
+      # deployment) always uses the backend's response as-is, with NO
+      # static-file fallback, so an archived SQLite entity can never be
+      # publicly resurrected from a stale static file. Set to
+      # "deploy-authoritative" ONLY for a confirmed non-SQLite deployment
+      # (this compose file's default V2_DATA_STORE=empty below qualifies,
+      # since nothing can be archived at request time there) to restore
+      # the original, faster, static-file-first request ordering.
+      - ARCHIVE_V2_ROUTING_MODE=${ARCHIVE_V2_ROUTING_MODE:-runtime-authoritative}
     restart: unless-stopped
     depends_on:
       - antiochia-archive-backend

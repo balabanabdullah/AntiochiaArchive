@@ -244,6 +244,23 @@ export function serializePublicEntity(entity) {
     const preview = Array.isArray(entity.media) ? entity.media[0] : null;
     if (preview?.alt !== undefined) output.alt = preview.alt;
     if (preview?.caption !== undefined) output.caption = preview.caption;
+    // A media entity created through the Admin upload flow (see
+    // backend/admin/mediaUploadService.js) has no `derivativeStoragePaths`
+    // of its own — that field was only ever populated by the legacy v1
+    // migration importer. Without this, an uploaded, rights-cleared file
+    // would be fully invisible to the public API (no servable URL at all),
+    // which silently broke the client-side audio pipeline (public/js/
+    // music.js's resolvePlayableAudio) and any other consumer expecting
+    // this field. Synthesized ONLY for rights-cleared, locally-stored
+    // media, pointing at the controlled serving route (media/mediaRoutes.js,
+    // which independently re-checks the rights gate on every request) —
+    // never for an uncleared file, so an unresolved-rights record's public
+    // shape carries no hint that a servable path exists at all, matching
+    // the same "no public player for uncleared audio" principle applied at
+    // every other layer.
+    if (!Array.isArray(output.derivativeStoragePaths) && entity.storageDriver === "local" && entity.originalStoragePath && entity.rightsStatus === "cleared") {
+      output.derivativeStoragePaths = [`/media/${encodeURIComponent(entity.id)}`];
+    }
   } else if (MEDIA_PREVIEW_HOST_TYPES.includes(entity.entityType)) {
     const media = publicMediaSummary(entity);
     if (media) output.media = media;

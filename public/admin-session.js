@@ -15,6 +15,11 @@
   "use strict";
 
   const API_BASE = "/api/admin/editorial";
+  // The direct-publish content API (backend/admin/adminContentRoutes.js) —
+  // same session cookie, same CSRF cookie, same origin, just a different
+  // namespace. Only meaningful when the backend dashboard reports
+  // contentAuthority: "direct" (V2_DATA_STORE=sqlite); see admin-panel.js.
+  const CONTENT_API_BASE = "/api/admin/content";
 
   function readCookie(name) {
     const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
@@ -47,11 +52,14 @@
   }
 
   /**
-   * Fetch wrapper for the editorial API: always same-origin credentials,
-   * and automatically attaches X-CSRF-Token (read from the non-HttpOnly
-   * CSRF cookie the login response set) on every state-changing verb.
+   * Shared fetch wrapper: always same-origin credentials, and automatically
+   * attaches X-CSRF-Token (read from the non-HttpOnly CSRF cookie the login
+   * response set) on every state-changing verb. `base` lets the same
+   * session/CSRF machinery serve both the editorial-draft API and the
+   * direct-publish content API — the cookie pair is shared across both,
+   * since both live under the same admin session.
    */
-  async function request(path, options = {}) {
+  async function requestWithBase(base, path, options = {}) {
     const method = (options.method || "GET").toUpperCase();
     const headers = new Headers(options.headers || {});
     if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
@@ -60,7 +68,7 @@
     }
     if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
-    const response = await fetch(`${API_BASE}${path}`, { ...options, method, headers, credentials: "same-origin" });
+    const response = await fetch(`${base}${path}`, { ...options, method, headers, credentials: "same-origin" });
     let data = null;
     try { data = await response.json(); } catch (_) { /* empty body */ }
     if (!response.ok) {
@@ -69,5 +77,14 @@
     return data;
   }
 
-  root.AntiochiaAdminSession = Object.freeze({ checkSession, login, logout, request });
+  function request(path, options = {}) {
+    return requestWithBase(API_BASE, path, options);
+  }
+
+  /** Same session, same CSRF cookie, different namespace — see backend/admin/adminContentRoutes.js. */
+  function requestContent(path, options = {}) {
+    return requestWithBase(CONTENT_API_BASE, path, options);
+  }
+
+  root.AntiochiaAdminSession = Object.freeze({ checkSession, login, logout, request, requestContent });
 })(typeof window !== "undefined" ? window : globalThis);

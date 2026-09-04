@@ -72,6 +72,21 @@ let dbPath = null;
  * the risk a conscious choice rather than a silent config accident (e.g. a
  * copy-pasted local .env making it into a deploy command).
  */
+/**
+ * Manual QA round: "environment safety badge" — the same authoritative
+ * K_SERVICE signal above, exposed for the admin UI so a non-technical user
+ * can tell local from production at a glance without relying on hostname
+ * (which localhost:4173 vs. the real production URL already does visually,
+ * but is easy to overlook, and is exactly what this round's manual QA
+ * caught: a real user accidentally opened production during local
+ * testing). Cloud Run is this project's only production deployment target
+ * — see V1-RELEASE.md/PERSISTENCE.md — so "on Cloud Run" and "production"
+ * are the same fact here, not two separate guesses.
+ */
+export function isRunningOnCloudRun() {
+  return Boolean(process.env.K_SERVICE);
+}
+
 function assertSafeToActivateSqlite() {
   const onCloudRun = Boolean(process.env.K_SERVICE);
   const acknowledged = process.env.SQLITE_ON_CLOUD_RUN_ACK === "true";

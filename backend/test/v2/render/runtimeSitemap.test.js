@@ -79,6 +79,18 @@ test("draft/inReview entities and pages never appear in the dynamic sitemap", as
   assert.ok(!xml.includes("still-draft"));
 });
 
+test("COMMIT ÖNCESİ round, Section 3: after a published page's slug changes, the sitemap carries ONLY the new URL, never the old one", async (t) => {
+  const baseUrl = await startTestServer(t);
+  const { changePageSlug } = await import("../../../admin/pageService.js");
+  const page = createPage({ fields: { slug: "old-page-slug", title: { tr: "T" } }, actor: "test" });
+  publishPage({ id: page.id, actor: "test" });
+  changePageSlug({ id: page.id, newSlug: "new-page-slug", confirmed: true, actor: "test" });
+
+  const xml = await (await fetch(`${baseUrl}/sitemap-runtime.xml`)).text();
+  assert.match(xml, /sayfa\/new-page-slug\//);
+  assert.ok(!xml.includes("old-page-slug"), "the OLD slug must never appear in the sitemap once the page has moved");
+});
+
 test("sitemap-index.xml references both the static sitemap.xml and the live runtime one, as a valid sitemap index", async (t) => {
   const baseUrl = await startTestServer(t);
   const xml = await (await fetch(`${baseUrl}/sitemap-index.xml`)).text();

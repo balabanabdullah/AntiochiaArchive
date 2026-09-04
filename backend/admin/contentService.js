@@ -26,16 +26,83 @@ import { ENTITY_TYPES, PUBLICATION_STATUS } from "../v2/constants/vocabularies.j
 import { runInTransaction } from "../db/sqliteConnection.js";
 import {
   insertEntity, updateEntityRow, deleteEntityRow, getEntityByIdRow, idExists, slugExists, listEntitiesRows,
+  allEntitiesRaw,
 } from "../db/repositories/entityRepository.js";
 import {
   insertRelationship, deleteRelationshipRow, getRelationshipByIdRow, relationshipIdExists,
   countRelationshipsForEntity, listRelationshipsRows,
 } from "../db/repositories/relationshipRepository.js";
-import { recordAuditEntry, listAuditEntriesForTarget } from "../db/repositories/auditRepository.js";
+import { recordAuditEntry, listAuditEntriesForTarget, listAuditTargetIds } from "../db/repositories/auditRepository.js";
+import { recordSlugChange, isHistoricalSlug, listSlugHistoryForEntity } from "../db/repositories/slugHistoryRepository.js";
+import { computeNextEntityId, hasIdConvention } from "./idRecommendationService.js";
 
 export class ContentValidationError extends Error {}
-export class ContentConflictError extends Error {}
+/**
+ * `suggestedId`/`suggestedSlug` are set only for the matching kind of
+ * collision (see createEntity()/changeEntitySlug()) — a fresh, currently-
+ * unused value the caller can immediately retry with, never requiring a
+ * second network round trip. `requiresConfirmation` is set only by
+ * changeEntitySlug() when the entity has ever been published and the
+ * caller has not yet sent `confirmed: true` — Section 11: "do not allow
+ * accidental Enter/save to bypass this warning."
+ */
+export class ContentConflictError extends Error {
+  constructor(message, { suggestedId, suggestedSlug, requiresConfirmation } = {}) {
+    super(message);
+    this.suggestedId = suggestedId;
+    this.suggestedSlug = suggestedSlug;
+    this.requiresConfirmation = requiresConfirmation;
+  }
+}
 export class ContentNotFoundError extends Error {}
+
+/**
+ * "UX refinement" round, Section 9/14: a slug is reserved the moment it is
+ * live OR was ever historically used by ANY entity — never just checked
+ * against the current `entities.slug` column alone, or a formerly-used
+ * slug (Section 14: "reuse of a historical slug by another record") could
+ * be handed straight back out.
+ */
+function slugIsAvailable(slug) {
+  return !slugExists(slug) && !isHistoricalSlug(slug);
+}
+
+/** Section 9: "prefer a deterministic safe suggestion" on collision — besikli-magara, then besikli-magara-2, -3, ... until one is free. */
+function computeAvailableSlug(baseSlug) {
+  if (slugIsAvailable(baseSlug)) return baseSlug;
+  let suffix = 2;
+  while (!slugIsAvailable(`${baseSlug}-${suffix}`)) suffix += 1;
+  return `${baseSlug}-${suffix}`;
+}
+
+/**
+ * Section 10/11/16: "published" for slug-lock purposes means "has this
+ * exact entity EVER been live, at any point" — not merely "is its status
+ * currently 'published'" (an entity that was published, then unpublished
+ * back to draft, could still have real external links to its old URL).
+ * entities.published_at is unsuitable for this: transitionStatus() below
+ * explicitly NULLs it on a transition to draft/inReview, by design, for a
+ * different purpose (it also drives no "history" concept elsewhere). The
+ * audit_log is the one record that is never cleared or rewritten, so this
+ * checks it directly, mirroring exactly how idRecommendationService.js
+ * already relies on audit_log surviving a row's own later mutation.
+ */
+export function hasEverBeenPublished(entityId) {
+  return listAuditEntriesForTarget("entity", entityId, { limit: 1000 }).some((entry) => entry.action === "publish");
+}
+
+/** Shared by createEntity() and the standalone /next-id endpoint — the one place either ever touches the repository layer. */
+function suggestNextId(entityType) {
+  return computeNextEntityId(entityType, { allEntitiesRaw, listAuditTargetIds });
+}
+
+/** GET /api/admin/content/next-id — the standalone suggestion the create-record form pre-fills before the admin has typed anything. Throws ContentValidationError for a type with no configured id convention (media/page: already auto-generated elsewhere; see idRecommendationService.js's header). */
+export function getSuggestedNextId(entityType) {
+  if (!hasIdConvention(entityType)) {
+    throw new ContentValidationError(`entityType '${entityType}' does not use a suggested id (it is generated automatically elsewhere).`);
+  }
+  return suggestNextId(entityType);
+}
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const STATUS_LESS_TYPES = new Set(["media", "source"]);
@@ -73,18 +140,34 @@ export function createEntity({ entityType, proposedFields, actor }) {
   if (isStatusLess) delete candidate.status;
   else candidate.status = "draft";
 
+  // Section 2/3 of the "no-code CMS UX" round: a nontechnical Admin never
+  // invents an id. The frontend already shows a suggested id from GET
+  // /next-id, but the backend never trusts that suggestion blindly — it is
+  // re-derived here regardless, and is the ONLY id ever used when the
+  // caller omits one entirely (e.g. a client that skipped the suggestion
+  // call, or a future non-browser caller).
   if (!candidate.id || typeof candidate.id !== "string") {
-    throw new ContentValidationError("id is required.");
+    if (!hasIdConvention(entityType)) {
+      throw new ContentValidationError("id is required.");
+    }
+    candidate.id = suggestNextId(entityType);
   }
   if (idExists(candidate.id)) {
-    throw new ContentConflictError(`id '${candidate.id}' already exists.`);
+    // A real collision (a stale suggestion reused after another record
+    // took it, or two admins racing on the same suggested id): never a
+    // dead end — a fresh, currently-unused id is computed and attached so
+    // the caller can retry immediately, satisfying "automatically obtain/
+    // recommend the next valid id or return a clear retry response"
+    // without a second network round trip.
+    const suggestedId = hasIdConvention(entityType) ? suggestNextId(entityType) : undefined;
+    throw new ContentConflictError(`id '${candidate.id}' already exists.`, { suggestedId });
   }
   if (!isStatusLess) {
     if (!candidate.slug || !SLUG_PATTERN.test(candidate.slug)) {
       throw new ContentValidationError("slug is missing or invalid (lowercase letters/digits, single-hyphen groups).");
     }
-    if (slugExists(candidate.slug)) {
-      throw new ContentConflictError(`slug '${candidate.slug}' already exists.`);
+    if (!slugIsAvailable(candidate.slug)) {
+      throw new ContentConflictError(`slug '${candidate.slug}' already exists.`, { suggestedSlug: computeAvailableSlug(candidate.slug) });
     }
   }
 
@@ -121,6 +204,67 @@ export function editEntity({ id, proposedFields, actor, note }) {
     recordAuditEntry({ targetType: "entity", targetId: id, action: "edit", actor, before: existing, after: stored, note });
     return stored;
   });
+}
+
+/**
+ * "UX refinement" round, Sections 9-16: the ONLY way an existing entity's
+ * slug may change — editEntity() above still locks it completely,
+ * unchanged. A draft/inReview entity that has never been published
+ * changes freely (still collision-checked). An entity that HAS ever been
+ * published (hasEverBeenPublished() — see that function's own header for
+ * why this is audit-log-based, not the `published` current-status check)
+ * requires the caller to have already shown the admin the explicit "this
+ * may break old links" warning and pass `confirmed: true` — mirroring the
+ * exact same confirm-flag pattern deleteEntityPermanently() already uses
+ * elsewhere in this file, so a stray request can never silently bypass it.
+ * The OLD slug is preserved in entity_slug_history so the runtime detail
+ * route can redirect it, permanently reserving it against reuse by any
+ * other record (see slugHistoryRepository.js).
+ */
+export function changeEntitySlug({ id, newSlug, confirmed, actor }) {
+  const existing = getEntityByIdRow(id);
+  if (!existing) throw new ContentNotFoundError(`Entity '${id}' was not found.`);
+  if (STATUS_LESS_TYPES.has(existing.entityType)) {
+    throw new ContentValidationError(`'${existing.entityType}' entities do not have a slug.`);
+  }
+  if (!newSlug || !SLUG_PATTERN.test(newSlug)) {
+    throw new ContentValidationError("slug is missing or invalid (lowercase letters/digits, single-hyphen groups).");
+  }
+  if (newSlug === existing.slug) {
+    throw new ContentValidationError("The new slug is the same as the current slug.");
+  }
+  if (!slugIsAvailable(newSlug)) {
+    throw new ContentConflictError(`slug '${newSlug}' already exists.`, { suggestedSlug: computeAvailableSlug(newSlug) });
+  }
+
+  const everPublished = hasEverBeenPublished(id);
+  if (everPublished && confirmed !== true) {
+    throw new ContentConflictError(
+      "Bu kayıt daha önce yayınlandı. URL değişikliğini onaylamak için confirm:true gönderilmelidir.",
+      { requiresConfirmation: true },
+    );
+  }
+
+  return runInTransaction(() => {
+    const oldSlug = existing.slug;
+    const stored = updateEntityRow(id, { ...existing, slug: newSlug });
+    if (everPublished) {
+      recordSlugChange({ entityId: id, oldSlug, newSlug });
+    }
+    recordAuditEntry({ targetType: "entity", targetId: id, action: "slugChange", actor, before: existing, after: stored, note: `${oldSlug} -> ${newSlug}` });
+    return stored;
+  });
+}
+
+/** For the editor's "Gelişmiş: URL'yi değiştir" flow — whether to even show the "already published, this is protected" framing at all, and the redirect history to display if any. */
+export function getSlugChangeInfo(id) {
+  const existing = getEntityByIdRow(id);
+  if (!existing) throw new ContentNotFoundError(`Entity '${id}' was not found.`);
+  return {
+    currentSlug: existing.slug ?? null,
+    everPublished: STATUS_LESS_TYPES.has(existing.entityType) ? false : hasEverBeenPublished(id),
+    history: listSlugHistoryForEntity(id),
+  };
 }
 
 /** Shared implementation for every status transition (publish/unpublish/archive/restore) — Section 8/9/11/12. */

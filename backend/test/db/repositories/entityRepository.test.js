@@ -61,11 +61,16 @@ test("two status-less (media) rows with no slug at all do not collide with each 
 });
 
 test("updateEntityRow overwrites content, refreshes updatedAt, and preserves the published_at column when not explicitly overridden", async (t) => {
-  await withTempDb(t, () => {
+  await withTempDb(t, async () => {
     const created = insertEntity({ id: "place-1", entityType: "place", slug: "s", status: "published", title: { tr: "T" } });
     const publishedAtColumn = () => getSqlite().prepare("SELECT published_at FROM entities WHERE id = ?").get("place-1").published_at;
     const originalPublishedAt = publishedAtColumn();
     assert.ok(originalPublishedAt, "insertEntity must stamp published_at when status is 'published'");
+
+    // nowIso() is millisecond-precision; on a fast machine two synchronous
+    // calls can land in the same millisecond, so a real clock tick is
+    // forced between them rather than asserting on wall-clock luck.
+    await new Promise((resolve) => setTimeout(resolve, 2));
 
     const updated = updateEntityRow("place-1", { ...created, title: { tr: "T2" } });
     assert.equal(updated.title.tr, "T2");

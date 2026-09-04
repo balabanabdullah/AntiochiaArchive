@@ -20,12 +20,17 @@ import { requireAdminSession } from "./adminSession.js";
 import {
   createEntity, editEntity, publishEntity, sendToReview, unpublishEntity, archiveEntity, restoreEntity,
   deleteEntityPermanently, bulkTransition, getRevisionHistory, createRelationship, removeRelationship,
-  listRelationshipsRows, listEntitiesRows,
+  listRelationshipsRows, listEntitiesRows, getSuggestedNextId, changeEntitySlug, getSlugChangeInfo,
   ContentValidationError, ContentConflictError, ContentNotFoundError,
 } from "./contentService.js";
 import {
+  getAvailableRelationshipActions, searchRelationshipTargets, previewSimpleRelationship, createSimpleRelationship,
+  listRelationshipsForEntity,
+} from "./relationshipUxService.js";
+import {
   createPage, editPage, publishPage, sendPageToReview, unpublishPage, archivePage, restorePage,
   deletePagePermanently, getPageRevisionHistory, listPagesRows, getPageByIdRow,
+  changePageSlug, getPageSlugChangeInfo,
 } from "./pageService.js";
 import { getEntityByIdRow } from "../db/repositories/entityRepository.js";
 import { createBackup, listBackups, restoreBackup } from "./backupService.js";
@@ -86,7 +91,18 @@ router.use(requireAdminSession, requireSqliteRuntime);
 
 function handleServiceError(res, error) {
   if (error instanceof ContentValidationError) return res.status(400).json({ success: false, error: error.message });
-  if (error instanceof ContentConflictError) return res.status(409).json({ success: false, error: error.message });
+  // suggestedId (createEntity()'s id-collision path) / suggestedSlug
+  // (createEntity()/changeEntitySlug()'s slug-collision path) let the form
+  // retry immediately with a fresh value, no second round trip to a
+  // suggestion endpoint. requiresConfirmation (changeEntitySlug() only)
+  // means "this entity has ever been published — resend with
+  // confirmed:true after the admin has seen the warning."
+  if (error instanceof ContentConflictError) {
+    return res.status(409).json({
+      success: false, error: error.message,
+      suggestedId: error.suggestedId, suggestedSlug: error.suggestedSlug, requiresConfirmation: error.requiresConfirmation,
+    });
+  }
   if (error instanceof ContentNotFoundError) return res.status(404).json({ success: false, error: error.message });
   console.error("[AdminContentRoutes]", error);
   return res.status(500).json({ success: false, error: "İstek işlenirken beklenmeyen bir hata oluştu." });
@@ -97,6 +113,27 @@ const actor = () => "admin-session";
 /* ---------------------------------------------------------------------- */
 /* Entities — direct publish/edit/archive/restore/delete (Section 8-13)    */
 /* ---------------------------------------------------------------------- */
+
+/**
+ * "no-code CMS UX" round, Part A: GET /next-id?entityType=community — the
+ * suggestion the create-record form pre-fills. Informational only; never
+ * trusted blindly — createEntity() below re-derives it server-side
+ * whenever a client omits an id, and independently rejects a genuine
+ * collision (see contentService.js's createEntity()). No sensitive
+ * information in the response.
+ */
+router.get("/next-id", (req, res) => {
+  try {
+    const { entityType } = req.query;
+    if (!entityType || typeof entityType !== "string") {
+      return res.status(400).json({ success: false, error: "entityType is required." });
+    }
+    const suggestedId = getSuggestedNextId(entityType);
+    return res.status(200).json({ success: true, data: { entityType, suggestedId } });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
 
 router.get("/entities", (req, res) => {
   try {
@@ -180,9 +217,44 @@ router.delete("/entities/:id", (req, res) => {
   }
 });
 
+/** "UX refinement" round, Section 10: whether the "Gelişmiş: URL'yi değiştir" unlock (and its warning framing) should even show, plus any existing redirect history — feeds the editor's slug-lock UI. */
+router.get("/entities/:id/slug-info", (req, res) => {
+  try {
+    return res.status(200).json({ success: true, data: getSlugChangeInfo(req.params.id) });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+/** POST /entities/:id/slug { newSlug, confirmed } — Sections 9-16: the only path that may change an existing entity's slug; editEntity() itself still refuses to touch it. */
+router.post("/entities/:id/slug", (req, res) => {
+  try {
+    const { newSlug, confirmed } = req.body || {};
+    const stored = changeEntitySlug({ id: req.params.id, newSlug, confirmed: confirmed === true, actor: actor() });
+    return res.status(200).json({ success: true, data: stored });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
 router.get("/entities/:id/history", (req, res) => {
   try {
     return res.status(200).json({ success: true, data: getRevisionHistory(req.params.id) });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+/**
+ * "UX refinement" round, Issue 1: the entity editor's relationship card
+ * list — one backend-expanded response (real title/type/status per row,
+ * plus a human relation label and a ready-to-show removal sentence),
+ * never a raw id as the primary content and never an N+1 fetch from the
+ * browser. See relationshipUxService.js's listRelationshipsForEntity().
+ */
+router.get("/entities/:id/relationships", (req, res) => {
+  try {
+    return res.status(200).json({ success: true, data: listRelationshipsForEntity(req.params.id) });
   } catch (error) {
     return handleServiceError(res, error);
   }
@@ -303,6 +375,57 @@ router.delete("/relationships/:id", (req, res) => {
 });
 
 /* ---------------------------------------------------------------------- */
+/* Simple, context-aware relationships ("no-code CMS UX" round, Part B) —  */
+/* human-friendly wrapper around the raw relationship API above. Never a   */
+/* second write path: createSimpleRelationship() delegates to the exact    */
+/* same createRelationship() the raw form above uses.                     */
+/* ---------------------------------------------------------------------- */
+
+/** The "İlişki Ekle" button row for the entity type currently being edited. */
+router.get("/relationship-actions", (req, res) => {
+  try {
+    const { entityType } = req.query;
+    if (!ENTITY_TYPES.includes(entityType)) return res.status(400).json({ success: false, error: `entityType must be one of: ${ENTITY_TYPES.join(", ")}.` });
+    return res.status(200).json({ success: true, data: getAvailableRelationshipActions(entityType) });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+/** Searchable target selection (Section 13/14) — title/slug/local-name match, filtered to exactly the type the chosen action expects. */
+router.get("/entities/search", (req, res) => {
+  try {
+    const { type, q, excludeId, includeArchived } = req.query;
+    const results = searchRelationshipTargets({
+      entityType: type, query: q || "", excludeId: excludeId || null, includeArchived: includeArchived === "true",
+    });
+    return res.status(200).json({ success: true, data: results });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+/** Plain-language preview before saving (Section 17) — also reports whether this exact relationship already exists (Section 16), so the UI can disable "save" instead of letting the create call fail. */
+router.get("/relationships/simple-preview", (req, res) => {
+  try {
+    const { currentEntityId, actionKey, targetEntityId } = req.query;
+    return res.status(200).json({ success: true, data: previewSimpleRelationship({ currentEntityId, actionKey, targetEntityId }) });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+router.post("/relationships/simple", (req, res) => {
+  try {
+    const { currentEntityId, actionKey, targetEntityId } = req.body || {};
+    const result = createSimpleRelationship({ currentEntityId, actionKey, targetEntityId, actor: actor() });
+    return res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+/* ---------------------------------------------------------------------- */
 /* Pages (Section 15-19)                                                   */
 /* ---------------------------------------------------------------------- */
 
@@ -384,6 +507,25 @@ router.delete("/pages/:id", (req, res) => {
 router.get("/pages/:id/history", (req, res) => {
   try {
     return res.status(200).json({ success: true, data: getPageRevisionHistory(req.params.id) });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+/** "COMMIT ÖNCESİ" round, Section 2/3: page-slug equivalents of GET /entities/:id/slug-info and POST /entities/:id/slug — see pageService.js's changePageSlug()/getPageSlugChangeInfo(). */
+router.get("/pages/:id/slug-info", (req, res) => {
+  try {
+    return res.status(200).json({ success: true, data: getPageSlugChangeInfo(req.params.id) });
+  } catch (error) {
+    return handleServiceError(res, error);
+  }
+});
+
+router.post("/pages/:id/slug", (req, res) => {
+  try {
+    const { newSlug, confirmed } = req.body || {};
+    const stored = changePageSlug({ id: req.params.id, newSlug, confirmed: confirmed === true, actor: actor() });
+    return res.status(200).json({ success: true, data: stored });
   } catch (error) {
     return handleServiceError(res, error);
   }

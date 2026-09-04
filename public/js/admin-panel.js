@@ -1,15 +1,31 @@
 /**
- * v2 Admin/Editorial panel — the new draft/review/export workflow described
- * in the round's brief. Talks exclusively to /api/admin/editorial/* via
- * admin-session.js (session-cookie + CSRF, never a token in this file).
+ * v2 Admin panel — supports TWO distinct backend architectures, selected by
+ * the backend-authoritative `contentAuthority` flag (see refreshDashboard()'s
+ * GET /dashboard fetch and isDirectContentAuthority() below — never a
+ * hostname guess, never a second competing flag):
  *
- * This module never assumes it can publish anything: every write here is a
- * "create draft" or "propose edit" or a draft-status transition. The only
- * path from a draft to the live public site is human-mediated — export the
- * approved package, then a developer runs
- * scripts/apply-editorial-changes.js against the real repository and goes
- * through the normal review/commit/deploy process. See that script's header
- * for the full reasoning.
+ *   - Editorial-proposal mode (contentAuthority !== "direct", the original
+ *     workflow): this module never assumes it can publish anything — every
+ *     write is a "create draft" or "propose edit" or a draft-status
+ *     transition. The only path from a draft to the live public site is
+ *     human-mediated — export the approved package, then a developer runs
+ *     scripts/apply-editorial-changes.js against the real repository and
+ *     goes through the normal review/commit/deploy process. Talks to
+ *     /api/admin/editorial/* via admin-session.js. See that script's header
+ *     for the full reasoning. Still the only workflow in production today.
+ *
+ *   - Direct SQLite/no-code mode (contentAuthority === "direct", only ever
+ *     active when the backend's runtime content store is sqlite — a local/
+ *     dev configuration, not production): writes go straight to the live
+ *     runtime content database via /api/admin/content/* (contentService.js/
+ *     pageService.js) — an edit can persist immediately, and for an
+ *     already-published record reaches the public site immediately too, no
+ *     draft/export/apply step involved. Every "COMMIT ÖNCESİ SON UX
+ *     CLEANUP" round fix in this file exists to make the UI say so
+ *     truthfully instead of reusing the editorial flow's proposal wording.
+ *
+ * Both modes share the same session-cookie + CSRF admin-session.js client
+ * (never a token in this file).
  */
 (function initAdminPanel(root) {
   "use strict";
@@ -93,7 +109,9 @@
     [/slug must be lowercase letters\/digits.*$/i,
       "Slug yalnızca küçük harf, rakam ve tek tire ile ayrılmış gruplar içerebilir (ör. “yeni-kayit”)."],
     [/^id '.*' already exists.*$/i, "Bu kimlik (ID) zaten kullanılıyor — başka bir kimlik seçin."],
-    [/^slug '.*' already exists.*$/i, "Bu slug zaten kullanılıyor — başka bir slug seçin."],
+    [/^slug '.*' already exists.*$/i, "Bu URL zaten kullanılıyor — başka bir adres seçin."],
+    [/^The new slug is the same as the current slug\.?$/i, "Girilen adres, mevcut adresle aynı."],
+    [/^'.*' entities do not have a slug\.?$/i, "Bu kayıt türünün web adresi (slug) yoktur."],
     [/^The entity being edited was not found\.?$/i, "Düzenlenmek istenen kayıt bulunamadı. Sayfayı yenileyip tekrar deneyin."],
     [/^entityType must be one of:.*$/i, "Geçerli bir kayıt türü seçin."],
     [/^type must be one of:.*$/i, "Geçerli bir kayıt türü seçin."],
@@ -127,6 +145,43 @@
   function reportError(error, context) {
     console.error(context ? `[AdminPanel] ${context}:` : "[AdminPanel]", error);
     return translateAdminError(error?.message);
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Environment safety badge (manual QA round)                              */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Renders into both the login-screen and post-login topbar containers
+   * (only one is ever visible at a time, but both stay in sync) — never
+   * derived from window.location/hostname, only from the backend's own
+   * authoritative /session response (see backend/admin/adminRoutes.js's
+   * getEnvironmentInfo(), itself driven by the same K_SERVICE signal the
+   * SQLite-on-Cloud-Run safety guard already uses). A real user opening
+   * production while meaning to test locally (this round's actual finding)
+   * sees this immediately, before ever typing a key.
+   *
+   * Manual QA round (2nd pass): environment identification is safety-
+   * sensitive, so an UNKNOWN state must never look like "no badge at all" —
+   * a real user could read a blank badge area as "must be fine" exactly the
+   * way the original bug went unnoticed. Whenever the environment can't be
+   * determined (the metadata request failed entirely, OR a response came
+   * back without the field at all — e.g. from a backend that predates this
+   * feature, which is exactly what a stale/misrouted backend process on
+   * this machine reproduced during manual QA), this renders a visible
+   * amber warning instead of clearing the container. Never falls back to
+   * guessing from window.location/hostname.
+   */
+  function renderEnvironmentBadge(sessionInfo) {
+    const targets = [document.getElementById("admin-env-badge-login"), document.getElementById("admin-env-badge-panel")];
+    // Defensive fallback if public/js/environment-badge.js itself failed to
+    // load — still never renders blank; same fail-safe outcome as an
+    // unrecognized environment value.
+    const { cssClass, label } = root.AntiochiaArchiveEnvironmentBadge
+      ? root.AntiochiaArchiveEnvironmentBadge.resolveEnvironmentBadge(sessionInfo || {})
+      : { cssClass: "unknown", label: "ORTAM DOĞRULANAMADI" };
+    const html = `<span class="admin-env-badge admin-env-badge-${cssClass}">${escapeHtml(label)}</span>`;
+    targets.forEach((el) => { if (el) el.innerHTML = html; });
   }
 
   /* ---------------------------------------------------------------------- */
@@ -229,8 +284,42 @@
     const isDurable = storeName === "firestore";
     const label = isDurable ? "Firestore (Kalıcı)" : "Bellek (Geçici — Yeniden Başlatmada Kaybolur)";
     return `<p class="admin-storage-banner admin-storage-banner-${isDurable ? "durable" : "ephemeral"}">
-      Editoryal Depolama: <strong>${escapeHtml(label)}</strong>
+      Editoryal Taslak Depolama: <strong>${escapeHtml(label)}</strong>
     </p>`;
+  }
+
+  // Manual QA round: "runtime storage label" — this is a genuinely
+  // DIFFERENT concept from editorialStoreBannerHtml() above (the draft/
+  // proposal store's own durability) and must never be conflated with it —
+  // this is what actually backs PUBLIC runtime content (what a visitor's
+  // browser reads). Every value getSelectedV2StoreName() can return, kept
+  // in sync with backend/v2/stores/v2Store.js's own driver map — an
+  // unrecognized value falls back to showing the raw name rather than
+  // silently claiming something untrue.
+  const RUNTIME_CONTENT_STORE_LABELS = Object.freeze({
+    sqlite: "SQLite (Yerel)",
+    local: "Yerel JSON (data/v2/*.json)",
+    firestore: "Firestore",
+    memory: "Bellek (Geçici)",
+    empty: "Boş (Veri Yok)",
+  });
+  const MEDIA_STORAGE_DRIVER_LABELS = Object.freeze({
+    local: "Yerel Dosya Sistemi",
+  });
+
+  function runtimeStorageBannerHtml({ runtimeContentStore, mediaStorageDriver }) {
+    const contentLabel = RUNTIME_CONTENT_STORE_LABELS[runtimeContentStore] || runtimeContentStore || "Bilinmiyor";
+    const contentIsSqlite = runtimeContentStore === "sqlite";
+    let html = `<p class="admin-storage-banner ${contentIsSqlite ? "admin-storage-banner-durable" : "admin-storage-banner-ephemeral"}">
+      İçerik Depolama: <strong>${escapeHtml(contentLabel)}</strong>
+    </p>`;
+    if (mediaStorageDriver) {
+      const mediaLabel = MEDIA_STORAGE_DRIVER_LABELS[mediaStorageDriver] || mediaStorageDriver;
+      html += `<p class="admin-storage-banner admin-storage-banner-durable">
+        Medya Depolama: <strong>${escapeHtml(mediaLabel)}</strong>
+      </p>`;
+    }
+    return html;
   }
 
   // "editorial" (default): every write is a draft/proposal — see
@@ -249,9 +338,11 @@
     try {
       const { data } = await Session.request("/dashboard");
       contentAuthority = data.contentAuthority || "editorial";
+      renderEnvironmentBadge(data);
       document.querySelectorAll("[data-admin-view='pages']").forEach((el) => { el.hidden = !isDirectContentAuthority(); });
       if (banner) {
-        banner.innerHTML = editorialStoreBannerHtml(data.editorialStoreName)
+        banner.innerHTML = runtimeStorageBannerHtml(data)
+          + editorialStoreBannerHtml(data.editorialStoreName)
           + (isDirectContentAuthority()
             ? `<p class="admin-storage-banner admin-storage-banner-durable">İçerik Yetkisi: <strong>Doğrudan (SQLite) — Yayınla/Arşivle/Geri Yükle anında etkilidir.</strong></p>`
             : `<p class="admin-storage-banner admin-storage-banner-ephemeral">İçerik Yetkisi: <strong>Editoryal Taslak — değişiklikler onay + harici uygulama gerektirir.</strong></p>`);
@@ -486,22 +577,286 @@
   /* Entity editor — schema-aware core fields + place/music specifics        */
   /* ---------------------------------------------------------------------- */
 
-  let editorState = { mode: "create", entityType: "place", baseEntity: null };
+  let editorState = { mode: "create", entityType: "place", baseEntity: null, suggestedId: null };
   let editorMap = null;
   let editorMarker = null;
   let editorDirty = false;
   let editorTriggerEl = null;
 
+  /* ---------------------------------------------------------------------- */
+  /* Safe automatic id + slug suggestion ("no-code CMS UX" round, Part A)    */
+  /* ---------------------------------------------------------------------- */
+
+  /** Turkish/diacritic-aware slugify — see public/js/slug-utils.js (pure, unit-tested there) for the actual logic. Never called for an already-published record's slug (Section 5: never silently change a live slug). */
+  const { slugify } = AntiochiaArchiveSlugUtils;
+
+  /** GET /next-id — informational only; the backend never trusts this value blindly (see contentService.js's own id derivation/collision handling). Returns null on any failure so the caller can fall back to a manually-typed id, exactly like before this feature existed. */
+  async function fetchSuggestedId(entityType) {
+    try {
+      const { data } = await Session.requestContent(`/next-id?entityType=${encodeURIComponent(entityType)}`);
+      return data.suggestedId;
+    } catch {
+      return null;
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Context-aware simple relationships ("no-code CMS UX" round, Part B).    */
+  /* Lives inside the entity editor modal — a completely separate, simpler   */
+  /* widget from the technical "İlişkiler" admin page (initRelationshipForm  */
+  /* below), which remains available as the "Gelişmiş" path (Section 19).   */
+  /* ---------------------------------------------------------------------- */
+
+  let relationshipWidgetActionInFlight = null; // the action currently showing its search box, or null
+
+  function relEntityLabel() {
+    const { entityType, baseEntity } = editorState;
+    return isFlatEntityType(entityType) ? (baseEntity?.id || "bu kayıt") : localized(baseEntity?.title || {}, "bu kayıt");
+  }
+
   /**
-   * Public Impact indicator (Section 44 of the round brief): every write
-   * this modal can make is a draft/proposal, never a direct canonical
-   * mutation — so this banner is always "None", by construction, not by
-   * a value that could drift out of sync with what the code actually does.
+   * Existing relationships (EDIT mode only — a not-yet-saved record has
+   * none) rendered as human chips. "UX refinement" round, Issue 1: this
+   * used to call a single-entity GET route that does not exist in this
+   * router (`/api/admin/content/entities/:id` — only the LIST route and
+   * PATCH/transition/restore exist there; the single-GET route lives under
+   * the *other* namespace, `/api/admin/editorial/entities/:id`), so every
+   * lookup 404'd, was swallowed by its own `.catch(() => null)`, and
+   * silently fell back to showing the raw id as if that were normal — the
+   * exact bug manual QA found. Fixed by calling ONE backend-expanded
+   * endpoint (Section 5: no N+1 fetches from the browser) that already
+   * resolves everything server-side.
    */
-  function publicImpactBannerHtml() {
-    return `<p class="admin-storage-banner admin-storage-banner-durable" style="margin-bottom: var(--sp-3);">
-      GENEL ETKİ: <strong>Yok</strong> — bu form yalnızca bir taslak/öneri oluşturur; herkese açık site hemen değişmez.
-    </p>`;
+  async function loadExistingRelationshipChips() {
+    const container = document.getElementById("admin-rel-existing-list");
+    if (!container || editorState.mode !== "edit") return;
+    const entity = editorState.baseEntity;
+    try {
+      const { data } = await Session.requestContent(`/entities/${encodeURIComponent(entity.id)}/relationships`);
+      if (!data.length) { container.innerHTML = `<p class="admin-muted">Henüz ilişki eklenmemiş.</p>`; return; }
+      container.innerHTML = data.map((r) => {
+        if (!r.otherEntity) {
+          // Section 6: never silently show only the raw id as if this were a normal chip.
+          return `<div class="admin-rel-chip admin-rel-chip-missing">
+            <span><span class="admin-rel-chip-label">⚠ Kayıt bulunamadı</span><span class="admin-rel-chip-rawid">ID: ${escapeHtml(r.missingTargetId)}</span></span>
+            <button type="button" class="btn-admin btn-admin-danger" data-remove-rel-chip="${escapeHtml(r.relationshipId)}" data-remove-rel-sentence="">Kaldır</button>
+          </div>`;
+        }
+        const kindLabel = ENTITY_TYPE_LABELS[r.otherEntity.entityType] || "İLİŞKİLİ KAYIT";
+        return `<div class="admin-rel-chip">
+          <span>
+            <span class="admin-rel-chip-label">${escapeHtml(kindLabel)}</span>
+            ${escapeHtml(r.otherEntity.title)}
+            <span class="admin-rel-chip-context">${escapeHtml(r.relationLabel)}</span>
+            <span class="admin-rel-chip-rawid">${escapeHtml(r.otherEntity.id)}</span>
+          </span>
+          <button type="button" class="btn-admin btn-admin-danger" data-remove-rel-chip="${escapeHtml(r.relationshipId)}" data-remove-rel-sentence="${escapeHtml(r.removalSentence || "")}">Kaldır</button>
+        </div>`;
+      }).join("");
+      container.querySelectorAll("[data-remove-rel-chip]").forEach((btn) => btn.addEventListener("click", async () => {
+        const sentence = btn.dataset.removeRelSentence;
+        const message = `Bu işlem yalnızca ilişkiyi kaldırır.\nİki kayıt da silinmez.${sentence ? `\n\n${sentence}` : ""}`;
+        if (!confirm(message)) return;
+        try {
+          await Session.requestContent(`/relationships/${encodeURIComponent(btn.dataset.removeRelChip)}`, { method: "DELETE" });
+          toast("İlişki kaldırıldı.");
+          loadExistingRelationshipChips();
+        } catch (error) {
+          toast(reportError(error, "removeRelationshipFromEditor"), "error");
+        }
+      }));
+    } catch (error) {
+      container.innerHTML = `<p class="admin-error">${escapeHtml(reportError(error, "loadExistingRelationshipChips"))}</p>`;
+    }
+  }
+
+  /** CREATE mode: relationships staged locally (no real id to attach to yet) — created for real, sequentially, right after the entity itself is successfully saved (Section 20). */
+  function renderPendingRelationshipChips() {
+    const container = document.getElementById("admin-rel-pending-list");
+    if (!container) return;
+    const pending = editorState.pendingRelationships || [];
+    if (!pending.length) { container.innerHTML = ""; return; }
+    container.innerHTML = `<p class="admin-muted">Kaydettikten sonra eklenecek:</p>` + pending.map((p, i) => `
+      <div class="admin-rel-chip">
+        <span><span class="admin-rel-chip-label">${escapeHtml(ENTITY_TYPE_LABELS[p.targetType] || "")}</span>${escapeHtml(p.targetTitle)}</span>
+        <button type="button" class="btn-admin btn-admin-danger" data-remove-pending-rel="${i}">Kaldır</button>
+      </div>`).join("");
+    container.querySelectorAll("[data-remove-pending-rel]").forEach((btn) => btn.addEventListener("click", () => {
+      editorState.pendingRelationships.splice(Number(btn.dataset.removePendingRel), 1);
+      renderPendingRelationshipChips();
+    }));
+  }
+
+  function closeRelationshipSearchBox() {
+    relationshipWidgetActionInFlight = null;
+    const box = document.getElementById("admin-rel-search-box");
+    if (box) box.remove();
+  }
+
+  /** The inline "İnanç ara..." box Section 10's acceptance case describes — opened by clicking one action button, replacing any other currently-open one. */
+  function openRelationshipSearchBox(action) {
+    closeRelationshipSearchBox();
+    relationshipWidgetActionInFlight = action;
+    const mount = document.getElementById("admin-rel-search-mount");
+    if (!mount) return;
+    const box = document.createElement("div");
+    box.id = "admin-rel-search-box";
+    box.className = "admin-rel-search-box";
+    const targetLabel = ENTITY_TYPE_LABELS[action.targetType] || action.targetType;
+    box.innerHTML = `
+      <label class="form-label">${escapeHtml(targetLabel)} ara...</label>
+      <input class="form-input" id="admin-rel-search-input" placeholder="${escapeHtml(targetLabel)} ara..." autocomplete="off">
+      <div class="admin-rel-search-results" id="admin-rel-search-results"></div>
+    `;
+    mount.appendChild(box);
+    const input = box.querySelector("#admin-rel-search-input");
+    input.focus();
+
+    let debounceTimer = null;
+    async function runSearch() {
+      const resultsEl = box.querySelector("#admin-rel-search-results");
+      try {
+        const { data } = await Session.requestContent(
+          `/entities/search?type=${encodeURIComponent(action.targetType)}&q=${encodeURIComponent(input.value)}${editorState.baseEntity ? `&excludeId=${encodeURIComponent(editorState.baseEntity.id)}` : ""}`,
+        );
+        if (!data.length) { resultsEl.innerHTML = `<p class="admin-muted">Sonuç bulunamadı.</p>`; return; }
+        resultsEl.innerHTML = data.map((r) => `<button type="button" class="admin-rel-search-result" data-rel-result-id="${escapeHtml(r.id)}" data-rel-result-title="${escapeHtml(r.title)}">${escapeHtml(r.title)}${r.localName ? ` <span class="admin-muted">(${escapeHtml(r.localName)})</span>` : ""}</button>`).join("");
+        resultsEl.querySelectorAll("[data-rel-result-id]").forEach((btn) => btn.addEventListener("click", () => selectRelationshipTarget(action, btn.dataset.relResultId, btn.dataset.relResultTitle)));
+      } catch (error) {
+        resultsEl.innerHTML = `<p class="admin-error">${escapeHtml(reportError(error, "relationshipSearch"))}</p>`;
+      }
+    }
+    input.addEventListener("input", () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(runSearch, 200); });
+    runSearch();
+  }
+
+  /** Selecting a search result shows the plain-language preview (Section 17) and a confirm/cancel pair — never auto-saves on click. */
+  async function selectRelationshipTarget(action, targetId, targetTitle) {
+    const box = document.getElementById("admin-rel-search-box");
+    if (!box) return;
+
+    if (editorState.mode === "edit") {
+      let preview;
+      try {
+        preview = await Session.requestContent(
+          `/relationships/simple-preview?currentEntityId=${encodeURIComponent(editorState.baseEntity.id)}&actionKey=${encodeURIComponent(action.actionKey)}&targetEntityId=${encodeURIComponent(targetId)}`,
+        ).then((r) => r.data);
+      } catch (error) {
+        toast(reportError(error, "relationshipPreview"), "error");
+        return;
+      }
+      box.querySelector("#admin-rel-search-results").innerHTML = `
+        <p class="admin-rel-preview-sentence">${escapeHtml(preview.sentence)}</p>
+        ${preview.alreadyExists ? `<p class="admin-error">Bu ilişki zaten mevcut.</p>` : `
+          <button type="button" class="btn-admin btn-admin-primary" id="admin-rel-confirm-save">Kaydet</button>
+          <button type="button" class="btn-admin btn-admin-secondary" id="admin-rel-confirm-cancel">İptal</button>`}
+      `;
+      if (!preview.alreadyExists) {
+        box.querySelector("#admin-rel-confirm-save").addEventListener("click", async () => {
+          try {
+            await Session.requestContent("/relationships/simple", {
+              method: "POST",
+              body: JSON.stringify({ currentEntityId: editorState.baseEntity.id, actionKey: action.actionKey, targetEntityId: targetId }),
+            });
+            toast("İlişki eklendi.");
+            closeRelationshipSearchBox();
+            loadExistingRelationshipChips();
+          } catch (error) {
+            toast(reportError(error, "createRelationshipSimple"), "error");
+          }
+        });
+        box.querySelector("#admin-rel-confirm-cancel").addEventListener("click", closeRelationshipSearchBox);
+      }
+    } else {
+      // CREATE mode: the record does not exist yet, so there is nothing to
+      // preview server-side against — stage it locally instead (Section
+      // 20: "save entity first, then create relationships"), using the
+      // action's own plain label rather than the precise canonical
+      // sentence (which needs a real saved entity to resolve direction).
+      box.querySelector("#admin-rel-search-results").innerHTML = `
+        <p class="admin-rel-preview-sentence">${escapeHtml(relEntityLabel())} → ${escapeHtml(action.buttonLabel)}: ${escapeHtml(targetTitle)}</p>
+        <button type="button" class="btn-admin btn-admin-primary" id="admin-rel-confirm-save">Ekle</button>
+        <button type="button" class="btn-admin btn-admin-secondary" id="admin-rel-confirm-cancel">İptal</button>
+      `;
+      box.querySelector("#admin-rel-confirm-save").addEventListener("click", () => {
+        editorState.pendingRelationships.push({ actionKey: action.actionKey, targetId, targetTitle, targetType: action.targetType });
+        renderPendingRelationshipChips();
+        closeRelationshipSearchBox();
+      });
+      box.querySelector("#admin-rel-confirm-cancel").addEventListener("click", closeRelationshipSearchBox);
+    }
+  }
+
+  /** Section 9: the "İlişki Ekle" button row, one per human action this entity type supports — never the raw relation vocabulary. */
+  async function initRelationshipWidget() {
+    const mount = document.getElementById("admin-rel-widget-mount");
+    if (!mount) return;
+    mount.innerHTML = `
+      <label class="form-label">İlişkiler</label>
+      <div id="admin-rel-existing-list" class="admin-rel-chip-list"></div>
+      <div id="admin-rel-pending-list" class="admin-rel-chip-list"></div>
+      <p class="form-help">İlişki Ekle</p>
+      <div class="admin-rel-actions" id="admin-rel-action-buttons"></div>
+      <div id="admin-rel-search-mount"></div>
+    `;
+    if (editorState.mode === "edit") loadExistingRelationshipChips(); else renderPendingRelationshipChips();
+    try {
+      const { data } = await Session.requestContent(`/relationship-actions?entityType=${encodeURIComponent(editorState.entityType)}`);
+      const buttons = document.getElementById("admin-rel-action-buttons");
+      if (!data.length) { buttons.innerHTML = `<p class="admin-muted">Bu kayıt türü için ilişki eylemi tanımlı değil.</p>`; return; }
+      buttons.innerHTML = data.map((action) => `<button type="button" class="btn-admin btn-admin-secondary" data-rel-action="${escapeHtml(action.actionKey)}">${escapeHtml(action.buttonLabel)}</button>`).join("");
+      buttons.querySelectorAll("[data-rel-action]").forEach((btn) => btn.addEventListener("click", () => {
+        const action = data.find((a) => a.actionKey === btn.dataset.relAction);
+        openRelationshipSearchBox(action);
+      }));
+    } catch (error) {
+      document.getElementById("admin-rel-action-buttons").innerHTML = `<p class="admin-error">${escapeHtml(reportError(error, "loadRelationshipActions"))}</p>`;
+    }
+  }
+
+  /** Called by submitEditorDirect() right after a successful CREATE — Section 20's "clear progress/error handling", never a silently-misleading UI state. */
+  async function createPendingRelationshipsAfterSave(newEntityId) {
+    const pending = editorState.pendingRelationships || [];
+    if (!pending.length) return;
+    let succeeded = 0;
+    const failures = [];
+    for (const p of pending) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        await Session.requestContent("/relationships/simple", {
+          method: "POST",
+          body: JSON.stringify({ currentEntityId: newEntityId, actionKey: p.actionKey, targetEntityId: p.targetId }),
+        });
+        succeeded += 1;
+      } catch (error) {
+        failures.push(`${p.targetTitle}: ${error.message}`);
+      }
+    }
+    if (failures.length) {
+      toast(`${succeeded}/${pending.length} ilişki eklendi. Başarısız olanlar: ${failures.join("; ")}`, "error");
+    } else {
+      toast(`Kayıt oluşturuldu ve ${succeeded} ilişki eklendi.`);
+    }
+  }
+
+  /**
+   * Public Impact indicator (Section 44 of the round brief; made mode-aware
+   * in the "COMMIT ÖNCESİ / SON UX CLEANUP" round). In the legacy editorial-
+   * proposal flow, every write this modal can make really is a draft/
+   * proposal, never a direct canonical mutation — that copy stays exactly
+   * as it was, unchanged, and remains true there. In direct SQLite/no-code
+   * mode (isDirectContentAuthority()) a save persists straight to the
+   * runtime content database via contentService.js, and for an already-
+   * published record reaches the public site immediately — so the banner
+   * must say so, truthfully, per the record's actual status, using the
+   * SAME contentAuthority signal every other direct-mode branch in this
+   * file already reads (no second/competing flag).
+   */
+  function publicImpactBannerHtml({ isNew = false, status = null, statusless = false, entityType = null } = {}) {
+    const { cssClass, text } = AntiochiaArchiveEditorModeCopy.resolvePublicImpactBanner({
+      isDirect: isDirectContentAuthority(), isNew, status, statusless, entityType,
+    });
+    return `<p class="admin-storage-banner ${cssClass}" style="margin-bottom: var(--sp-3);">${text}</p>`;
   }
 
   function fieldsFor(entityType) {
@@ -899,36 +1254,243 @@
     return options.map((s) => `<option value="${s}" ${s === selected ? "selected" : ""}>${STATUS_LABELS[s]}</option>`).join("");
   }
 
+  /**
+   * Section 4: "readonly by default + Gelişmiş: ID'yi değiştir" — chosen
+   * over full auto-generation-with-no-field (option B) because the id
+   * still needs to be VISIBLE (it appears in URLs/exports/relationship
+   * pickers), just never something the admin has to invent. Falls back to
+   * the original manually-typed input, unchanged, whenever no suggestion
+   * is available (editorial-draft mode, or a type with no id convention).
+   */
+  function idFieldHtml({ suggestedId, placeholder }) {
+    if (suggestedId) {
+      return `<div class="form-group"><label class="form-label" for="field-id">Kayıt ID</label>
+        <input class="form-input" id="field-id" value="${escapeHtml(suggestedId)}" readonly required>
+        <small class="form-help">Program tarafından önerildi. <button type="button" class="form-help-action" id="field-id-advanced-toggle">Gelişmiş: ID'yi değiştir</button></small>
+      </div>`;
+    }
+    return `<div class="form-group"><label class="form-label" for="field-id">Kimlik (ID)</label><input class="form-input" id="field-id" required placeholder="${placeholder}"></div>`;
+  }
+
+  function wireIdAdvancedToggle() {
+    document.getElementById("field-id-advanced-toggle")?.addEventListener("click", (event) => {
+      const input = document.getElementById("field-id");
+      input.readOnly = false;
+      input.focus();
+      input.select();
+      event.currentTarget.closest(".form-help").textContent = "Program tarafından önerilen değer değiştirildi — dikkatli olun.";
+    });
+  }
+
+  /** `/archive-v2/<slug>/` is the only public route non-flat cultural entities ever render at (see v2/routes/v2DetailRoutes.js) — media/source have no slug/public detail page of their own and never call this. */
+  function publicEntityUrl(slug) { return `/archive-v2/${encodeURIComponent(slug)}/`; }
+
+  function updateSlugPreview(previewEl, slugValue) {
+    if (!previewEl) return;
+    previewEl.textContent = slugValue ? `Yayınlandığında adres: ${publicEntityUrl(slugValue)}` : "";
+  }
+
+  /** Section 5: auto-fills the slug from the TR title as the admin types, unless they have already edited slug by hand — never runs for an existing (already-published-capable) record. */
+  function wireSlugAutoSuggest() {
+    const slugInput = document.getElementById("field-slug");
+    const helpEl = document.getElementById("field-slug-help");
+    const previewEl = document.getElementById("field-slug-preview");
+    const titleTr = document.querySelector('[data-ml-field="title"][data-ml-lang="tr"]');
+    if (!slugInput || !titleTr) return;
+    let slugTouchedByUser = false;
+    slugInput.addEventListener("input", () => {
+      slugTouchedByUser = true;
+      if (helpEl) helpEl.textContent = "Elle düzenlendi.";
+      updateSlugPreview(previewEl, slugInput.value.trim());
+    });
+    titleTr.addEventListener("input", () => {
+      if (slugTouchedByUser) return;
+      slugInput.value = slugify(titleTr.value);
+      updateSlugPreview(previewEl, slugInput.value);
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Existing-record slug UI ("UX refinement" round, Sections 9-16). Fully   */
+  /* separate from the main "Kaydet" button and its editEntity() call — a    */
+  /* slug change on an EXISTING record always goes through the dedicated,   */
+  /* confirm-gated POST /entities/:id/slug endpoint (see contentService.js's */
+  /* changeEntitySlug()), never as a side effect of an ordinary content      */
+  /* save, so it can never be triggered by an accidental Enter/save.         */
+  /* ---------------------------------------------------------------------- */
+
+  function slugWidgetLockedHtml(slugInfo) {
+    return `
+      <div class="admin-slug-widget admin-slug-widget-locked">
+        <span class="admin-slug-lock-icon" aria-hidden="true">🔒</span>
+        <div class="admin-slug-locked-body">
+          <div><strong>Yayındaki URL:</strong> <code>${escapeHtml(publicEntityUrl(slugInfo.currentSlug))}</code></div>
+          <small class="form-help">Bu adres yayında olduğu için korunmaktadır.</small>
+        </div>
+        <button type="button" class="form-help-action" id="admin-slug-unlock-btn">Gelişmiş: URL'yi değiştir</button>
+      </div>`;
+  }
+
+  function slugWidgetEditableHtml(slugInfo) {
+    return `
+      <div class="admin-slug-widget admin-slug-widget-editable">
+        <div class="form-group">
+          <label class="form-label" for="admin-slug-edit-input">Web adresi (slug)</label>
+          <input class="form-input" id="admin-slug-edit-input" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="${escapeHtml(slugInfo.currentSlug)}" required>
+          <p class="admin-slug-url-preview" id="admin-slug-edit-preview">${escapeHtml(`Yeni adres: ${publicEntityUrl(slugInfo.currentSlug)}`)}</p>
+          ${slugInfo.everPublished
+            ? `<small class="form-help admin-warning-text">⚠ Bu kayıt daha önce yayınlandı. Adresi değiştirmek eski bağlantıları etkileyebilir (eski adres otomatik olarak yeni adrese yönlendirilecektir).</small>`
+            : `<small class="form-help">Bu kayıt hiç yayınlanmadığı için serbestçe düzenlenebilir.</small>`}
+        </div>
+        <div class="admin-slug-widget-actions">
+          <button type="button" class="btn-admin btn-admin-primary" id="admin-slug-save-btn">Web Adresini Güncelle</button>
+          <button type="button" class="btn-admin btn-admin-secondary" id="admin-slug-cancel-btn">Vazgeç</button>
+        </div>
+        <p class="admin-error" id="admin-slug-edit-error" hidden></p>
+      </div>`;
+  }
+
+  /** Renders the widget from the current editorState.slugInfo — locked+🔒 when the entity has ever been published, freely editable otherwise (Section 11: draft/inReview entities that never went live are not locked at all). */
+  function renderSlugWidget() {
+    const mount = document.getElementById("admin-slug-widget-mount");
+    if (!mount) return;
+    const { slugInfo } = editorState;
+    if (!slugInfo) {
+      // The slug-info fetch failed — fail safe to a visible error, never a
+      // silently-missing widget that would let an accidental edit through
+      // unguarded (same fail-safe philosophy as the environment badge).
+      mount.innerHTML = `<p class="admin-error">Web adresi bilgisi alınamadı. Sayfayı yenileyip tekrar deneyin.</p>`;
+      return;
+    }
+    if (slugInfo.everPublished) {
+      mount.innerHTML = slugWidgetLockedHtml(slugInfo);
+      document.getElementById("admin-slug-unlock-btn").addEventListener("click", () => {
+        mount.innerHTML = slugWidgetEditableHtml(slugInfo);
+        wireSlugWidgetEditable();
+      });
+    } else {
+      mount.innerHTML = slugWidgetEditableHtml(slugInfo);
+      wireSlugWidgetEditable();
+    }
+  }
+
+  function wireSlugWidgetEditable() {
+    const input = document.getElementById("admin-slug-edit-input");
+    const preview = document.getElementById("admin-slug-edit-preview");
+    input?.addEventListener("input", () => {
+      preview.textContent = `Yeni adres: ${publicEntityUrl(input.value.trim())}`;
+      editorDirty = true;
+    });
+    document.getElementById("admin-slug-cancel-btn")?.addEventListener("click", () => renderSlugWidget());
+    document.getElementById("admin-slug-save-btn")?.addEventListener("click", () => submitSlugChange());
+  }
+
+  /**
+   * Section 13: a strong, explicit, non-bypassable warning before changing
+   * an ever-published entity's slug — old/new URL preview, a real confirm
+   * click (never triggered by Enter, since this is a type="button" outside
+   * any implicit form-submit path). Section 9: a 409 collision comes back
+   * with a ready-to-use suggestedSlug (never a dead end) — pre-filled into
+   * the input so the admin can just click save again.
+   */
+  async function submitSlugChange() {
+    const { baseEntity, slugInfo } = editorState;
+    const input = document.getElementById("admin-slug-edit-input");
+    const errorEl = document.getElementById("admin-slug-edit-error");
+    const newSlug = input.value.trim();
+    const showError = (message) => { if (errorEl) { errorEl.hidden = false; errorEl.textContent = message; } };
+    if (errorEl) { errorEl.hidden = true; errorEl.textContent = ""; }
+
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(newSlug)) {
+      showError("Web adresi yalnızca küçük harf, rakam ve tek tire ile ayrılmış gruplar içerebilir (ör. “yeni-kayit”).");
+      return;
+    }
+    if (newSlug === slugInfo.currentSlug) {
+      showError("Girilen adres, mevcut adresle aynı.");
+      return;
+    }
+    if (slugInfo.everPublished) {
+      const oldUrl = publicEntityUrl(slugInfo.currentSlug);
+      const newUrl = publicEntityUrl(newSlug);
+      const confirmed = confirm(
+        `Bu kayıt daha önce yayınlandı.\n\nMevcut adres: ${oldUrl}\nYeni adres: ${newUrl}\n\n`
+        + `Eski adres otomatik olarak yeni adrese yönlendirilecek, ancak zaten paylaşılmış eski bağlantılar farklı görünecektir.\n\n`
+        + `Devam etmek istiyor musunuz?`
+      );
+      if (!confirmed) return;
+    }
+    try {
+      const { data } = await Session.requestContent(`/entities/${encodeURIComponent(baseEntity.id)}/slug`, {
+        method: "POST",
+        body: JSON.stringify({ newSlug, confirmed: true }),
+      });
+      baseEntity.slug = data.slug;
+      editorState.slugInfo = { ...slugInfo, currentSlug: data.slug };
+      toast("Web adresi güncellendi.");
+      renderSlugWidget();
+      loadRecords();
+    } catch (error) {
+      if (error.suggestedSlug) {
+        showError(`Bu URL zaten kullanılıyor. Önerilen: ${error.suggestedSlug}`);
+        input.value = error.suggestedSlug;
+        document.getElementById("admin-slug-edit-preview").textContent = `Yeni adres: ${publicEntityUrl(error.suggestedSlug)}`;
+        return;
+      }
+      if (error.requiresConfirmation) {
+        // Should not normally happen (the confirm dialog above already
+        // covers this whenever slugInfo.everPublished is true), but the
+        // backend stays authoritative — if the locally-held slugInfo was
+        // ever stale, retry honoring the server's own answer rather than
+        // silently failing.
+        editorState.slugInfo = { ...slugInfo, everPublished: true };
+        return submitSlugChange();
+      }
+      showError(reportError(error, "submitSlugChange"));
+    }
+  }
+
   function renderEditor() {
-    const { mode, entityType, baseEntity } = editorState;
+    const { mode, entityType, baseEntity, suggestedId } = editorState;
     const isNew = mode === "create";
     const entity = baseEntity || {};
     const flat = isFlatEntityType(entityType);
+    // "COMMIT ÖNCESİ / SON UX CLEANUP" round: the modal title must describe
+    // the ACTIVE mode, not always the legacy editorial-proposal wording —
+    // direct SQLite mode really does persist an edit straight to the
+    // record, it is never "proposing a change" there. The editorial-
+    // proposal flow's copy is untouched (see editor-mode-copy.js).
+    const headingPrefix = AntiochiaArchiveEditorModeCopy.resolveEditorHeadingPrefix({ isDirect: isDirectContentAuthority(), isNew });
     document.getElementById("admin-editor-heading").textContent = isNew
-      ? `Yeni Kayıt — ${ENTITY_TYPE_LABELS[entityType]}`
-      : `Değişiklik Öner — ${flat ? entity.id : localized(entity.title, entity.id)}`;
+      ? `${headingPrefix} — ${ENTITY_TYPE_LABELS[entityType]}`
+      : `${headingPrefix} — ${flat ? entity.id : localized(entity.title, entity.id)}`;
 
     const body = document.getElementById("admin-editor-form-body");
 
     if (flat) {
       // source/media: plain `id`, no slug, no title/summary/status/tags — see isFlatEntityType's header.
       const idHtml = isNew
-        ? `<div class="form-group"><label class="form-label" for="field-id">Kimlik (ID)</label><input class="form-input" id="field-id" required placeholder="ör. source-XXXX"></div>`
-        : `<p class="admin-readonly-value">ID: <code>${escapeHtml(entity.id)}</code> (bu alan bir değişiklik önerisiyle değiştirilemez)</p>`;
+        ? idFieldHtml({ suggestedId, placeholder: "ör. source-XXXX" })
+        : `<p class="admin-readonly-value">ID: <code>${escapeHtml(entity.id)}</code> (bu alan ${isDirectContentAuthority() ? "" : "bir değişiklik önerisiyle "}değiştirilemez)</p>`;
       body.innerHTML = `
-        ${publicImpactBannerHtml()}
+        ${publicImpactBannerHtml({ isNew, statusless: true, entityType })}
         ${idHtml}
         ${entityType === "source" ? sourceFieldsHtml(entity) : mediaFieldsHtml(entity)}
       `;
+      wireIdAdvancedToggle();
     } else {
       const idSlugHtml = isNew ? `
         <div class="form-row-two">
-          <div class="form-group"><label class="form-label" for="field-id">Kimlik (ID)</label><input class="form-input" id="field-id" required placeholder="ör. place-XXXX"></div>
-          <div class="form-group"><label class="form-label" for="field-slug">Slug</label><input class="form-input" id="field-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required></div>
-        </div>` : `<p class="admin-readonly-value">ID: <code>${escapeHtml(entity.id)}</code> · Slug: <code>${escapeHtml(entity.slug)}</code> (bu alanlar bir değişiklik önerisiyle değiştirilemez)</p>`;
+          ${idFieldHtml({ suggestedId, placeholder: "ör. place-XXXX" })}
+          <div class="form-group"><label class="form-label" for="field-slug">Web adresi</label><input class="form-input" id="field-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required>
+            <small class="form-help" id="field-slug-help">Başlıktan otomatik oluşturuldu.</small>
+            <p class="admin-slug-url-preview" id="field-slug-preview"></p>
+          </div>
+        </div>` : isDirectContentAuthority()
+          ? `<p class="admin-readonly-value">ID: <code>${escapeHtml(entity.id)}</code> (bu alan değiştirilemez)</p><div id="admin-slug-widget-mount"></div>`
+          : `<p class="admin-readonly-value">ID: <code>${escapeHtml(entity.id)}</code> · Slug: <code>${escapeHtml(entity.slug)}</code> (bu alanlar bir değişiklik önerisiyle değiştirilemez)</p>`;
 
       body.innerHTML = `
-        ${publicImpactBannerHtml()}
+        ${publicImpactBannerHtml({ isNew, status: entity.status })}
         ${idSlugHtml}
         ${multilingualInputHtml("title", "Başlık", entity.title || {})}
         ${multilingualInputHtml("summary", "Özet", entity.summary || {}, "textarea")}
@@ -938,11 +1500,16 @@
         </div>
         <div class="form-group"><label class="form-label" for="field-tags">Etiketler (virgülle ayrılmış)</label><input class="form-input" id="field-tags" value="${escapeHtml((entity.tags || []).join(", "))}"></div>
         ${typeSpecificFieldsHtml(entityType, entity)}
+        ${isDirectContentAuthority() ? `<div class="form-group" id="admin-rel-widget-mount"></div>` : ""}
       `;
+      wireIdAdvancedToggle();
+      if (isNew) wireSlugAutoSuggest();
+      if (!isNew && isDirectContentAuthority()) renderSlugWidget();
     }
     body.querySelectorAll('[data-name-list]').forEach(wireNameListEditor);
     body.querySelectorAll('[data-media-link-list]').forEach(() => wireMediaLinkListEditor(body));
     if (entityType === "place") initCoordinateMap(entity.coordinates);
+    if (!flat && isDirectContentAuthority()) initRelationshipWidget();
 
     editorDirty = false;
     body.addEventListener("input", () => { editorDirty = true; });
@@ -950,9 +1517,7 @@
 
     const submitBtn = document.getElementById("admin-editor-submit");
     if (submitBtn) {
-      submitBtn.textContent = !isDirectContentAuthority() ? (isNew ? "Taslak Olarak Kaydet" : "Değişiklik Önerisi Kaydet")
-        : isNew ? "Taslak Olarak Oluştur"
-        : "Kaydet";
+      submitBtn.textContent = AntiochiaArchiveEditorModeCopy.resolveSubmitButtonLabel({ isDirect: isDirectContentAuthority(), isNew, flat });
     }
 
     const modal = document.getElementById("admin-editor-modal");
@@ -960,9 +1525,15 @@
     modal.querySelector("input, textarea, select")?.focus();
   }
 
-  function openEditorForNew(entityType, triggerEl = document.activeElement) {
+  async function openEditorForNew(entityType, triggerEl = document.activeElement) {
     editorTriggerEl = triggerEl;
-    editorState = { mode: "create", entityType, baseEntity: null };
+    editorState = { mode: "create", entityType, baseEntity: null, suggestedId: null, pendingRelationships: [] };
+    // Only the direct-authority (SQLite) create form ever calls the real
+    // backend — the existing editorial-draft flow gets no suggestion and
+    // keeps its original manually-typed id field, unchanged.
+    if (isDirectContentAuthority()) {
+      editorState.suggestedId = await fetchSuggestedId(entityType);
+    }
     renderEditor();
   }
 
@@ -970,7 +1541,21 @@
     try {
       const { data } = await Session.request(`/entities/${encodeURIComponent(id)}`);
       editorTriggerEl = triggerEl;
-      editorState = { mode: "edit", entityType: entityType || data.entityType, baseEntity: data };
+      editorState = { mode: "edit", entityType: entityType || data.entityType, baseEntity: data, slugInfo: null };
+      // "UX refinement" round, Section 10: only the direct-authority (SQLite)
+      // editor ever offers the "Gelişmiş: URL'yi değiştir" flow — the
+      // editorial-draft flow keeps its existing fully-locked slug display,
+      // unchanged. Fetched once, up front, so the initial render already
+      // knows whether this entity has ever been published (locked) or not
+      // (freely editable) without a layout jump after the modal opens.
+      if (!isFlatEntityType(editorState.entityType) && isDirectContentAuthority()) {
+        try {
+          const res = await Session.requestContent(`/entities/${encodeURIComponent(id)}/slug-info`);
+          editorState.slugInfo = res.data;
+        } catch (error) {
+          reportError(error, "openEditorForExisting:slug-info"); // non-fatal — the widget falls back to locked+error state
+        }
+      }
       renderEditor();
     } catch (error) {
       toast(reportError(error, "openEditorForExisting"), "error");
@@ -1007,7 +1592,13 @@
       proposedChanges.id = val("field-id");
       if (!flat) proposedChanges.slug = val("field-slug");
       const created = await Session.requestContent("/entities", { method: "POST", body: JSON.stringify({ entityType, fields: proposedChanges }) });
-      toast("Yeni kayıt oluşturuldu (Taslak).");
+      // Section 20: the entity is already safely saved at this point — any
+      // relationship staged during create is added now, sequentially, with
+      // its own clear success/failure reporting (createPendingRelationshipsAfterSave),
+      // never silently, and never blocking or rolling back the entity
+      // creation that already succeeded.
+      await createPendingRelationshipsAfterSave(created.data.id);
+      if (!(editorState.pendingRelationships || []).length) toast(flat ? "Yeni kayıt oluşturuldu." : "Yeni kayıt oluşturuldu (Taslak).");
       return created;
     }
 
@@ -1717,6 +2308,151 @@
     return multilingualInputHtml(fieldId, label, values, tag);
   }
 
+  /** `/sayfa/<slug>/` is the only public route a CMS page ever renders at (see pages/pageRoutes.js's publicPageHtmlRouter). */
+  function publicPageUrl(slug) { return `/sayfa/${encodeURIComponent(slug)}/`; }
+
+  /** Section 2 ("COMMIT ÖNCESİ" round): the page-editor equivalent of wireSlugAutoSuggest() — same Turkish-slugify logic, same "stops the moment the admin edits it by hand" rule, only ever wired for a brand-new (never-published) page. */
+  function wirePageSlugAutoSuggest() {
+    const slugInput = document.getElementById("field-page-slug");
+    const helpEl = document.getElementById("field-page-slug-help");
+    const previewEl = document.getElementById("field-page-slug-preview");
+    const titleTr = document.querySelector('[data-ml-field="page-title"][data-ml-lang="tr"]');
+    if (!slugInput || !titleTr) return;
+    let slugTouchedByUser = false;
+    slugInput.addEventListener("input", () => {
+      slugTouchedByUser = true;
+      if (helpEl) helpEl.textContent = "Elle düzenlendi.";
+      if (previewEl) previewEl.textContent = slugInput.value.trim() ? `Yayınlandığında adres: ${publicPageUrl(slugInput.value.trim())}` : "";
+    });
+    titleTr.addEventListener("input", () => {
+      if (slugTouchedByUser) return;
+      slugInput.value = slugify(titleTr.value);
+      if (previewEl) previewEl.textContent = slugInput.value ? `Yayınlandığında adres: ${publicPageUrl(slugInput.value)}` : "";
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Existing-page slug UI ("COMMIT ÖNCESİ" round, Section 2/3) — the exact  */
+  /* same lock/unlock/warning/collision-suggestion pattern as the cultural-  */
+  /* entity slug widget above, applied to Pages. A slug change on an        */
+  /* EXISTING page always goes through the dedicated, confirm-gated         */
+  /* POST /pages/:id/slug endpoint (pageService.js's changePageSlug()),     */
+  /* never as a side effect of the ordinary "Kaydet" content save.          */
+  /* ---------------------------------------------------------------------- */
+
+  function pageSlugWidgetLockedHtml(slugInfo) {
+    return `
+      <div class="admin-slug-widget admin-slug-widget-locked">
+        <span class="admin-slug-lock-icon" aria-hidden="true">🔒</span>
+        <div class="admin-slug-locked-body">
+          <div><strong>Yayındaki URL:</strong> <code>${escapeHtml(publicPageUrl(slugInfo.currentSlug))}</code></div>
+          <small class="form-help">Bu adres yayında olduğu için korunmaktadır.</small>
+        </div>
+        <button type="button" class="form-help-action" id="admin-page-slug-unlock-btn">Gelişmiş: URL'yi değiştir</button>
+      </div>`;
+  }
+
+  function pageSlugWidgetEditableHtml(slugInfo) {
+    return `
+      <div class="admin-slug-widget admin-slug-widget-editable">
+        <div class="form-group">
+          <label class="form-label" for="admin-page-slug-edit-input">Web adresi (slug)</label>
+          <input class="form-input" id="admin-page-slug-edit-input" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="${escapeHtml(slugInfo.currentSlug)}" required>
+          <p class="admin-slug-url-preview" id="admin-page-slug-edit-preview">${escapeHtml(`Yeni adres: ${publicPageUrl(slugInfo.currentSlug)}`)}</p>
+          ${slugInfo.everPublished
+            ? `<small class="form-help admin-warning-text">⚠ Bu sayfa daha önce yayınlandı. Adresi değiştirmek eski bağlantıları etkileyebilir (eski adres otomatik olarak yeni adrese yönlendirilecektir).</small>`
+            : `<small class="form-help">Bu sayfa hiç yayınlanmadığı için serbestçe düzenlenebilir.</small>`}
+        </div>
+        <div class="admin-slug-widget-actions">
+          <button type="button" class="btn-admin btn-admin-primary" id="admin-page-slug-save-btn">Web Adresini Güncelle</button>
+          <button type="button" class="btn-admin btn-admin-secondary" id="admin-page-slug-cancel-btn">Vazgeç</button>
+        </div>
+        <p class="admin-error" id="admin-page-slug-edit-error" hidden></p>
+      </div>`;
+  }
+
+  function renderPageSlugWidget() {
+    const mount = document.getElementById("admin-page-slug-widget-mount");
+    if (!mount) return;
+    const { slugInfo } = pageEditorState;
+    if (!slugInfo) {
+      mount.innerHTML = `<p class="admin-error">Web adresi bilgisi alınamadı. Sayfayı yenileyip tekrar deneyin.</p>`;
+      return;
+    }
+    if (slugInfo.everPublished) {
+      mount.innerHTML = pageSlugWidgetLockedHtml(slugInfo);
+      document.getElementById("admin-page-slug-unlock-btn").addEventListener("click", () => {
+        mount.innerHTML = pageSlugWidgetEditableHtml(slugInfo);
+        wirePageSlugWidgetEditable();
+      });
+    } else {
+      mount.innerHTML = pageSlugWidgetEditableHtml(slugInfo);
+      wirePageSlugWidgetEditable();
+    }
+  }
+
+  function wirePageSlugWidgetEditable() {
+    const input = document.getElementById("admin-page-slug-edit-input");
+    const preview = document.getElementById("admin-page-slug-edit-preview");
+    input?.addEventListener("input", () => {
+      preview.textContent = `Yeni adres: ${publicPageUrl(input.value.trim())}`;
+      pageEditorDirty = true;
+    });
+    document.getElementById("admin-page-slug-cancel-btn")?.addEventListener("click", () => renderPageSlugWidget());
+    document.getElementById("admin-page-slug-save-btn")?.addEventListener("click", () => submitPageSlugChange());
+  }
+
+  async function submitPageSlugChange() {
+    const { basePage, slugInfo } = pageEditorState;
+    const input = document.getElementById("admin-page-slug-edit-input");
+    const errorEl = document.getElementById("admin-page-slug-edit-error");
+    const newSlug = input.value.trim();
+    const showError = (message) => { if (errorEl) { errorEl.hidden = false; errorEl.textContent = message; } };
+    if (errorEl) { errorEl.hidden = true; errorEl.textContent = ""; }
+
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(newSlug)) {
+      showError("Web adresi yalnızca küçük harf, rakam ve tek tire ile ayrılmış gruplar içerebilir (ör. “yeni-sayfa”).");
+      return;
+    }
+    if (newSlug === slugInfo.currentSlug) {
+      showError("Girilen adres, mevcut adresle aynı.");
+      return;
+    }
+    if (slugInfo.everPublished) {
+      const oldUrl = publicPageUrl(slugInfo.currentSlug);
+      const newUrl = publicPageUrl(newSlug);
+      const confirmed = confirm(
+        `Bu sayfa daha önce yayınlandı.\n\nMevcut adres: ${oldUrl}\nYeni adres: ${newUrl}\n\n`
+        + `Eski adres otomatik olarak yeni adrese yönlendirilecek, ancak zaten paylaşılmış eski bağlantılar farklı görünecektir.\n\n`
+        + `Devam etmek istiyor musunuz?`
+      );
+      if (!confirmed) return;
+    }
+    try {
+      const { data } = await Session.requestContent(`/pages/${encodeURIComponent(basePage.id)}/slug`, {
+        method: "POST",
+        body: JSON.stringify({ newSlug, confirmed: true }),
+      });
+      basePage.slug = data.slug;
+      pageEditorState.slugInfo = { ...slugInfo, currentSlug: data.slug };
+      toast("Web adresi güncellendi.");
+      renderPageSlugWidget();
+      loadPages();
+    } catch (error) {
+      if (error.suggestedSlug) {
+        showError(`Bu URL zaten kullanılıyor. Önerilen: ${error.suggestedSlug}`);
+        input.value = error.suggestedSlug;
+        document.getElementById("admin-page-slug-edit-preview").textContent = `Yeni adres: ${publicPageUrl(error.suggestedSlug)}`;
+        return;
+      }
+      if (error.requiresConfirmation) {
+        pageEditorState.slugInfo = { ...slugInfo, everPublished: true };
+        return submitPageSlugChange();
+      }
+      showError(reportError(error, "submitPageSlugChange"));
+    }
+  }
+
   function renderPageEditor() {
     const { mode, basePage } = pageEditorState;
     const isNew = mode === "create";
@@ -1724,8 +2460,11 @@
     document.getElementById("admin-page-editor-heading").textContent = isNew ? "Yeni Sayfa" : `Sayfa Düzenle — ${localized(page.title, page.slug)}`;
 
     const slugHtml = isNew
-      ? `<div class="form-group"><label class="form-label" for="field-page-slug">URL (slug)</label><input class="form-input" id="field-page-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required placeholder="ör. hakkimizda"><small class="form-help">Yayınlanan sayfa şu adreste olacak: /sayfa/&lt;slug&gt;/</small></div>`
-      : `<p class="admin-readonly-value">URL: <code>/sayfa/${escapeHtml(page.slug)}/</code> (slug bu ekrandan değiştirilemez)</p>`;
+      ? `<div class="form-group"><label class="form-label" for="field-page-slug">Web adresi</label><input class="form-input" id="field-page-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required placeholder="ör. hakkimizda">
+          <small class="form-help" id="field-page-slug-help">Başlıktan otomatik oluşturuldu.</small>
+          <p class="admin-slug-url-preview" id="field-page-slug-preview"></p>
+        </div>`
+      : `<div id="admin-page-slug-widget-mount"></div>`;
 
     const body = document.getElementById("admin-page-editor-form-body");
     body.innerHTML = `
@@ -1763,6 +2502,7 @@
     `;
 
     body.querySelectorAll('[data-media-link-list]').forEach(() => wireMediaLinkListEditor(body));
+    if (isNew) wirePageSlugAutoSuggest(); else renderPageSlugWidget();
 
     pageEditorDirty = false;
     body.addEventListener("input", () => { pageEditorDirty = true; });
@@ -1773,17 +2513,29 @@
     modal.querySelector("input, textarea, select")?.focus();
   }
 
-  function openPageEditor(id, triggerEl = document.activeElement) {
+  async function openPageEditor(id, triggerEl = document.activeElement) {
     pageEditorTriggerEl = triggerEl;
     if (!id) {
       pageEditorState = { mode: "create", basePage: null };
       renderPageEditor();
       return;
     }
-    Session.requestContent(`/pages/${encodeURIComponent(id)}`).then(({ data }) => {
-      pageEditorState = { mode: "edit", basePage: data };
+    try {
+      const { data } = await Session.requestContent(`/pages/${encodeURIComponent(id)}`);
+      pageEditorState = { mode: "edit", basePage: data, slugInfo: null };
+      // Section 2/3: fetched up front, same as the entity editor, so the
+      // initial render already knows whether this page has ever been
+      // published (locked) or not (freely editable) with no layout jump.
+      try {
+        const slugInfoRes = await Session.requestContent(`/pages/${encodeURIComponent(id)}/slug-info`);
+        pageEditorState.slugInfo = slugInfoRes.data;
+      } catch (error) {
+        reportError(error, "openPageEditor:slug-info"); // non-fatal — the widget falls back to a visible error state
+      }
       renderPageEditor();
-    }).catch((error) => toast(reportError(error, "openPageEditor"), "error"));
+    } catch (error) {
+      toast(reportError(error, "openPageEditor"), "error");
+    }
   }
 
   function closePageEditor({ force = false } = {}) {
@@ -1912,8 +2664,22 @@
     initSqliteBackupPanel();
     initMediaUploadModal();
 
-    const authenticated = await Session.checkSession();
-    if (authenticated) await showPanel(); else showLoginGate();
+    // Manual QA finding: an unhandled checkSession() rejection (backend
+    // unreachable at page load) previously aborted this handler silently —
+    // the login form stayed visible with no indication anything was wrong.
+    // Now surfaces the same clear Turkish message login() itself uses.
+    try {
+      const sessionInfo = await Session.checkSession();
+      renderEnvironmentBadge(sessionInfo);
+      if (sessionInfo.authenticated) await showPanel(); else showLoginGate();
+    } catch (error) {
+      // The metadata request failed outright (network/backend unreachable)
+      // — render the fail-safe "unknown" badge rather than leaving it
+      // blank, exactly like a response that came back without the field
+      // does (see renderEnvironmentBadge()'s own fallback).
+      renderEnvironmentBadge({});
+      showLoginGate(error.message || "Yönetim servisine ulaşılamadı.");
+    }
   });
 
   root.AntiochiaAdminPanel = Object.freeze({

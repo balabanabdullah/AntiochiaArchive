@@ -63,3 +63,20 @@ export function listRecentAuditEntries({ limit = 50 } = {}) {
   const rows = db.prepare("SELECT * FROM audit_log ORDER BY created_at DESC, id DESC LIMIT ?").all(limit);
   return rows.map(rowToEntry);
 }
+
+/**
+ * Every id ever used for a given action (e.g. "delete"), across every
+ * target this table has ever recorded — used by admin/idRecommendationService.js
+ * so a permanently-deleted entity's id is never recommended again (Section
+ * 2 of the "no-code CMS UX" round: "IDs once used should preferably not be
+ * recycled"). The entities table alone can't answer this once a row is
+ * gone; this survives permanent deletion because audit_log rows are never
+ * deleted. No type filter is applied here — each entity type's id prefix
+ * is already unique and unambiguous, so the caller's own prefix regex does
+ * the filtering.
+ */
+export function listAuditTargetIds({ targetType, action }) {
+  const db = getSqlite();
+  const rows = db.prepare("SELECT DISTINCT target_id FROM audit_log WHERE target_type = ? AND action = ?").all(targetType, action);
+  return rows.map((row) => row.target_id);
+}

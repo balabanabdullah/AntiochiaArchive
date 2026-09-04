@@ -11,7 +11,7 @@
 // completely separate collection/table (see editorialStore.js's header).
 
 import { Router } from "express";
-import { getV2Store, isSqliteRuntimeActive } from "../v2/stores/v2Store.js";
+import { getV2Store, isSqliteRuntimeActive, getSelectedV2StoreName } from "../v2/stores/v2Store.js";
 import { ENTITY_TYPES, PUBLICATION_STATUS } from "../v2/constants/vocabularies.js";
 import {
   requireAdminSession, loginRateLimit, createSession, destroySession, hasValidSession, verifyAdminToken,
@@ -20,8 +20,31 @@ import { getEditorialStore, getSelectedEditorialStoreName, DRAFT_STATUSES } from
 import {
   isKnownEntityType, isValidSlug, isAllowedDraftStatusTransition, validateCreateProposal, validateEditProposal,
 } from "./editorialValidation.js";
+import { isRunningOnCloudRun } from "../db/sqliteConnection.js";
+import { getSelectedMediaStorageDriverName } from "../media/mediaStorage.js";
 
 const router = Router();
+
+/**
+ * Manual QA round, "environment safety badge": non-sensitive runtime
+ * metadata only — never ADMIN_TOKEN, never a filesystem path, never a
+ * credential. `environment` is derived from K_SERVICE (see
+ * db/sqliteConnection.js's isRunningOnCloudRun — the same authoritative
+ * signal the SQLite-on-Cloud-Run guard already uses), never from a
+ * hostname or other frontend-guessable value. `runtimeContentStore` and
+ * `mediaStorageDriver` are read the same way the dashboard already reports
+ * `editorialStoreName`/`contentAuthority` below — real, live-selected
+ * values, never hardcoded. Exposed on BOTH /session (reachable before
+ * login, so the badge can render on the login screen itself) and
+ * /dashboard (after login).
+ */
+function getEnvironmentInfo() {
+  return {
+    environment: isRunningOnCloudRun() ? "production" : "local",
+    runtimeContentStore: getSelectedV2StoreName(),
+    mediaStorageDriver: isSqliteRuntimeActive() ? getSelectedMediaStorageDriverName() : null,
+  };
+}
 
 /* ---------------------------------------------------------------------- */
 /* Auth: login / logout / session check — unauthenticated by design        */
@@ -46,7 +69,7 @@ router.post("/logout", (req, res) => {
 // work precisely when there is NO session yet, and it returns nothing
 // sensitive either way (a boolean).
 router.get("/session", (req, res) => {
-  res.status(200).json({ success: true, data: { authenticated: hasValidSession(req) } });
+  res.status(200).json({ success: true, data: { authenticated: hasValidSession(req), ...getEnvironmentInfo() } });
 });
 
 /* Every route below requires a valid admin session (+ CSRF header on writes). */
@@ -92,6 +115,7 @@ router.get("/dashboard", async (req, res) => {
         // just which of the two content-authority models this deployment
         // is running. See the "no-code CMS" round's report.
         contentAuthority: isSqliteRuntimeActive() ? "direct" : "editorial",
+        ...getEnvironmentInfo(),
       },
     });
   } catch (error) {

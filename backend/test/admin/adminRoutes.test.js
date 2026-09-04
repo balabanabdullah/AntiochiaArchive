@@ -112,6 +112,48 @@ test("GET /dashboard reports the active editorial storage mode, so the UI never 
   assert.equal(body.data.editorialStoreName, "memory");
 });
 
+/* --------------------------------------------------------------------------
+   ENVIRONMENT SAFETY BADGE (manual QA round)
+   -------------------------------------------------------------------------- */
+
+test("GET /session reports environment metadata even before login — the badge must render on the login screen itself", async (context) => {
+  const baseUrl = await startTestServer(context);
+  const response = await fetch(`${baseUrl}/api/admin/editorial/session`);
+  const body = await response.json();
+  assert.equal(body.data.environment, "local", "K_SERVICE is unset in this test process, so this must read 'local'");
+  assert.equal(body.data.runtimeContentStore, "local", "matches this test server's real V2_DATA_STORE=local");
+  assert.equal(body.data.mediaStorageDriver, null, "media storage is only meaningful once V2_DATA_STORE=sqlite is active");
+});
+
+test("environment reports 'production' when K_SERVICE is set (the same authoritative signal the SQLite-on-Cloud-Run guard uses), never guessed from a hostname", async (context) => {
+  const originalKService = process.env.K_SERVICE;
+  process.env.K_SERVICE = "antiochia-archive-backend";
+  context.after(() => { if (originalKService === undefined) delete process.env.K_SERVICE; else process.env.K_SERVICE = originalKService; });
+
+  const baseUrl = await startTestServer(context);
+  const response = await fetch(`${baseUrl}/api/admin/editorial/session`);
+  const body = await response.json();
+  assert.equal(body.data.environment, "production");
+});
+
+test("GET /dashboard also carries the same environment metadata, and neither /session nor /dashboard ever leaks ADMIN_TOKEN or a filesystem path", async (context) => {
+  const baseUrl = await startTestServer(context);
+  const { cookie } = await login(baseUrl);
+  const response = await fetch(`${baseUrl}/api/admin/editorial/dashboard`, { headers: { Cookie: cookie } });
+  const body = await response.json();
+  assert.equal(body.data.environment, "local");
+  assert.equal(body.data.runtimeContentStore, "local");
+
+  const sessionResponse = await fetch(`${baseUrl}/api/admin/editorial/session`, { headers: { Cookie: cookie } });
+  const sessionBody = await sessionResponse.json();
+
+  for (const raw of [JSON.stringify(body), JSON.stringify(sessionBody)]) {
+    assert.ok(!raw.includes(TEST_TOKEN), "the admin token must never appear in an API response body");
+    assert.ok(!/[A-Za-z]:[\\/]/.test(raw), "no Windows-style filesystem path may leak into an admin API response");
+    assert.ok(!raw.toLowerCase().includes("var/database"), "no SQLite storage path may leak into an admin API response");
+  }
+});
+
 test("logout invalidates the session — a subsequent request with the same cookie is 401", async (context) => {
   const baseUrl = await startTestServer(context);
   const { cookie } = await login(baseUrl);

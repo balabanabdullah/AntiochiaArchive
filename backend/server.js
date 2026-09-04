@@ -204,9 +204,14 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
+// Last-resort catch-all for a genuinely unexpected exception in any route.
+// Manual QA round: this message reaches non-technical Turkish admin users
+// (e.g. an /admin/-panel action that hits an unhandled server error) and
+// must never be a raw English fragment or leak err.message/stack — those
+// still go to the server log only, never the response body.
 app.use((err, _req, res, _next) => {
   console.error("[Backend] Request error:", err.message);
-  res.status(500).json({ success: false, error: "Request could not be processed." });
+  res.status(500).json({ success: false, error: "Sunucuda beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin." });
 });
 
 try {

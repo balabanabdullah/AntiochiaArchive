@@ -137,3 +137,64 @@ test("media/source entities (no slug, no detail page) never resolve here even by
   const response = await fetch(`${baseUrl}/archive-v2/media-1`);
   assert.equal(response.status, 404);
 });
+
+/* ---------------------------------------------------------------------- */
+/* "UX refinement" round, Sections 12/14/15: historical-slug 301 redirect. */
+/* ---------------------------------------------------------------------- */
+
+test("a published entity's old slug 301-redirects to its new slug, and the new slug serves 200", async (t) => {
+  const baseUrl = await startTestServer(t);
+  const { changeEntitySlug } = await import("../../../admin/contentService.js");
+  createEntity({ entityType: "place", proposedFields: { id: "place-1", slug: "test-kilise", title: { tr: "Test Kilise" } }, actor: "test" });
+  publishEntity({ id: "place-1", actor: "test" });
+
+  changeEntitySlug({ id: "place-1", newSlug: "test-kilise-yeni", confirmed: true, actor: "test" });
+
+  const oldResponse = await fetch(`${baseUrl}/archive-v2/test-kilise`, { redirect: "manual" });
+  assert.equal(oldResponse.status, 301);
+  assert.equal(oldResponse.headers.get("location"), "/archive-v2/test-kilise-yeni/");
+
+  const newResponse = await fetch(`${baseUrl}/archive-v2/test-kilise-yeni`);
+  assert.equal(newResponse.status, 200);
+  const html = await newResponse.text();
+  assert.match(html, /Test Kilise/);
+});
+
+test("a slug changed twice redirects in a single hop from the oldest slug straight to the current one, never a chain", async (t) => {
+  const baseUrl = await startTestServer(t);
+  const { changeEntitySlug } = await import("../../../admin/contentService.js");
+  createEntity({ entityType: "place", proposedFields: { id: "place-1", slug: "v1", title: { tr: "T" } }, actor: "test" });
+  publishEntity({ id: "place-1", actor: "test" });
+  changeEntitySlug({ id: "place-1", newSlug: "v2", confirmed: true, actor: "test" });
+  changeEntitySlug({ id: "place-1", newSlug: "v3", confirmed: true, actor: "test" });
+
+  const fromV1 = await fetch(`${baseUrl}/archive-v2/v1`, { redirect: "manual" });
+  assert.equal(fromV1.status, 301);
+  assert.equal(fromV1.headers.get("location"), "/archive-v2/v3/", "must jump straight to the CURRENT slug, not the intermediate v2");
+
+  const fromV2 = await fetch(`${baseUrl}/archive-v2/v2`, { redirect: "manual" });
+  assert.equal(fromV2.status, 301);
+  assert.equal(fromV2.headers.get("location"), "/archive-v2/v3/");
+});
+
+test("an archived entity's old slug does not redirect to (or otherwise expose) its content — it 404s exactly like an unknown slug", async (t) => {
+  const baseUrl = await startTestServer(t);
+  const { changeEntitySlug } = await import("../../../admin/contentService.js");
+  createEntity({ entityType: "place", proposedFields: { id: "place-1", slug: "was-public", title: { tr: "T" } }, actor: "test" });
+  publishEntity({ id: "place-1", actor: "test" });
+  changeEntitySlug({ id: "place-1", newSlug: "was-public-new", confirmed: true, actor: "test" });
+  archiveEntity({ id: "place-1", actor: "test" });
+
+  const response = await fetch(`${baseUrl}/archive-v2/was-public`, { redirect: "manual" });
+  assert.equal(response.status, 404, "an old slug for a non-public entity must never redirect");
+});
+
+test("a never-published entity's slug change leaves no redirect at all (drafts have no external links worth preserving)", async (t) => {
+  const baseUrl = await startTestServer(t);
+  const { changeEntitySlug } = await import("../../../admin/contentService.js");
+  createEntity({ entityType: "place", proposedFields: { id: "place-1", slug: "draft-old", title: { tr: "T" } }, actor: "test" });
+  changeEntitySlug({ id: "place-1", newSlug: "draft-new", actor: "test" }); // never published: no confirmed flag needed
+
+  const oldResponse = await fetch(`${baseUrl}/archive-v2/draft-old`, { redirect: "manual" });
+  assert.equal(oldResponse.status, 404);
+});

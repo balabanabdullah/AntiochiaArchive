@@ -16,7 +16,8 @@
 
 import { Router } from "express";
 import { isSqliteRuntimeActive } from "../v2/stores/v2Store.js";
-import { getPublishedPageBySlug } from "../admin/pageService.js";
+import { getPublishedPageBySlug, getPageByIdRow } from "../admin/pageService.js";
+import { findPageIdByHistoricalSlug } from "../db/repositories/slugHistoryRepository.js";
 import { renderPageHtml } from "./pageRenderer.js";
 
 const PAGE_PUBLIC_FIELDS = Object.freeze([
@@ -40,12 +41,45 @@ publicPageJsonRouter.get("/:slug", (req, res) => {
   return res.status(200).json({ success: true, data: serializePublicPage(page) });
 });
 
+/**
+ * "COMMIT ÖNCESİ" round, Section 3: a page slug an admin changed away from
+ * (on a previously-published page — see pageService.js's changePageSlug())
+ * 301-redirects here to the page's CURRENT slug, rather than 404ing, so an
+ * already-shared/indexed old /sayfa/ URL keeps working. Resolves to the
+ * CURRENT slug column directly (never the recorded `new_slug`) so this is
+ * always exactly one hop, never a chain — the same guarantee
+ * v2/routes/v2DetailRoutes.js's resolveHistoricalSlugRedirect() gives
+ * cultural entities, reusing the same shared slug_history table (page
+ * domain).
+ */
+function resolveHistoricalPageSlugRedirect(slug) {
+  if (!isSqliteRuntimeActive()) return null;
+  const pageId = findPageIdByHistoricalSlug(slug);
+  if (!pageId) return null;
+  const current = getPageByIdRow(pageId);
+  // Section 5: "archived page old aliases do not expose content" — an old
+  // slug for a page that is not (or no longer) published must never
+  // redirect anywhere; it 404s exactly like an unknown slug would.
+  if (!current || !current.slug || current.slug === slug || current.status !== "published") return null;
+  return current.slug;
+}
+
 export const publicPageHtmlRouter = Router();
 
 publicPageHtmlRouter.get("/:slug", (req, res) => {
   if (!isSqliteRuntimeActive()) return res.status(404).type("text/plain").send("404 — Sayfa bulunamadı / Page not found.");
   const page = getPublishedPageBySlug(req.params.slug);
   if (!page) {
+    let redirectSlug;
+    try {
+      redirectSlug = resolveHistoricalPageSlugRedirect(req.params.slug);
+    } catch (error) {
+      console.error("[PageRoutes] slug history lookup failed:", error.message);
+    }
+    if (redirectSlug) {
+      res.setHeader("Cache-Control", "no-store");
+      return res.redirect(301, `/sayfa/${encodeURIComponent(redirectSlug)}/`);
+    }
     return res.status(404).type("text/plain").send("404 — Sayfa bulunamadı / Page not found.");
   }
   const html = renderPageHtml(page, { language: req.query.lang });

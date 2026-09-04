@@ -141,6 +141,10 @@
       html[dir="rtl"] .admin-sidebar { transform: translateX(100%); }
       .admin-sidebar.is-open { transform: translateX(0); }
       .admin-mobile-nav-toggle { display: inline-flex; }
+      /* Never let the environment badge get squeezed out of view on a
+         narrow topbar — wrap onto its own line rather than clipping. */
+      .admin-topbar .admin-brand { flex-wrap: wrap; row-gap: 4px; }
+      .admin-topbar .admin-brand span:not(.brand-mark) { max-width: 100%; }
     }
 
     .admin-panel-heading { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 500; margin-bottom: 4px; }
@@ -159,6 +163,73 @@
     }
     .admin-storage-banner-durable { background: #dcfce7; color: #166534; }
     .admin-storage-banner-ephemeral { background: #fef3c7; color: #92400e; }
+
+    /* ── Environment safety badge (manual QA round) ─────────────────────────
+       Tasteful but unmistakable: local testing must never look like — or be
+       mistaken for — production. Colors deliberately differ from the
+       storage-banner palette above so the two never blend together. */
+    .admin-env-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .admin-env-badge-local { background: #dbeafe; color: #1e3a8a; }
+    .admin-env-badge-production { background: #fecaca; color: #7f1d1d; }
+    /* Fail-safe state: the environment could not be authoritatively
+       determined (request failed, or a response came back without the
+       field). Never blank, never guessed — see renderEnvironmentBadge(). */
+    .admin-env-badge-unknown { background: #fef3c7; color: #78350f; border: 1px solid #f59e0b; }
+
+    /* ── No-code CMS UX round: id/relationship widgets ──────────────────── */
+    .form-help-action {
+      background: none; border: none; padding: 0; margin: 0;
+      color: var(--admin-accent); text-decoration: underline; cursor: pointer; font: inherit; font-size: inherit;
+    }
+    .admin-rel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .admin-rel-chip-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .admin-rel-chip {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 8px 12px; border: 1px solid var(--admin-border); border-radius: 8px; background: var(--admin-bg);
+    }
+    .admin-rel-chip-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--admin-ink-muted); display: block; }
+    .admin-rel-chip-context { font-size: 0.72rem; color: var(--admin-ink-muted); display: block; }
+    .admin-rel-chip-rawid { font-size: 0.72rem; color: var(--admin-ink-muted); font-family: monospace; }
+    /* Section 6: a dangling/broken relationship target must look visibly
+       wrong, never like a normal chip that merely lacks a nice title. */
+    .admin-rel-chip-missing { border-color: #f59e0b; background: #fffbeb; }
+    .admin-rel-chip-missing .admin-rel-chip-label { color: #92400e; }
+    .admin-rel-search-box { border: 1px dashed var(--admin-border); border-radius: 8px; padding: 12px; margin: 8px 0; }
+    .admin-rel-search-results { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; max-height: 180px; overflow-y: auto; }
+    .admin-rel-search-result {
+      text-align: left; padding: 7px 10px; border-radius: 6px; border: 1px solid transparent; background: var(--admin-surface);
+      cursor: pointer; font-size: 0.86rem;
+    }
+    .admin-rel-search-result:hover { border-color: var(--admin-accent); }
+    .admin-rel-preview-sentence { background: #eef2ff; color: #3730a3; padding: 8px 12px; border-radius: 6px; margin: 8px 0; font-size: 0.86rem; }
+
+    /* ── "UX refinement" round: existing-record slug/URL widget (Sections   ─
+       9-16). Locked state must read as unmistakably protected (padlock +
+       amber-adjacent but calmer tone than the missing-relationship warning,
+       since this is normal/expected, not an error); the editable state's
+       warning line for an already-published entity borrows the same
+       amber warning color used elsewhere so "this needs care" always
+       looks the same across the admin UI. */
+    .admin-slug-widget { border: 1px solid var(--admin-border); border-radius: 8px; padding: 10px 12px; background: var(--admin-bg); }
+    .admin-slug-widget-locked { display: flex; align-items: center; gap: 10px; }
+    .admin-slug-lock-icon { font-size: 1.1rem; }
+    .admin-slug-locked-body { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+    .admin-slug-widget-editable .admin-slug-widget-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .admin-slug-url-preview { font-size: 0.78rem; color: var(--admin-ink-muted); font-family: monospace; margin: 4px 0 0; overflow-wrap: anywhere; }
+    .admin-warning-text { color: #92400e; display: block; }
+    .admin-login-card .admin-env-badge { margin-bottom: 10px; }
+    .admin-topbar .admin-env-badge { margin-inline-start: 10px; }
     .admin-dashboard-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
     .admin-dashboard-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 16px; }
     .admin-dashboard-card-count { display: block; font-family: var(--font-serif); font-size: 1.8rem; color: var(--admin-accent); }
@@ -369,6 +440,7 @@
        ══════════════════════════════════════════════════════════════════════ -->
   <div class="admin-login-gate" id="admin-login-gate">
     <div class="admin-login-card">
+      <div id="admin-env-badge-login"></div>
       <h1>AntiochiaArchive<br>Yönetim Paneli</h1>
       <p class="admin-login-subtitle">Devam etmek için yönetici anahtarınızı girin.</p>
       <form id="admin-login-form" autocomplete="off">
@@ -393,6 +465,7 @@
         <button class="admin-mobile-nav-toggle btn-admin btn-admin-secondary" id="admin-mobile-nav-toggle" type="button" aria-label="Menüyü aç/kapat">☰</button>
         <span class="brand-mark">A</span>
         <span>AntiochiaArchive Yönetim Paneli</span>
+        <span id="admin-env-badge-panel"></span>
       </div>
       <div>
         <a class="btn-admin btn-admin-secondary" href="../index.html">← Siteye Dön</a>
@@ -881,6 +954,9 @@
 
   <!-- Scripts -->
   <script src="/admin-session.js"></script>
+  <script src="/js/environment-badge.js"></script>
+  <script src="/js/slug-utils.js"></script>
+  <script src="/js/editor-mode-copy.js"></script>
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script src="/js/admin-panel.js"></script>
   <script src="/admin-api.js"></script>

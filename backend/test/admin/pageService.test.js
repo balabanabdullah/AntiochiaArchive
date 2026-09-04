@@ -8,8 +8,10 @@ import { sqliteV2Store } from "../../v2/stores/sqliteV2Store.js";
 import {
   createPage, editPage, publishPage, sendPageToReview, unpublishPage, archivePage, restorePage,
   deletePagePermanently, getPageRevisionHistory, getPublishedPageBySlug,
+  changePageSlug, getPageSlugChangeInfo, hasPageEverBeenPublished,
 } from "../../admin/pageService.js";
-import { ContentValidationError, ContentConflictError, ContentNotFoundError, createEntity } from "../../admin/contentService.js";
+import { ContentValidationError, ContentConflictError, ContentNotFoundError, createEntity, changeEntitySlug } from "../../admin/contentService.js";
+import { isHistoricalPageSlug, findPageIdByHistoricalSlug, listSlugHistoryForPage } from "../../db/repositories/slugHistoryRepository.js";
 
 async function withInitializedRuntime(t) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "antiochia-page-service-"));
@@ -97,4 +99,126 @@ test("deletePagePermanently removes the page and records an audit entry", async 
   const result = deletePagePermanently({ id: "page-1", actor: "test" });
   assert.equal(result.deleted, true);
   assert.throws(() => editPage({ id: "page-1", fields: { title: { tr: "T2" } }, actor: "test" }), ContentNotFoundError);
+});
+
+/* --------------------------------------------------------------------------
+   Page slug UX ("COMMIT ÖNCESİ" round, Section 2/3) — same lifecycle as
+   cultural entities (contentService.test.js/slugUxService.test.js), applied
+   to Pages: free editing pre-publish, confirm-gated editing with permanent
+   redirect history post-publish, globally-reserved-within-domain historical
+   slugs, and a separate collision domain from cultural entities.
+   -------------------------------------------------------------------------- */
+
+test("editPage locks slug exactly like editEntity — the ONLY way to change an existing page's slug is changePageSlug", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "s", title: { tr: "T" } }, actor: "test" });
+  assert.throws(() => editPage({ id: "page-1", fields: { slug: "different" }, actor: "test" }), ContentValidationError);
+});
+
+test("hasPageEverBeenPublished is false for a fresh draft, true after a publish, and STAYS true after unpublishing back to draft", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "s", title: { tr: "T" } }, actor: "test" });
+  assert.equal(hasPageEverBeenPublished("page-1"), false);
+
+  publishPage({ id: "page-1", actor: "test" });
+  assert.equal(hasPageEverBeenPublished("page-1"), true);
+
+  unpublishPage({ id: "page-1", actor: "test" });
+  assert.equal(hasPageEverBeenPublished("page-1"), true, "a page published then unpublished may still have real external links to its old URL");
+});
+
+test("a draft/never-published page's slug changes freely, with no confirmation required and no redirect history recorded", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "old-slug", title: { tr: "T" } }, actor: "test" });
+
+  const info = getPageSlugChangeInfo("page-1");
+  assert.equal(info.everPublished, false);
+  assert.equal(info.currentSlug, "old-slug");
+
+  const updated = changePageSlug({ id: "page-1", newSlug: "new-slug", actor: "test" });
+  assert.equal(updated.slug, "new-slug");
+  assert.equal(listSlugHistoryForPage("page-1").length, 0, "a draft's slug change is not a redirect-worthy event");
+  assert.equal(isHistoricalPageSlug("old-slug"), false, "a draft's old slug is not reserved");
+});
+
+test("an ever-published page's slug change is refused without confirmed:true, and succeeds with it, recording redirect history", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "test-sayfasi", title: { tr: "Test Sayfası" } }, actor: "test" });
+  publishPage({ id: "page-1", actor: "test" });
+
+  assert.throws(
+    () => changePageSlug({ id: "page-1", newSlug: "test-sayfasi-yeni", actor: "test" }),
+    (error) => error instanceof ContentConflictError && error.requiresConfirmation === true,
+  );
+  assert.equal(getPageSlugChangeInfo("page-1").currentSlug, "test-sayfasi");
+
+  const updated = changePageSlug({ id: "page-1", newSlug: "test-sayfasi-yeni", confirmed: true, actor: "test" });
+  assert.equal(updated.slug, "test-sayfasi-yeni");
+
+  const history = listSlugHistoryForPage("page-1");
+  assert.equal(history.length, 1);
+  assert.equal(history[0].oldSlug, "test-sayfasi");
+  assert.equal(history[0].newSlug, "test-sayfasi-yeni");
+  assert.equal(isHistoricalPageSlug("test-sayfasi"), true);
+  assert.equal(findPageIdByHistoricalSlug("test-sayfasi"), "page-1");
+});
+
+test("a live page-slug collision is rejected with a deterministic suggested alternative, never a silent overwrite", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "antakya-hakkinda", title: { tr: "A" } }, actor: "test" });
+
+  assert.throws(
+    () => createPage({ fields: { id: "page-2", slug: "antakya-hakkinda", title: { tr: "B" } }, actor: "test" }),
+    (error) => error instanceof ContentConflictError && error.suggestedSlug === "antakya-hakkinda-2",
+  );
+});
+
+test("a historical (formerly used, now-freed) page slug stays permanently reserved — no other page, ever, may claim it", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "shared-name", title: { tr: "A" } }, actor: "test" });
+  createPage({ fields: { id: "page-2", slug: "other", title: { tr: "B" } }, actor: "test" });
+  publishPage({ id: "page-1", actor: "test" });
+  changePageSlug({ id: "page-1", newSlug: "shared-name-moved", confirmed: true, actor: "test" });
+
+  assert.equal(isHistoricalPageSlug("shared-name"), true);
+  assert.throws(
+    () => changePageSlug({ id: "page-2", newSlug: "shared-name", actor: "test" }),
+    (error) => error instanceof ContentConflictError,
+  );
+});
+
+test("changePageSlug validates format, rejects a same-as-current slug, and rejects an unknown page", async (t) => {
+  await withInitializedRuntime(t);
+  createPage({ fields: { id: "page-1", slug: "valid-slug", title: { tr: "T" } }, actor: "test" });
+
+  assert.throws(() => changePageSlug({ id: "page-1", newSlug: "Not Valid!", actor: "test" }), ContentValidationError);
+  assert.throws(() => changePageSlug({ id: "page-1", newSlug: "valid-slug", actor: "test" }), ContentValidationError);
+  assert.throws(() => changePageSlug({ id: "does-not-exist", newSlug: "whatever", actor: "test" }), ContentNotFoundError);
+});
+
+/* Section 4: collision DOMAIN separation — a page and a cultural entity may
+   freely share identical slug text, since they live in disjoint public
+   namespaces (/sayfa/ vs /archive-v2/). Only WITHIN one namespace must a
+   slug (live or historical) stay unique. */
+test("identical slug text is NOT prohibited across the page and entity namespaces", async (t) => {
+  await withInitializedRuntime(t);
+  createEntity({ entityType: "place", proposedFields: { id: "place-1", slug: "antakya", title: { tr: "Antakya" } }, actor: "test" });
+  // Must NOT throw — a page may use the exact same slug text a cultural entity already uses.
+  const page = createPage({ fields: { id: "page-1", slug: "antakya", title: { tr: "Antakya Sayfası" } }, actor: "test" });
+  assert.equal(page.slug, "antakya");
+});
+
+test("a historically-reserved ENTITY slug does not block a PAGE from using the same text, and vice versa", async (t) => {
+  await withInitializedRuntime(t);
+  createEntity({ entityType: "place", proposedFields: { id: "place-1", slug: "shared-text", title: { tr: "A" } }, actor: "test" });
+  createEntity({ entityType: "place", proposedFields: { id: "place-2", slug: "other-entity", title: { tr: "B" } }, actor: "test" });
+  const { publishEntity } = await import("../../admin/contentService.js");
+  publishEntity({ id: "place-1", actor: "test" });
+  changeEntitySlug({ id: "place-1", newSlug: "shared-text-moved", confirmed: true, actor: "test" });
+  // "shared-text" is now historically reserved in the ENTITY domain only.
+  assert.throws(() => changeEntitySlug({ id: "place-2", newSlug: "shared-text", actor: "test" }), ContentConflictError);
+
+  // A page may still freely use "shared-text" — separate domain, separate reservation.
+  const page = createPage({ fields: { id: "page-1", slug: "shared-text", title: { tr: "T" } }, actor: "test" });
+  assert.equal(page.slug, "shared-text");
 });

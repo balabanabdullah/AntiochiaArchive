@@ -26,15 +26,44 @@
     return match ? decodeURIComponent(match[1]) : null;
   }
 
+  // A network-level failure (backend down, unreachable, DNS/connection
+  // refused, CORS rejection) throws a raw browser TypeError — "Failed to
+  // fetch" in Chromium, "NetworkError when attempting to fetch resource"
+  // in Firefox — neither of which means anything to a non-technical Turkish
+  // admin. This wrapper is the ONE place that distinguishes "we got a
+  // response" (a normal auth failure, handled by its own specific message)
+  // from "we never got a response at all" (manual QA round, "generic error
+  // message" finding), converting the latter into one clear, understandable
+  // message every caller below can rely on.
+  async function fetchOrUnreachable(...args) {
+    try {
+      return await fetch(...args);
+    } catch {
+      throw new Error("Yönetim servisine ulaşılamadı.");
+    }
+  }
+
+  /**
+   * Manual QA round, "environment safety badge": returns the environment
+   * metadata (environment/runtimeContentStore/mediaStorageDriver — see
+   * backend/admin/adminRoutes.js's getEnvironmentInfo(), never a secret)
+   * alongside `authenticated`, so the badge can render on the login screen
+   * itself, before any session exists — not only after logging in.
+   */
   async function checkSession() {
-    const response = await fetch(`${API_BASE}/session`, { credentials: "same-origin", cache: "no-store" });
-    if (!response.ok) return false;
-    const body = await response.json();
-    return body?.data?.authenticated === true;
+    const response = await fetchOrUnreachable(`${API_BASE}/session`, { credentials: "same-origin", cache: "no-store" });
+    if (!response.ok) return { authenticated: false };
+    const body = await response.json().catch(() => null);
+    return {
+      authenticated: body?.data?.authenticated === true,
+      environment: body?.data?.environment ?? null,
+      runtimeContentStore: body?.data?.runtimeContentStore ?? null,
+      mediaStorageDriver: body?.data?.mediaStorageDriver ?? null,
+    };
   }
 
   async function login(token) {
-    const response = await fetch(`${API_BASE}/login`, {
+    const response = await fetchOrUnreachable(`${API_BASE}/login`, {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
@@ -42,7 +71,7 @@
     });
     const body = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new Error(body?.error || "Yönetici anahtarı geçersiz.");
+      throw new Error(body?.error || "Giriş servisi şu anda kullanılamıyor.");
     }
     return true;
   }
@@ -68,11 +97,24 @@
     }
     if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
-    const response = await fetch(`${base}${path}`, { ...options, method, headers, credentials: "same-origin" });
+    const response = await fetchOrUnreachable(`${base}${path}`, { ...options, method, headers, credentials: "same-origin" });
     let data = null;
     try { data = await response.json(); } catch (_) { /* empty body */ }
     if (!response.ok) {
-      throw new Error(data?.error || `İstek başarısız oldu (${response.status}).`);
+      const error = new Error(data?.error || `İstek başarısız oldu (${response.status}).`);
+      // "UX refinement" round, Sections 9/16: a 409 from createEntity()/
+      // changeEntitySlug() carries a ready-to-use suggestedId/suggestedSlug
+      // (never a dead end) and/or requiresConfirmation (the "this entity has
+      // ever been published" confirm-gate) — surfaced here as real
+      // properties on the thrown Error, not just folded into its message
+      // string, so a caller that wants to act on them (e.g. offer the
+      // suggested slug, or retry with confirmed:true) can, while every
+      // existing caller that only reads error.message is unaffected.
+      error.status = response.status;
+      error.suggestedId = data?.suggestedId;
+      error.suggestedSlug = data?.suggestedSlug;
+      error.requiresConfirmation = data?.requiresConfirmation;
+      throw error;
     }
     return data;
   }

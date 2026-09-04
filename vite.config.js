@@ -4,6 +4,74 @@
 import { defineConfig } from "vite";
 import { readFile } from "node:fs/promises";
 
+// LOCAL, UNCOMMITTED addition for the "local SQLite activation" walkthrough
+// (not part of any committed round): `vite preview` (serving the real
+// dist/ build, needed so runtime cultural-entity detail pages can resolve
+// their real hashed asset filenames — vite dev's raw index.html has no
+// /assets/*-<hash>.js paths at all) does not automatically inherit
+// `server.proxy` the way `vite dev` does; it needs its own `preview.proxy`.
+// Shared here so both stay identical without hand-duplicating every entry.
+const BACKEND_PROXY_TARGETS = Object.freeze({
+  "/api": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+  "/health": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+  "/sayfa": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+  "/archive-v2": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+  "/media": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+  "/sitemap-runtime.xml": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+  "/sitemap-index.xml": { target: process.env.VITE_API_PROXY_TARGET || "http://localhost:5000", changeOrigin: true },
+});
+
+/**
+ * LOCAL, UNCOMMITTED addition (manual QA round, Bug 1): the clean
+ * `/admin/` alias (and `/admin` -> `/admin/` redirect) previously existed
+ * ONLY in nginx/default.conf's `location = /admin` / `location = /admin/`
+ * blocks — production-topology-only. Neither `vite dev`'s nor
+ * `vite preview`'s server ever had an equivalent, so a non-technical local
+ * user hitting the same canonical URL the real site uses got a bare 404,
+ * and had to already know the internal `/pages/admin.html` path instead.
+ * This mirrors nginx's exact behavior for both local dev commands: a GET
+ * to `/admin` redirects to `/admin/`; a GET to `/admin/` is rewritten to
+ * `/pages/admin.html` before Vite's own routing/static-serving middleware
+ * ever sees it, so it renders (and, in dev, hot-reloads) exactly like
+ * navigating to `/pages/admin.html` directly always has.
+ */
+/**
+ * Pure decision logic, deliberately separated from any Vite/Node request
+ * object so it can be unit-tested directly (see test/admin-clean-url.test.js)
+ * without booting a real dev/preview server. Mirrors nginx/default.conf's
+ * `location = /admin` (301 to `/admin/`) and `location = /admin/`
+ * (try_files /pages/admin.html) exactly — same two cases, same outcomes.
+ */
+export function resolveAdminCleanUrl(url) {
+  const [pathname] = String(url || "").split(/[?#]/, 1);
+  if (pathname === "/admin") return { redirectTo: "/admin/" };
+  if (pathname === "/admin/") return { rewriteTo: url.replace("/admin/", "/pages/admin.html") };
+  return null;
+}
+
+function adminCleanUrlPlugin() {
+  const middleware = (req, res, next) => {
+    const outcome = resolveAdminCleanUrl(req.url);
+    if (outcome?.redirectTo) {
+      res.statusCode = 301;
+      res.setHeader("Location", outcome.redirectTo);
+      res.end();
+      return;
+    }
+    if (outcome?.rewriteTo) req.url = outcome.rewriteTo;
+    next();
+  };
+  return {
+    name: "antiochia-admin-clean-url",
+    configureServer(server) {
+      server.middlewares.use(middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware);
+    },
+  };
+}
+
 const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "lang.js",
   "archive-api.js",
@@ -23,6 +91,9 @@ const VERSIONED_PUBLIC_SCRIPTS = Object.freeze([
   "js/map.js",
   "js/collections.js",
   "js/music.js",
+  "js/environment-badge.js",
+  "js/slug-utils.js",
+  "js/editor-mode-copy.js",
   "js/admin-panel.js",
 ]);
 
@@ -77,7 +148,7 @@ function versionPublicScripts() {
 
 export default defineConfig({
   appType: "mpa",
-  plugins: [versionPublicScripts()],
+  plugins: [versionPublicScripts(), adminCleanUrlPlugin()],
 
   // ── Kök dizin ──────────────────────────────────────────────────────
   root: ".",
@@ -174,5 +245,6 @@ export default defineConfig({
   preview: {
     host: "0.0.0.0",
     port: 4173,
+    proxy: BACKEND_PROXY_TARGETS,
   },
 });
